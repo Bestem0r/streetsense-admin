@@ -1,0 +1,14 @@
+export interface PolesInterface {
+  id?: string;
+  location?: {
+    type: string;
+    coordinates: number[];
+  };
+  poleId: string;
+  speed?: number;
+  hdop?: number;
+  altitude?: number;
+  fixType?: number;
+  courseOverGround?: number;
+  capturedDate?: string;
+}
