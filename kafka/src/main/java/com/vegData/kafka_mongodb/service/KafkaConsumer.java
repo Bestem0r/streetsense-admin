@@ -7,6 +7,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.InsertOneResult;
+import com.vegData.kafka_mongodb.collection.ImageInfo;
 import com.vegData.kafka_mongodb.collection.Poles;
 import com.vegData.kafka_mongodb.collection.RawDataPole;
 import com.vegData.kafka_mongodb.repository.PolesRepository;
@@ -18,6 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+
+import java.util.ArrayList;
+import java.util.UUID;
+
+
 
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -52,7 +58,7 @@ public class KafkaConsumer {
     @Autowired
     private PolesRepository polesRepository;
 
-    private final String imgDir = "/var/www/RoadPolesImages/kafkaTest/";
+    private final String imgDir = "/var/www/RoadPolesImages/2026/";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
 
@@ -70,19 +76,32 @@ public class KafkaConsumer {
     public void consume(RawDataPole data) {
 
         try {
+            System.out.println(">>> CONSUMED DATA FROM KAFKA: " + data.toString());
             MongoCollection<Poles> collection = database.getCollection(collectionName, Poles.class);
             GeoJsonPoint location = new GeoJsonPoint(data.getNmeaInfo().getLongitude(),
                     data.getNmeaInfo().getLatitude());
+            Poles nearestPole = polesRepository.findNearestPole(location.getX(), location.getY());
 
-            Poles[] nearPoles = polesRepository
-                    .findNearestPoles(data.getCapturedDate(), location.getX(), location.getY()).toArray(Poles[]::new);
+            
 
-            if(nearPoles.length > 0) {
-                System.out.println(nearPoles[0]);
-                LOGGER.info("*** Pole Data exists **** ");
+            if(nearestPole != null && data.getImageBytes() != null && !data.getImageBytes().isEmpty()) {
+                String imageId = UUID.randomUUID().toString();
+                String capturedDate = data.getCapturedDate();
+                nearestPole.getImages().add(new ImageInfo(imageId, capturedDate));
+                polesRepository.save(nearestPole);
+                Path filePath = Paths.get(imgDir + imageId + ".jpg");
+                Files.createDirectories(filePath.getParent());
+                Files.write(filePath, data.getImageBytes().get(0));
+        
+
+
+
+
+
             } else {
+                System.out.println("test");
                 Poles pole = new Poles();
-                pole.setPoleId(data.getPoleId());
+                
                 pole.setAltitude(data.getNmeaInfo().getAltitude());
                 pole.setSpeed((int) data.getNmeaInfo().getSpeedOverGround());
                 pole.setFixType(data.getNmeaInfo().getFixType());
@@ -92,10 +111,20 @@ public class KafkaConsumer {
                 pole.setLocation(location);
                 pole.setFieldOfView(data.getCameraInfo().getFieldOfView());
                 pole.setSatellitesUsed(data.getNmeaInfo().getSatellitesUsed());
-                System.out.println("Pole ID: " + pole.toString());
-                // getNearestPole(pole.getCapturedDate(), pole.getLocation().getX(),
-                // pole.getLocation().getY());
+                if (data.getImageBytes() != null && !data.getImageBytes().isEmpty()) {
+                    String imageId = UUID.randomUUID().toString();
+                    pole.getImages().add(new ImageInfo(imageId, data.getCapturedDate()));
+                    Path filePath = Paths.get(imgDir + imageId + ".jpg");
+                    Files.createDirectories(filePath.getParent());
+                    Files.write(filePath, data.getImageBytes().get(0));
+                }
                 InsertOneResult result = collection.insertOne(pole);
+                String poleId = result.getInsertedId().asObjectId().getValue().toHexString();
+                // return the newly created pole with the generated poleId from MongoDB
+                Poles newPole = polesRepository.findById(poleId).orElse(null);
+
+
+                System.out.println(">>> result: " + newPole.toString()); 
     
                 if (result.wasAcknowledged()) {
                     LOGGER.info("*** kafka Message saved **** ");
@@ -105,11 +134,11 @@ public class KafkaConsumer {
             }
     
         } catch (Exception e) {
-            LOGGER.error("Error while consuming message", e.getCause());
+            LOGGER.error("Error while consuming message", e);
         }
     }
 
-    @KafkaListener(topics = "pole-images", groupId = "${spring.kafka.consumer.group-id}", containerFactory = "kafkaListenerContainerFactoryImage")
+    /* @KafkaListener(topics = "pole-images", groupId = "${spring.kafka.consumer.group-id}", containerFactory = "kafkaListenerContainerFactoryImage")
     public void ConsumeImage(byte[] image, @Header(KafkaHeaders.RECEIVED_KEY) String fileName) {
         try {
             Path filePath = Paths.get(imgDir + fileName);
@@ -119,7 +148,7 @@ public class KafkaConsumer {
             Files.write(filePath, image);
             LOGGER.info("Image saved to: " + filePath.toString());
         } catch (Exception e) {
-            LOGGER.error("Error while consuming image", e.getCause());
+            LOGGER.error("Error while consuming image", e);
         }
-    }
+    } */
 }

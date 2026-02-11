@@ -1,5 +1,9 @@
 package com.vegData.kafka_mongodb.collection;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -15,7 +19,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Poles {
-
+    @Id
+    private String id;
     private String poleId;
     private double altitude;
     private int speed;
@@ -27,4 +32,6 @@ public class Poles {
     private GeoJsonPoint location;
     private double fieldOfView;
     private int satellitesUsed;
+    private List<ImageInfo> images = new ArrayList<>();
 }
+

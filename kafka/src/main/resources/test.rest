@@ -1,0 +1,5 @@
+GET http://dt14.idi.ntnu.no:9091/api/poles
+
+
+
+//PUT http://dt14.idi.ntnu.no:9091/api/poles/69847a3299a15e54ca0f9699/date?newDate=2026-02-05

@@ -16,20 +16,26 @@ public class KafkaProducerService {
     private String topicName;
 
     private final KafkaTemplate<String, RawDataPole> kafkaTemplate;
-    private final KafkaTemplate<String, byte[]> imageKafkaTemplate;
+    //private final KafkaTemplate<String, byte[]> imageKafkaTemplate;
+    
 
     public KafkaProducerService(KafkaTemplate<String, RawDataPole> kafkaTemplate,
             KafkaTemplate<String, byte[]> imageKafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
-        this.imageKafkaTemplate = imageKafkaTemplate;
+        //this.imageKafkaTemplate = imageKafkaTemplate;
     }
 
-    public void sendMessage(String key, RawDataPole msg) {
+    /* public void sendMessage(String key, RawDataPole msg) {
         ProducerRecord<String, RawDataPole> record = new ProducerRecord<>(topicName, key, msg);
         kafkaTemplate.send(record);
-    }
+    } */
 
-    public void sendImage(byte[] imageBytes, String fileName) {
+    /* public void sendImage(byte[] imageBytes, String fileName) {
+        System.out.println(">>> SENDING IMAGE TO KAFKA: " + fileName + " size=" + imageBytes.length);
         imageKafkaTemplate.send("pole-images", fileName, imageBytes);
+    }
+ */
+    public void sendData(RawDataPole data) {
+        kafkaTemplate.send(topicName, data);
     }
 }
