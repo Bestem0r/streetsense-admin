@@ -1,4 +1,4 @@
-package com.vegData.kafka_mongodb.collection;
+package com.vegobject.springboot_mongodb.collection;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

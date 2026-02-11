@@ -1,15 +1,15 @@
 package com.vegobject.springboot_mongodb.service;
 
 import com.vegobject.springboot_mongodb.collection.CapturedDates;
-import com.vegobject.springboot_mongodb.collection.Poles;
+import com.vegobject.springboot_mongodb.collection.Pole;
 
 public interface PolesService {
 
-    Poles[] getPoles();
+  Pole[] getPoles();
 
-    Poles[] getPolesByDate(long cdate);
+  Pole[] getPolesByDate(long cdate);
 
-    CapturedDates getCapturedDateStrings();
+  CapturedDates getCapturedDateStrings();
 
-    Poles[] getPolesNear(String capturedData, double longitude, double latitude);
+  Pole[] getPolesNear(String capturedData, double longitude, double latitude);
 }
