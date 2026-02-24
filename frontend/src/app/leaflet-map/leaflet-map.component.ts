@@ -26,7 +26,7 @@ export class LeafletMapComponent implements AfterViewInit {
     private sharedDataService: SharedDataServiceService,
     private router: Router,
 
-    private activateRouter: ActivatedRoute
+    private activateRouter: ActivatedRoute,
   ) {}
 
   // test
@@ -53,14 +53,14 @@ export class LeafletMapComponent implements AfterViewInit {
       {
         attribution:
           '&copy; <a href="http://www.kartverket.no/">Kartverket</a>',
-      }
+      },
     );
     const osmTiles = L.tileLayer(
       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
         attribution:
           '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }
+      },
     );
 
     this.map.addLayer(tiles);
@@ -78,9 +78,8 @@ export class LeafletMapComponent implements AfterViewInit {
     this.poleData = poleDataString
       ? (JSON.parse(poleDataString) as PolesInterface)
       : { poleId: '' };
-
     const routeParam = this.activateRouter.snapshot.url.findIndex(
-      (e) => e.path == 'map'
+      (e) => e.path == 'map',
     );
     this.cdate = this.activateRouter.snapshot.paramMap.get('cdate') || '';
     if (routeParam !== -1) this.fetchPoleData();
@@ -132,26 +131,30 @@ export class LeafletMapComponent implements AfterViewInit {
         ) {
           const latitude = parseFloat(pole.location?.coordinates[1].toFixed(5));
           const longitude = parseFloat(
-            pole.location?.coordinates[0].toFixed(5)
+            pole.location?.coordinates[0].toFixed(5),
           );
+          const latestImage = pole.images?.reduce((latest, current) => {
+            return new Date(current.capturedDate) >
+              new Date(latest.capturedDate)
+              ? current
+              : latest;
+          });
           this.markerCoordinates.push([latitude, longitude]);
           var marker = L.marker([latitude, longitude], {
             icon: this.markerIcon,
           });
-          (marker as any).id = pole.poleId;
-          const cdate = pole.capturedDate?.split('-').join('');
+          (marker as any).id = pole.id;
           const imgUrl =
-            'http://dt14.idi.ntnu.no/RoadPolesImages/' +
-            cdate +
-            '/' +
-            pole.poleId +
+            'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
+            latestImage?.imageId +
             '.jpg';
+
           const popupMsg =
             ' <p class="imgBlock"> <img src="' +
             imgUrl +
             '" width=100 /> </p> <br> <div>' +
-            '<p>PoleId: ' +
-            pole.poleId +
+            '<p>Id: ' +
+            pole.id +
             '</p>' +
             '<p>Latitude: ' +
             latitude +
@@ -198,17 +201,18 @@ export class LeafletMapComponent implements AfterViewInit {
     }
   }
 
-  viewImage(poleId: string, coordinates: L.LatLng, popupContent: string) {
-    this.router.navigate(['/image', this.cdate, poleId]);
+  viewImage(id: string, coordinates: L.LatLng, popupContent: string) {
+    this.router.navigate(['/image', this.cdate, id]);
     const poleData = {
-      poleId: poleId,
+      id: id,
       lat: coordinates.lat,
       lng: coordinates.lng,
       popupContent: popupContent,
     };
+    console.log(poleData);
     localStorage.setItem('poleData', JSON.stringify(poleData));
     this.sharedDataService.setPoleData({
-      poleId: poleId,
+      poleId: id,
       location: {
         type: 'Point',
         coordinates: [coordinates.lat, coordinates.lng],

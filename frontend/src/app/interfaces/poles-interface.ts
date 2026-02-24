@@ -11,4 +11,5 @@ export interface PolesInterface {
   fixType?: number;
   courseOverGround?: number;
   capturedDate?: string;
+  images?: { imageId: string; capturedDate: string }[];
 }

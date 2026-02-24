@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -74,4 +75,23 @@ public class PolesController {
       return new Pole[0]; // Return an empty array or handle the error as needed
     }
   }
+
+  // delete a pole by id
+
+  @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+  public void deletePoleById(@PathVariable String id) {
+    polesService.deletePoleById(id);
+  }
+
+  @GetMapping("/id/{id}")
+  public Pole getPoleById(@PathVariable String id) {
+    return polesService.getPoleById(id);
+  }
+
+  /* @PutMapping("/updateCapturedDates")
+  public void updateCapturedDatesToUnixTimestamps() {
+    polesService.updateCapturedDatesToUnixTimestamps();
+  }
+} */
+
 }

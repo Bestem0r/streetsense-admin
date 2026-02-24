@@ -1,34 +1,33 @@
 .container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-column-gap: 2em;
-
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column-gap: 2em;
 }
 .imgContainer {
-    justify-content: center;
-    margin:20px;
-    height:90vh;
-    overflow: hidden;
+  justify-content: center;
+  margin: 20px;
+  height: 90vh;
+  overflow: hidden;
 }
 
 .mapContainer {
-    justify-content: center;
-    margin: 20px;
+  justify-content: center;
+  margin: 20px;
 
-    .home-button {
-        position: absolute;
-        right: 25px;
-        top: 25px;
-        width: 60px;
-        height: 60px;
-        z-index: 9999;
-    }
-    .map-button {
-        position: absolute;
-        right: 100px;
-        top: 25px;
-        width: 60px;
-        height: 60px;
-        z-index: 9999;
-    }
+  .home-button {
+    position: absolute;
+    right: 25px;
+    top: 25px;
+    width: 60px;
+    height: 60px;
+    z-index: 9999;
+  }
+  .map-button {
+    position: absolute;
+    right: 100px;
+    top: 25px;
+    width: 60px;
+    height: 60px;
+    z-index: 9999;
+  }
 }

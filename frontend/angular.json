@@ -20,9 +20,7 @@
             "outputPath": "dist/mp-frontend",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -31,9 +29,9 @@
                 "input": "public"
               },
               {
-                  "glob": "**/*",
-                  "input": "src/assets",
-                  "output": "assets"
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
               }
             ],
             "styles": [
@@ -43,7 +41,7 @@
             ],
             "scripts": [],
             "server": "src/main.server.ts",
-            "prerender":false,
+            "prerender": false,
             "ssr": false
           },
           "configurations": {
@@ -95,10 +93,7 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [

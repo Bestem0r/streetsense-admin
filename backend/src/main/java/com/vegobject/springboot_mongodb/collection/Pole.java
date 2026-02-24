@@ -25,13 +25,12 @@ public class Pole {
   private int fixType;
   private double courseOverGround;
   private double hdop;
-  private String capturedDate;
+  private Long capturedDate;
   // @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
   private Geometry gps;
 
   @Field("location")
   @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
   private GeoJsonPoint location;
-
   private List<ImageInfo> images = new ArrayList<>();
 }

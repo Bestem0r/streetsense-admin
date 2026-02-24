@@ -7,9 +7,15 @@ public interface PolesService {
 
   Pole[] getPoles();
 
+  Pole getPoleById(String id);
+
   Pole[] getPolesByDate(long cdate);
 
   CapturedDates getCapturedDateStrings();
 
   Pole[] getPolesNear(String capturedData, double longitude, double latitude);
+  void deletePoleById(String id);
+  
+  // change all capturedDate values to unix timestamps
+  /* void updateCapturedDatesToUnixTimestamps(); */
 }

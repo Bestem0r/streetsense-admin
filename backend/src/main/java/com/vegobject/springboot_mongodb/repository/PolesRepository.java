@@ -11,12 +11,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PolesRepository extends MongoRepository<Pole, String> {
 
-  //     @Aggregation(pipeline = {
-  //         "{'$match':{'transaction_type':?0, 'price': {$gt: ?1} }}",
-  //         "{'$sample':{size:?2}}",
-  //         "{'$sort':{'area':-1}}"
-  // })
-
   @Aggregation(
       pipeline = {
         "{'$group':{ '_id': null, 'capturedDates': {'$addToSet': '$capturedDate'}}}",
@@ -26,6 +20,9 @@ public interface PolesRepository extends MongoRepository<Pole, String> {
 
   @Query("{capturedDate:'?0'}")
   List<Pole> findAllByCapturedDate(String capturedDate);
+
+  @Query("{ 'capturedDate': { $gte: ?0, $lt: ?1 } }")
+List<Pole> findAllByCapturedDateBetween(long start, long end);
 
   @Aggregation(
       pipeline = {
@@ -40,4 +37,12 @@ public interface PolesRepository extends MongoRepository<Pole, String> {
         "}}"
       })
   List<Pole> findNearestPoles(String capturedData, double longitude, double latitude);
+
+  @Aggregation(
+      pipeline = {
+        "{'$match': { '_id': '?0' }}"
+      })
+  Pole findPoleById(String id);
+
+
 }

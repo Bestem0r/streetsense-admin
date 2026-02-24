@@ -58,13 +58,6 @@ public class KafkaController {
     kafkaProducerService.sendData(payload);
     System.out.println(">>> DATA RECEIVED FOR KAFKA: " + payload.toString());
     System.out.println(">>> NUMBER OF IMAGES: " + (images != null ? images.length : 0));
-
-    /* if (images != null) {
-        for (MultipartFile image : images) {
-            System.out.println(">>> IMAGE RECEIVED: " + image.getOriginalFilename());
-            kafkaProducerService.sendImage(image.getBytes(), image.getOriginalFilename());
-        }
-    } */
     return ResponseEntity.ok("Data and images sent to Kafka topic");
   }
 

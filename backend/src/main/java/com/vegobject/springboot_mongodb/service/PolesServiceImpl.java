@@ -10,6 +10,9 @@ import com.vegobject.springboot_mongodb.collection.Pole;
 import com.vegobject.springboot_mongodb.repository.PolesRepository;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,12 +37,31 @@ public class PolesServiceImpl implements PolesService {
     return polesRepository.findAll().toArray(Pole[]::new);
   }
 
-  public Pole[] getPolesByDate(long cdate) {
+  /* public Pole[] getPolesByDate(long cdate) {
+    System.out.println("Received cdate: " + cdate);
     Timestamp ts = new Timestamp(cdate);
+    System.out.println("Converted timestamp: " + ts);
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
     String captureddate = formatter.format(ts);
     return polesRepository.findAllByCapturedDate(captureddate).toArray(Pole[]::new);
-  }
+  } */
+
+  public Pole[] getPolesByDate(long cdate) {
+    System.out.println("Received cdate: " + cdate);
+
+    // convert unix milliseconds to LocalDate
+    LocalDate date = Instant.ofEpochMilli(cdate)
+            .atZone(ZoneOffset.UTC)
+            .toLocalDate();
+    System.out.println("Converted date: " + date.toString());
+
+    long startOfDay = date.atStartOfDay(ZoneOffset.UTC).toEpochSecond();
+    long endOfDay = date.plusDays(1).atStartOfDay(ZoneOffset.UTC).toEpochSecond();
+
+    return polesRepository
+            .findAllByCapturedDateBetween(startOfDay, endOfDay)
+            .toArray(Pole[]::new);
+}
 
   public CapturedDates getCapturedDateStrings() {
     return polesRepository.findAllCapturedDate();
@@ -77,7 +99,7 @@ public class PolesServiceImpl implements PolesService {
             pole.setFixType(doc.getInteger("fixType"));
             pole.setCourseOverGround(doc.getDouble("courseOverGround"));
             pole.setHdop(doc.getDouble("hdop"));
-            pole.setCapturedDate(doc.getString("capturedDate"));
+            pole.setCapturedDate(doc.getLong("capturedDate"));
             pole.setLocation(
                 new GeoJsonPoint(
                     doc.get("loca", Document.class).getList("coordinates", Double.class).get(0),
@@ -91,4 +113,40 @@ public class PolesServiceImpl implements PolesService {
       mongoClient.close();
     }
   }
+
+  public void deletePoleById(String id) {
+    try {
+      polesRepository.deleteById(id);
+    } catch (Exception e) {
+      throw new RuntimeException("Error deleting pole with id: " + id, e);
+    }}
+
+  public Pole getPoleById(String id) {
+    try {
+      return polesRepository.findById(id).orElseThrow(() -> new RuntimeException("Pole not found with id: " + id));
+    } catch (Exception e) {
+      throw new RuntimeException("Error retrieving pole with id: " + id, e);
+    }
+  }
+
+  // to be deleted after all capturedDate values have been updated to unix timestamps
+  /* public void updateCapturedDatesToUnixTimestamps() {
+    polesRepository.findAll().forEach(pole -> {
+      try {
+        Long unixSeconds = Dateparser.toUnixSeconds(pole.getCapturedDate());
+        if (unixSeconds != null) {
+          pole.setCapturedDate(String.valueOf(unixSeconds));
+          polesRepository.save(pole);
+        } else {
+          System.out.println("Could not parse capturedDate for pole with id: " + pole.getId());
+        }
+      } catch (Exception e) {
+        System.out.println("Error updating capturedDate for pole with id: " + pole.getId() + " - " + e.getMessage());
+      }
+
+    }); }
+ */
+  
+
+  
 }
