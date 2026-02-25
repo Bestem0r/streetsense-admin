@@ -33,7 +33,6 @@ export class MapViewComponent {
   }
 
   fetchPoles = async (cdate: string) => {
-    console.log('Fetching poles for date:', cdate);
     this.sharedDataService.setPolesData([]);
     const capturedDate = parseInt(cdate);
     const poles = await this.polesService

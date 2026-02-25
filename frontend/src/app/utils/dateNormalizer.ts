@@ -8,10 +8,10 @@ export function normalizeDate(input: string): string | null {
 
   const value = String(input);
 
-  // Unix timestamp seconds
-  if (/^\d+(\.\d+)?$/.test(value)) {
-    const seconds = parseFloat(value);
-    return new Date(seconds * 1000).toISOString().split('T')[0];
+  // Unix timestamp in milliseconds
+  if (/^\d{13}$/.test(value)) {
+    const milliseconds = parseInt(value, 10);
+    return new Date(milliseconds).toISOString().split('T')[0];
   }
 
   const d = new Date(value);

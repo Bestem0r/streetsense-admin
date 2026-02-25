@@ -1,4 +1,4 @@
-GET http://dt14.idi.ntnu.no:9091/api/poles
+GET http://localhost:9091/api/poles
 
 
 //PUT http://localhost:9091/api/poles/updateCapturedDates/all
@@ -8,4 +8,4 @@ GET http://dt14.idi.ntnu.no:9091/api/poles
 
 ###
 
-GET http://localhost:9091/api/poles/1770595200000
+GET http://localhost:9091/api/poles/1771891200000

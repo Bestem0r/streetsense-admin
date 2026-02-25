@@ -35,7 +35,6 @@ export class CalenderComponent {
 
   getCapturedDates = async () => {
     const data: any = await lastValueFrom(this.polesService.getCapturedDates());
-
     if (data?.capturedDates?.length) {
       this.polesEvents = data.capturedDates
         .map((raw: string) => {

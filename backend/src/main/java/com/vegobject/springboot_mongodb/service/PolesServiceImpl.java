@@ -47,17 +47,11 @@ public class PolesServiceImpl implements PolesService {
   } */
 
   public Pole[] getPolesByDate(long cdate) {
-    System.out.println("Received cdate: " + cdate);
-
-    // convert unix milliseconds to LocalDate
-    LocalDate date = Instant.ofEpochMilli(cdate)
+    LocalDate date = Instant.ofEpochSecond(cdate)
             .atZone(ZoneOffset.UTC)
             .toLocalDate();
-    System.out.println("Converted date: " + date.toString());
-
     long startOfDay = date.atStartOfDay(ZoneOffset.UTC).toEpochSecond();
     long endOfDay = date.plusDays(1).atStartOfDay(ZoneOffset.UTC).toEpochSecond();
-
     return polesRepository
             .findAllByCapturedDateBetween(startOfDay, endOfDay)
             .toArray(Pole[]::new);
