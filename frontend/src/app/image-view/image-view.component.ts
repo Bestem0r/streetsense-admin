@@ -1,7 +1,6 @@
-import { NgOptimizedImage } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import { SharedDataServiceService } from '../service/shared-data-service.service';
 import * as L from 'leaflet';
 import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
@@ -12,15 +11,17 @@ import { PolesService } from '../service/poles.service';
 
 @Component({
   selector: 'app-image-view',
-  imports: [LeafletMapComponent, MatButtonModule, MatIconModule],
+  imports: [LeafletMapComponent, MatButtonModule, MatIconModule, CommonModule],
   templateUrl: './image-view.component.html',
   styleUrl: './image-view.component.scss',
 })
 export class ImageViewComponent {
   poleData!: PolesInterface;
+  Images: any[] = [];
   id!: string;
   cdate!: string;
   imgUrl!: string;
+  selectedImage: any = null;
   private map!: L.Map;
 
   constructor(
@@ -32,8 +33,7 @@ export class ImageViewComponent {
     // this.poleData = this.sharedDataService.getPoleData();
   }
 
-  ngOnInit() {
-    // const cdate = 20250304;
+  ngOnInit() {  
     this.activateRouter.paramMap.subscribe((params) => {
       this.cdate = params.get('cdate') || '';
       this.id = params.get('id') || '';
@@ -41,7 +41,8 @@ export class ImageViewComponent {
 
     this.polesService.getPoleById(this.id).subscribe((pole) => {
       this.poleData = pole;
-      const imageId = this.poleData?.images?.[0]?.imageId;
+      this.sortImagesByDate();
+      const imageId = this.Images?.[0]?.imageId;
       if (imageId) {
         this.imgUrl =
           'http://dt14.idi.ntnu.no/RoadPolesImages/2026' +
@@ -65,5 +66,21 @@ export class ImageViewComponent {
     } else {
       this.router.navigate([link]);
     }
+  }
+
+  sortImagesByDate() {
+    if (this.poleData?.images) {
+      this.Images = [...this.poleData.images].sort(
+        (a, b) => +b.capturedDate - +a.capturedDate,
+      );
+    }
+  }
+
+  openImage(image: any) {
+    this.selectedImage = image;
+  }
+
+  closeImage() {
+    this.selectedImage = null;
   }
 }

@@ -20,6 +20,7 @@ export class LeafletMapComponent implements AfterViewInit {
     iconUrl: 'assets/marker_pink.png',
     iconSize: [20, 20],
     iconAnchor: [13, 20],
+    popupAnchor: [0, -20],
   });
 
   constructor(
@@ -39,7 +40,6 @@ export class LeafletMapComponent implements AfterViewInit {
   private initMap(): void {
     // Check if the map is already initialized
     if (this.map) {
-      console.warn('Map container is already initialized.');
       return;
     }
 
@@ -149,36 +149,26 @@ export class LeafletMapComponent implements AfterViewInit {
             latestImage?.imageId +
             '.jpg';
 
-          const popupMsg =
-            ' <p class="imgBlock"> <img src="' +
-            imgUrl +
-            '" width=100 /> </p> <br> <div>' +
-            '<p>Id: ' +
-            pole.id +
-            '</p>' +
-            '<p>Latitude: ' +
-            latitude +
-            '</p>' +
-            '<p>Longitude: ' +
-            longitude +
-            '</p>' +
-            '<p>Speed: ' +
-            pole.speed +
-            '</p>' +
-            '<p> Altitude: ' +
-            pole.altitude +
-            '</p>' +
-            '<p> Fixtype: ' +
-            pole.fixType +
-            '</p>' +
-            '<p> CourseOverGround: ' +
-            pole.courseOverGround +
-            '</p>' +
-            '<p> hdop: ' +
-            pole.hdop +
-            '</p>' +
-            '<button class="viewImgBtn">View Image</button>';
-          ('</div>');
+          const popupMsg = `
+  <div class="popup-card">
+    <div class="imgBlock">
+      <img src="${imgUrl}" />
+    </div>
+
+    <div class="info">
+      <p><b>ID:</b> ${pole.id}</p>
+      <p><b>Latest Inspection:</b> ${latestImage?.capturedDate}</p>
+      <p><b>Lat:</b> ${latitude}</p>
+      <p><b>Long:</b> ${longitude}</p>
+      <p><b>Speed:</b> ${pole.speed}</p>
+      <p><b>Altitude:</b> ${pole.altitude}</p>
+      <p><b>Fix:</b> ${pole.fixType}</p>
+      <p><b>HDOP:</b> ${pole.hdop}</p>
+
+      <button class="viewImgBtn">View Image</button>
+    </div>
+  </div>
+`;
           marker
             .addTo(this.map)
             .bindPopup(popupMsg)
@@ -188,7 +178,6 @@ export class LeafletMapComponent implements AfterViewInit {
                 .getElement()
                 .querySelector('.viewImgBtn')
                 .addEventListener('click', (e: any) => {
-                  console.log(popUp._content);
                   this.viewImage(a.target.id, a.target._latlng, popUp._content);
                 });
             });
@@ -209,7 +198,6 @@ export class LeafletMapComponent implements AfterViewInit {
       lng: coordinates.lng,
       popupContent: popupContent,
     };
-    console.log(poleData);
     localStorage.setItem('poleData', JSON.stringify(poleData));
     this.sharedDataService.setPoleData({
       poleId: id,

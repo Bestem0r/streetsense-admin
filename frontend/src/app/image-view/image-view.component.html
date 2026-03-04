@@ -1,5 +1,31 @@
 <div class="container">
-  <div class="imgContainer"><img [src]="imgUrl" width="600" /> <br /></div>
+  <div class="dataContainer">
+    <div class="inspections-container">
+      <h2 class="title">Inspection History</h2>
+
+      <div class="inspections-list">
+        <div *ngFor="let image of Images" class="inspection-card">
+          <img
+            class="inspection-image cursor-pointer"
+            [src]="
+              'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
+              image.imageId +
+              '.jpg'
+            "
+            alt="Inspection Image"
+            (click)="openImage(image)"
+          />
+
+          <div class="inspection-content">
+            <p class="label">Inspection Date</p>
+            <p class="date">
+              {{ image.capturedDate | date: "medium" }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="mapContainer">
     <app-leaflet-map></app-leaflet-map>
     <button
@@ -17,6 +43,22 @@
       (click)="navigateTo('')"
     >
       <mat-icon>home</mat-icon>
+    </button>
+  </div>
+</div>
+<!-- Fullscreen Image Modal -->
+<div *ngIf="selectedImage" class="fullscreen-modal" (click)="closeImage()">
+  <div (click)="$event.stopPropagation()">
+    <img
+      [src]="
+        'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
+        selectedImage.imageId +
+        '.jpg'
+      "
+      alt="Fullscreen Image"
+    />
+    <button (click)="closeImage()" mat-icon-button>
+      <mat-icon>close</mat-icon>
     </button>
   </div>
 </div>
