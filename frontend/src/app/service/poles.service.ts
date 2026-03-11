@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { PolesInterface } from '../interfaces/poles-interface';
@@ -9,7 +9,7 @@ import { PolesInterface } from '../interfaces/poles-interface';
 export class PolesService {
   private baseUrl = environment.apiUrl + '/poles';
 
-  constructor(private httpClient: HttpClient) {}
+  private httpClient = inject(HttpClient);
 
   getPoles() {
     return this.httpClient.get<PolesInterface[]>(this.baseUrl);

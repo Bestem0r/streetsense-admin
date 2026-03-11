@@ -2,7 +2,7 @@ export interface PolesInterface {
   id?: string;
   location?: {
     type: string;
-    coordinates: number[];
+    coordinates: [number, number];
   };
   poleId: string;
   speed?: number;

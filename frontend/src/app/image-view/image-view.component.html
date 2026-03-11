@@ -1,28 +1,33 @@
-<div class="container">
+<div class="w-full grid grid-cols-2 gap-4 h-screen p-5">
   <div class="dataContainer">
     <div class="inspections-container">
       <h2 class="title">Inspection History</h2>
 
       <div class="inspections-list">
-        <div *ngFor="let image of Images" class="inspection-card">
-          <img
-            class="inspection-image cursor-pointer"
-            [src]="
-              'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
-              image.imageId +
-              '.jpg'
-            "
-            alt="Inspection Image"
-            (click)="openImage(image)"
-          />
+        @for (image of Images; track image) {
+          <div class="inspection-card">
+            <img
+              class="inspection-image cursor-pointer"
+              [src]="
+                'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
+                image.imageId +
+                '.jpg'
+              "
+              alt="Inspection Image"
+              (click)="openImage(image)"
+              (role)="(button)"
+              (keydown.enter)="openImage(image)"
+              tabindex="0"
+            />
 
-          <div class="inspection-content">
-            <p class="label">Inspection Date</p>
-            <p class="date">
-              {{ image.capturedDate | date: "medium" }}
-            </p>
+            <div class="inspection-content">
+              <p class="label">Inspection Date</p>
+              <p class="date">
+                {{ image.capturedDate | date: "medium" }}
+              </p>
+            </div>
           </div>
-        </div>
+        }
       </div>
     </div>
   </div>
@@ -46,19 +51,31 @@
     </button>
   </div>
 </div>
-<!-- Fullscreen Image Modal -->
-<div *ngIf="selectedImage" class="fullscreen-modal" (click)="closeImage()">
-  <div (click)="$event.stopPropagation()">
-    <img
-      [src]="
-        'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
-        selectedImage.imageId +
-        '.jpg'
-      "
-      alt="Fullscreen Image"
-    />
-    <button (click)="closeImage()" mat-icon-button>
-      <mat-icon>close</mat-icon>
-    </button>
+@if (selectedImage) {
+  <div
+    class="fullscreen-modal"
+    (click)="closeImage()"
+    (role)="(button)"
+    (keydown.enter)="openImage(image)"
+    tabindex="0"
+  >
+    <div
+      (click)="$event.stopPropagation()"
+      (role)="(button)"
+      (keydown.enter)="openImage(image)"
+      tabindex="0"
+    >
+      <img
+        [src]="
+          'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
+          selectedImage.imageId +
+          '.jpg'
+        "
+        alt="Fullscreen Image"
+      />
+      <button (click)="closeImage()" mat-icon-button>
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
   </div>
-</div>
+}

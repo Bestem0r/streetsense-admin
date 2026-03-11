@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SharedDataServiceService } from '../service/shared-data-service.service';
 import * as L from 'leaflet';
 import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
 import { PolesInterface } from '../interfaces/poles-interface';
@@ -15,7 +14,7 @@ import { PolesService } from '../service/poles.service';
   templateUrl: './image-view.component.html',
   styleUrl: './image-view.component.scss',
 })
-export class ImageViewComponent {
+export class ImageViewComponent implements OnInit {
   poleData!: PolesInterface;
   Images: any[] = [];
   id!: string;
@@ -24,16 +23,11 @@ export class ImageViewComponent {
   selectedImage: any = null;
   private map!: L.Map;
 
-  constructor(
-    private sharedDataService: SharedDataServiceService,
-    private polesService: PolesService,
-    private router: Router,
-    private activateRouter: ActivatedRoute,
-  ) {
-    // this.poleData = this.sharedDataService.getPoleData();
-  }
+  private polesService = inject(PolesService);
+  private router = inject(Router);
+  private activateRouter = inject(ActivatedRoute);
 
-  ngOnInit() {  
+  ngOnInit() {
     this.activateRouter.paramMap.subscribe((params) => {
       this.cdate = params.get('cdate') || '';
       this.id = params.get('id') || '';
