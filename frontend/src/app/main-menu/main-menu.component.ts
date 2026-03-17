@@ -12,7 +12,6 @@ export class MainMenuComponent {
   private router = inject(Router);
 
   navigateTo(page: string) {
-    console.log('Navigate to ' + page);
     this.router.navigate([page]);
   }
 }

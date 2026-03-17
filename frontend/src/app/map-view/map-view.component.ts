@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, inject, Input, OnChanges, OnInit } from '@angular/core';
 import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
 import { PolesService } from '../service/poles.service';
 import { PolesInterface } from '../interfaces/poles-interface';
@@ -15,8 +15,9 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './map-view.component.html',
   styleUrl: './map-view.component.scss',
 })
-export class MapViewComponent implements OnInit {
+export class MapViewComponent implements OnInit, OnChanges {
   @Input() poles: PolesInterface[] = [];
+  @Input() focusedPole: string | null = null;
   cdate!: string;
   private polesService = inject(PolesService);
   private sharedDataService = inject(SharedDataServiceService);
@@ -25,20 +26,14 @@ export class MapViewComponent implements OnInit {
 
   ngOnInit() {
     localStorage.removeItem('poleData');
-
     this.cdate = this.activateRouter.snapshot.paramMap.get('cdate') || '';
-
-    // If route contains a date → fetch poles from API
-    if (this.cdate !== '') {
-      this.fetchPoles(this.cdate);
-    }
-    // Otherwise use poles passed from parent component
-    else if (this.poles.length > 0) {
-      this.sharedDataService.setPolesData(this.poles);
-    }
   }
 
-  fetchPoles = async (cdate: string) => {
+  ngOnChanges() {
+    console.log('MapView received poles:', this.poles.length);
+  }
+
+  /* fetchPoles = async (cdate: string) => {
     this.sharedDataService.setPolesData([]);
 
     const capturedDate = parseInt(cdate);
@@ -54,7 +49,7 @@ export class MapViewComponent implements OnInit {
     } catch (error) {
       console.error('Error fetching poles:', error);
     }
-  };
+  }; */
 
   navigateTo(page: string) {
     this.router.navigate([page]);
