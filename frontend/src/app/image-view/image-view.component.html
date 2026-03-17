@@ -1,81 +1,185 @@
-<div class="w-full grid grid-cols-2 gap-4 h-screen p-5">
-  <div class="dataContainer">
-    <div class="inspections-container">
-      <h2 class="title">Inspection History</h2>
+<div class="h-screen overflow-hidden flex flex-col font-sans">
+  <!-- NAVBAR/ to be replaced with a reusable one-->
+  <nav
+    class="fixed top-0 left-0 right-0 z-[100] h-[52px] bg-gray-100 border-b-2 border-gray-800 flex items-center justify-between px-4"
+  >
+    <div class="text-[15px] font-bold">PoleInspect</div>
 
-      <div class="inspections-list">
-        @for (image of Images; track image) {
-          <div class="inspection-card">
+    <div class="flex gap-1.5">
+      <button
+        (click)="navigateTo('')"
+        class="border-[1.5px] border-gray-500 rounded px-[10px] py-[4px] text-[11px] bg-white hover:bg-gray-100"
+      >
+        Home
+      </button>
+    </div>
+  </nav>
+  <div class="grid grid-cols-2 pt-[52px] h-full">
+    <div
+      class="flex flex-col border-r-2 border-gray-300 bg-gray-50 overflow-hidden"
+    >
+      <div
+        class="px-4 pt-3 pb-2 border-b border-gray-300 bg-white flex-shrink-0"
+      >
+        <div class="text-[17px] font-bold mb-1">Inspection History</div>
+
+        <div
+          class="flex flex-wrap gap-3 text-[11px] text-gray-600 items-center justify-between"
+        >
+          <div class="flex items-center gap-1">
+            <strong class="text-gray-800"
+              >Latest Inspection:
+              {{ Images[0].capturedDate | date: "dd MMM yyyy" }}</strong
+            >
+          </div>
+
+          <div
+            class="border border-gray-400 rounded-full px-2 py-[1px] text-[11px] bg-gray-100"
+          >
+            {{ Images.length }} Inspections
+          </div>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+        @for (image of Images; track image; let i = $index) {
+          <div
+            class="relative flex gap-3 p-3 border border-gray-300 rounded bg-white hover:bg-gray-100 cursor-pointer"
+          >
             <img
-              class="inspection-image cursor-pointer"
               [src]="
                 'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
                 image.imageId +
                 '.jpg'
               "
               alt="Inspection Image"
-              (click)="openImage(image)"
-              (role)="(button)"
-              (keydown.enter)="openImage(image)"
+              (click)="openImage(i)"
+              role="(button)"
+              (keydown.enter)="openImage(i)"
               tabindex="0"
+              class="w-24 h-28 object-cover"
             />
 
-            <div class="inspection-content">
-              <p class="label">Inspection Date</p>
-              <p class="date">
-                {{ image.capturedDate | date: "medium" }}
-              </p>
+            <div class="flex flex-col gap-1 flex-1">
+              <div class="text-[10px] text-gray-400 uppercase tracking-wide">
+                Inspection Date
+              </div>
+
+              <div class="text-[14px] font-bold">
+                {{ image.capturedDate | date: "dd MMM yyyy" }}
+              </div>
+
+              <div class="text-[11px] text-gray-500">
+                {{ image.capturedDate | date: "HH:mm" }}
+              </div>
+
+              <div class="flex gap-1 mt-1">
+                <button
+                  (click)="openImage(i)"
+                  class="border border-gray-400 rounded px-2 py-[2px] text-[10px] bg-gray-100 hover:bg-gray-200"
+                >
+                  🔍 Fullscreen
+                </button>
+              </div>
             </div>
+            <span
+              class="absolute top-2 right-2 bg-gray-600 text-white rounded-full text-[9px] px-2"
+            >
+              #{{ 1 + Images.indexOf(image) }}
+            </span>
           </div>
         }
       </div>
     </div>
-  </div>
-  <div class="mapContainer">
-    <app-leaflet-map></app-leaflet-map>
-    <button
-      mat-mini-fab
-      aria-label="Go to calender"
-      class="map-button"
-      (click)="navigateTo('map')"
-    >
-      <mat-icon>map</mat-icon>
-    </button>
-    <button
-      mat-mini-fab
-      aria-label="Go to calender"
-      class="home-button"
-      (click)="navigateTo('')"
-    >
-      <mat-icon>home</mat-icon>
-    </button>
+
+    <div class="flex flex-col">
+      <div
+        class="flex items-center justify-between px-3 py-2 bg-gray-100 border-b border-gray-300"
+      >
+        <div class="text-[13px] font-bold">📍 Pole Location</div>
+      </div>
+
+      <div class="flex-1">
+        <app-leaflet-map
+          class="h-full w-full"
+          [poles]="poles"
+        ></app-leaflet-map>
+      </div>
+
+      <div class="border-t border-gray-300 bg-white px-4 py-2 font-sans">
+        <div class="text-[11px] text-gray-500 uppercase mb-1">
+          Pole Metadata
+        </div>
+
+        <div class="flex gap-4 text-[12px]">
+          <div class="flex gap-2">
+            <strong class="text-gray-800">Latitude:</strong>
+
+            {{ poleData?.location?.coordinates?.[0]?.toFixed(6) }}
+          </div>
+
+          <div class="flex gap-2">
+            <strong class="text-gray-800">Longitude:</strong>
+            {{ poleData?.location?.coordinates?.[1]?.toFixed(6) }}
+          </div>
+
+          <div>
+            <strong>Date:</strong>
+          </div>
+          <div><strong>Number of Images:</strong> {{ Images.length }}</div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
 @if (selectedImage) {
   <div
-    class="fullscreen-modal"
-    (click)="closeImage()"
-    (role)="(button)"
-    (keydown.enter)="openImage(image)"
-    tabindex="0"
+    class="fixed inset-0 bg-black/55 z-9999 flex items-center justify-center"
   >
     <div
-      (click)="$event.stopPropagation()"
-      (role)="(button)"
-      (keydown.enter)="openImage(image)"
-      tabindex="0"
+      class="bg-white border-2 border-[#333] rounded-md p-4 w-[480px] max-w-[90vw] relative"
     >
+      <button
+        (click)="closeImage()"
+        class="absolute top-2 right-2 border-[1.5px] border-[#888] rounded-full w-[28px] h-[28px] flex items-center justify-center text-[14px] bg-[#f5f5f5] cursor-pointer hover:bg-[#e0e0e0]"
+      >
+        ×
+      </button>
+
       <img
+        class="w-full h-[320px] object-contain border mb-2"
         [src]="
           'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
           selectedImage.imageId +
           '.jpg'
         "
         alt="Fullscreen Image"
+        role="button"
+        tabindex="0"
       />
-      <button (click)="closeImage()" mat-icon-button>
-        <mat-icon>close</mat-icon>
-      </button>
+
+      <div class="flex justify-between items-center">
+        <button
+          (click)="prevImage()"
+          class="flex items-center gap-1 border-[1.5px] border-[#888] rounded px-[14px] py-[5px] text-[12px] bg-[#f5f5f5] cursor-pointer hover:bg-[#e0e0e0]"
+        >
+          <span>← </span>
+          <span>Prev</span>
+        </button>
+
+        <div class="text-xs font-sans">
+          Image {{ selectedIndex! + 1 }} of {{ Images.length }} .
+          {{ selectedImage.capturedDate | date: "dd MMM yyyy, HH:mm" }}
+        </div>
+
+        <button
+          (click)="nextImage()"
+          class="flex items-center gap-1 border-[1.5px] border-[#888] rounded px-[14px] py-[5px] text-[12px] bg-[#f5f5f5] cursor-pointer hover:bg-[#e0e0e0]"
+        >
+          <span>Next </span> <span>→</span>
+        </button>
+      </div>
     </div>
   </div>
 }

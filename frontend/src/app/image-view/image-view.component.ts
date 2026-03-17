@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import * as L from 'leaflet';
 import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
 import { PolesInterface } from '../interfaces/poles-interface';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,13 +14,12 @@ import { PolesService } from '../service/poles.service';
   styleUrl: './image-view.component.scss',
 })
 export class ImageViewComponent implements OnInit {
-  poleData!: PolesInterface;
+  poleData: PolesInterface | null = null;
+  poles: PolesInterface[] = [];
   Images: any[] = [];
   id!: string;
-  cdate!: string;
   imgUrl!: string;
-  selectedImage: any = null;
-  private map!: L.Map;
+  selectedIndex: number | null = null;
 
   private polesService = inject(PolesService);
   private router = inject(Router);
@@ -29,12 +27,12 @@ export class ImageViewComponent implements OnInit {
 
   ngOnInit() {
     this.activateRouter.paramMap.subscribe((params) => {
-      this.cdate = params.get('cdate') || '';
       this.id = params.get('id') || '';
     });
 
     this.polesService.getPoleById(this.id).subscribe((pole) => {
       this.poleData = pole;
+      this.poles = [pole];
       this.sortImagesByDate();
       const imageId = this.Images?.[0]?.imageId;
       if (imageId) {
@@ -55,11 +53,7 @@ export class ImageViewComponent implements OnInit {
   }
 
   navigateTo(link: string) {
-    if (link == 'map') {
-      this.router.navigate(['/map', this.cdate]);
-    } else {
-      this.router.navigate([link]);
-    }
+    this.router.navigate([link]);
   }
 
   sortImagesByDate() {
@@ -70,11 +64,29 @@ export class ImageViewComponent implements OnInit {
     }
   }
 
-  openImage(image: any) {
-    this.selectedImage = image;
+  openImage(index: number) {
+    this.selectedIndex = index;
   }
 
   closeImage() {
-    this.selectedImage = null;
+    this.selectedIndex = null;
+  }
+
+  get selectedImage() {
+    if (this.selectedIndex === null) return null;
+    return this.Images[this.selectedIndex];
+  }
+
+  nextImage() {
+    if (this.selectedIndex === null) return;
+
+    this.selectedIndex = (this.selectedIndex + 1) % this.Images.length;
+  }
+
+  prevImage() {
+    if (this.selectedIndex === null) return;
+
+    this.selectedIndex =
+      (this.selectedIndex - 1 + this.Images.length) % this.Images.length;
   }
 }
