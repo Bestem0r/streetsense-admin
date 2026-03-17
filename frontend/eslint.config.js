@@ -16,6 +16,7 @@ export default defineConfig([
     processor: angular.processInlineTemplates,
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
+      "no-console": "warn",
       "@angular-eslint/directive-selector": [
         "error",
         {

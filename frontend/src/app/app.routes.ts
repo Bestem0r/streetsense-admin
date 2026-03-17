@@ -5,8 +5,8 @@ import { CalenderComponent } from './calender/calender.component';
 import { ImageViewComponent } from './image-view/image-view.component';
 
 export const routes: Routes = [
-  { path: '', component: CalenderComponent },
+  { path: '', component: ListViewComponent },
   { path: 'map/:cdate', component: MapViewComponent },
-  { path: 'image/:cdate/:id', component: ImageViewComponent },
-  { path: 'list', component: ListViewComponent },
+  { path: 'pole-details/:id', component: ImageViewComponent },
+  { path: 'calender', component: CalenderComponent },
 ];

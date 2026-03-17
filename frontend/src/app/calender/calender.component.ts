@@ -38,7 +38,6 @@ export class CalenderComponent implements OnInit {
       this.polesEvents = data.capturedDates
         .map((raw: string) => {
           const normalized = normalizeDate(raw);
-          console.log(`Raw: ${raw} => Normalized: ${normalized}`);
           if (!normalized) return null;
 
           return {
@@ -54,7 +53,6 @@ export class CalenderComponent implements OnInit {
   };
   async handlePoleEventClick(evt: any) {
     const eventTimestamp = evt.event._def.publicId;
-    console.log('Event clicked with timestamp:', eventTimestamp);
     this.router.navigate(['/map', eventTimestamp]);
   }
 
