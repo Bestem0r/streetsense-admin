@@ -22,9 +22,11 @@ public class Pole {
   private int fixType;
   private double courseOverGround;
   private double hdop;
-  private String capturedDate;
+  private Long capturedDate;
   private Geometry gps;
   private GeoJsonPoint location;
+  private String county;
+  private String municipality;
   private double fieldOfView;
   private int satellitesUsed;
   private List<ImageInfo> images = new ArrayList<>();

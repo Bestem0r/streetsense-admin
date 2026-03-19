@@ -11,8 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 public class RawDataPole {
   @Field("id")
   private String poleId;
-
-  private String capturedDate;
+  private Long capturedDate;
   private NmeaInfo nmeaInfo;
   private CameraInfo cameraInfo;
   private List<byte[]> imageBytes = new ArrayList<>();

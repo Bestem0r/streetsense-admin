@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ImageInfo {
   private String imageId;
-  private String capturedDate;
+  private Long capturedDate;
 }
