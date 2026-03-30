@@ -2,10 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
-import { PolesInterface } from '../interfaces/poles-interface';
+import { PoleInterface } from '../interfaces/pole-interface';
+import { veiSystem } from '../interfaces/vei-system';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { PolesService } from '../service/poles.service';
+import { NVDBService } from '../service/nvdb.service';
 
 @Component({
   selector: 'app-image-view',
@@ -14,42 +16,48 @@ import { PolesService } from '../service/poles.service';
   styleUrl: './image-view.component.scss',
 })
 export class ImageViewComponent implements OnInit {
-  poleData: PolesInterface | null = null;
-  poles: PolesInterface[] = [];
+  poleData: PoleInterface | null = null;
+  poles: PoleInterface[] = [];
   Images: any[] = [];
   id!: string;
   imgUrl!: string;
   selectedIndex: number | null = null;
-
+  veiInfo: veiSystem | null = null;
   private polesService = inject(PolesService);
+  private veiService = inject(NVDBService);
   private router = inject(Router);
   private activateRouter = inject(ActivatedRoute);
 
-  ngOnInit() {
+  async ngOnInit() {
     this.activateRouter.paramMap.subscribe((params) => {
       this.id = params.get('id') || '';
     });
 
-    this.polesService.getPoleById(this.id).subscribe((pole) => {
+    this.polesService.getPoleById(this.id).subscribe(async (pole) => {
       this.poleData = pole;
+
+      const lat = pole?.location?.coordinates?.[1];
+      const lon = pole?.location?.coordinates?.[0];
+
+      if (lat !== undefined && lon !== undefined) {
+        this.veiInfo = await this.veiService.getVeiInfo(lat, lon);
+      } else {
+        this.veiInfo = null;
+      }
+
       this.poles = [pole];
       this.sortImagesByDate();
+
       const imageId = this.Images?.[0]?.imageId;
       if (imageId) {
         this.imgUrl =
-          'http://dt14.idi.ntnu.no/RoadPolesImages/2026' +
-          '/' +
-          imageId +
-          '.jpg';
-      } else {
-        console.error('No image found for pole with id:', this.id);
+          'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' + imageId + '.jpg';
       }
     });
-
     const poleDataString = localStorage.getItem('poleData');
     this.poleData = poleDataString
-      ? (JSON.parse(poleDataString) as PolesInterface)
-      : ({} as PolesInterface);
+      ? (JSON.parse(poleDataString) as PoleInterface)
+      : ({} as PoleInterface);
   }
 
   navigateTo(link: string) {

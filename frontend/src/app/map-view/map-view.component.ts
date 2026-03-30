@@ -1,8 +1,7 @@
 import { Component, inject, Input, OnChanges, OnInit } from '@angular/core';
 import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
 import { PolesService } from '../service/poles.service';
-import { PolesInterface } from '../interfaces/poles-interface';
-import { SharedDataServiceService } from '../service/shared-data-service.service';
+import { PoleInterface } from '../interfaces/pole-interface';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,11 +15,9 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './map-view.component.scss',
 })
 export class MapViewComponent implements OnInit, OnChanges {
-  @Input() poles: PolesInterface[] = [];
+  @Input() poles: PoleInterface[] = [];
   @Input() focusedPole: string | null = null;
   cdate!: string;
-  private polesService = inject(PolesService);
-  private sharedDataService = inject(SharedDataServiceService);
   private activateRouter = inject(ActivatedRoute);
   private router = inject(Router);
 

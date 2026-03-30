@@ -1,23 +1,23 @@
 import { Injectable, signal } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { PolesInterface } from '../interfaces/poles-interface';
+import { PoleInterface } from '../interfaces/pole-interface';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SharedDataServiceService {
-  private polesDataSubject = new BehaviorSubject<PolesInterface[]>([]);
-  private poleData = signal<PolesInterface>({ poleId: '' });
+  private polesDataSubject = new BehaviorSubject<PoleInterface[]>([]);
+  private poleData = signal<PoleInterface>({ id: '' });
 
   getPolesData() {
     return this.polesDataSubject.asObservable();
   }
 
-  setPolesData(data: PolesInterface[]) {
+  setPolesData(data: PoleInterface[]) {
     this.polesDataSubject.next(data);
   }
 
-  setPoleData(data: PolesInterface) {
+  setPoleData(data: PoleInterface) {
     this.poleData.set(data);
   }
 

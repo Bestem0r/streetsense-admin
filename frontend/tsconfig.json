@@ -17,6 +17,7 @@
     "importHelpers": true,
     "module": "ESNext",
     "target": "ES2022",
+    "resolveJsonModule": true
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
