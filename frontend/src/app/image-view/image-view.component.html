@@ -52,6 +52,7 @@
                 image.imageId +
                 '.jpg'
               "
+              (error)="onImageError($event)"
               alt="Inspection Image"
               (click)="openImage(i)"
               role="(button)"
@@ -154,6 +155,7 @@
           selectedImage.imageId +
           '.jpg'
         "
+        (error)="onImageError($event)"
         alt="Fullscreen Image"
         role="button"
         tabindex="0"

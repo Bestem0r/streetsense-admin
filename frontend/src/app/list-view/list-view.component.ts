@@ -183,5 +183,11 @@ export class ListViewComponent implements OnInit {
   */
   resetFilters() {
     this.selectedFilters = [];
+    sessionStorage.removeItem('selectedFilters');
+  }
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.src = 'assets/placeholder.svg';
   }
 }

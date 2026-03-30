@@ -89,4 +89,9 @@ export class ImageViewComponent implements OnInit {
     this.selectedIndex =
       (this.selectedIndex - 1 + this.Images.length) % this.Images.length;
   }
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.src = 'assets/placeholder.svg';
+  }
 }

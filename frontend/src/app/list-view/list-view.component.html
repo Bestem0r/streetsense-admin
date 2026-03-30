@@ -168,6 +168,7 @@
                           pole.images?.[0]?.imageId +
                           '.jpg'
                         "
+                        (error)="onImageError($event)"
                         alt=""
                         class="w-18 h-20 object-cover border border-slate-300 rounded shrink-0"
                       />
