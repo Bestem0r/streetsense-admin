@@ -27,10 +27,14 @@
           class="flex flex-wrap gap-3 text-[11px] text-gray-600 items-center justify-between"
         >
           <div class="flex items-center gap-1">
-            <strong class="text-gray-800"
-              >Latest Inspection:
-              {{ Images[0].capturedDate | date: "dd MMM yyyy" }}</strong
-            >
+            <strong class="text-gray-800">
+              Latest Inspection:
+              {{ Images[0]?.capturedDate | date: "dd MMM yyyy" }}
+            </strong>
+            <strong class="text-gray-800">
+              Kommune: {{ poleData?.municipality }}, Fylke:
+              {{ poleData?.county }}
+            </strong>
           </div>
 
           <div
@@ -115,13 +119,11 @@
         <div class="flex gap-4 text-[12px]">
           <div class="flex gap-2">
             <strong class="text-gray-800">Latitude:</strong>
-
-            {{ poleData?.location?.coordinates?.[0]?.toFixed(6) }}
+            {{ poleData?.location?.coordinates?.[1]?.toFixed(6) }}
           </div>
-
           <div class="flex gap-2">
             <strong class="text-gray-800">Longitude:</strong>
-            {{ poleData?.location?.coordinates?.[1]?.toFixed(6) }}
+            {{ poleData?.location?.coordinates?.[0]?.toFixed(6) }}
           </div>
 
           <div>
