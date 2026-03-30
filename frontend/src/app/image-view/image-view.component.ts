@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
+import { NavComponent } from '../navbar/nav.component';
 import { PoleInterface } from '../interfaces/pole-interface';
 import { veiSystem } from '../interfaces/vei-system';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,7 +12,13 @@ import { NVDBService } from '../service/nvdb.service';
 
 @Component({
   selector: 'app-image-view',
-  imports: [LeafletMapComponent, MatButtonModule, MatIconModule, CommonModule],
+  imports: [
+    LeafletMapComponent,
+    MatButtonModule,
+    MatIconModule,
+    CommonModule,
+    NavComponent,
+  ],
   templateUrl: './image-view.component.html',
   styleUrl: './image-view.component.scss',
 })

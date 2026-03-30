@@ -1,13 +1,11 @@
-<nav
-  class="fixed top-0 left-0 right-0 h-18 bg-slate-900 border-b-2 border-slate-700 flex items-center justify-between px-4 z-50"
->
+<nav class="h-full bg-gray-500 flex items-center justify-between px-4">
   <div class="text-[16px] font-bold text-white">🗺 PoleInspect</div>
-
   <div class="flex gap-2">
     <button
       class="border border-blue-500 rounded px-3 py-1 text-xs bg-blue-600 text-white hover:bg-blue-700"
+      (click)="navigateTo('/')"
     >
-      List
+      Home
     </button>
 
     <button
