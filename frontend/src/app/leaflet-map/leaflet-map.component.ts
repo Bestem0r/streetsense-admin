@@ -1,15 +1,16 @@
 import {
   AfterViewInit,
   Component,
+  inject,
   Input,
   OnChanges,
-  SimpleChanges,
   OnDestroy,
-  inject,
+  SimpleChanges,
 } from '@angular/core';
-import * as L from 'leaflet';
-import { PoleInterface } from '../interfaces/pole-interface';
 import { ActivatedRoute, Router } from '@angular/router';
+import * as L from 'leaflet';
+
+import { PoleInterface } from '../interfaces/pole-interface';
 
 @Component({
   selector: 'app-leaflet-map',
@@ -84,11 +85,19 @@ export class LeafletMapComponent
       },
     );
 
+    const osmSatelliteTiles = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: 'Tiles © Esri',
+      },
+    );
+
     kartverketTiles.addTo(this.map);
 
     const baseMaps = {
       Kartverket: kartverketTiles,
       OpenStreetMap: osmTiles,
+      Satellite: osmSatelliteTiles,
     };
 
     L.control.layers(baseMaps).setPosition('topleft').addTo(this.map);

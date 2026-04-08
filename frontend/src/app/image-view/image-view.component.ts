@@ -1,14 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
-import { NavComponent } from '../navbar/nav.component';
-import { PoleInterface } from '../interfaces/pole-interface';
-import { veiSystem } from '../interfaces/vei-system';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { PolesService } from '../service/poles.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+
+import { PoleInterface } from '../interfaces/pole-interface';
+import { veiSystem } from '../interfaces/vei-system';
+import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
+import { NavComponent } from '../navbar/nav.component';
 import { NVDBService } from '../service/nvdb.service';
+import { PolesService } from '../service/poles.service';
 
 @Component({
   selector: 'app-image-view',
@@ -16,8 +18,10 @@ import { NVDBService } from '../service/nvdb.service';
     LeafletMapComponent,
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
     CommonModule,
     NavComponent,
+    RouterLink,
   ],
   templateUrl: './image-view.component.html',
   styleUrl: './image-view.component.scss',

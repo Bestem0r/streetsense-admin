@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import Map from '@arcgis/core/Map';
-import MapView from '@arcgis/core/views/MapView';
 import Graphic from '@arcgis/core/Graphic';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import Map from '@arcgis/core/Map';
+import MapView from '@arcgis/core/views/MapView';
 
 @Component({
   selector: 'app-esri-map',

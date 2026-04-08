@@ -5,6 +5,7 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
+
 import { PolesService } from '../service/poles.service';
 
 @Component({
@@ -38,17 +39,17 @@ export class ArcgisMapComponent implements OnInit {
         import('@arcgis/core/views/MapView').then((m) => m.default),
       ]);
       this.map = new Map({
-        basemap: 'streets-vector', // Options: satellite, terrain, etc.
+        basemap: 'streets-vector',
       });
 
       this.mapView = new MapView({
         container: this.mapDiv.nativeElement,
         map: this.map,
-        center: [10.7522, 59.9139], // Longitude, latitude
-        zoom: 12, // Zoom level
+        center: [10.7522, 59.9139],
+        zoom: 12,
       });
     } catch (error) {
-      console.error('Error loading argis map: ', error); // Catch and log any errors
+      console.error('Error loading argis map: ', error);
     }
   };
 
@@ -109,11 +110,6 @@ export class ArcgisMapComponent implements OnInit {
     this.map.add(polesLayer);
     // move the view to the first pole
     this.mapView.center = poles[0].gps.coordinates;
-
-    graphics.on('click', (event: any) => {
-      const pole = event.graphic.attributes;
-      console.log('Pole clicked: ', pole);
-    });
   };
 
   loadMap = async () => {

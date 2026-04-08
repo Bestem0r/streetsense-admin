@@ -1,10 +1,11 @@
 import { Component, inject, Input, OnChanges, OnInit } from '@angular/core';
-import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
-import { PolesService } from '../service/poles.service';
-import { PoleInterface } from '../interfaces/pole-interface';
-import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import { PoleInterface } from '../interfaces/pole-interface';
+import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
+import { PolesService } from '../service/poles.service';
 
 @Component({
   selector: 'app-map-view',
@@ -29,24 +30,6 @@ export class MapViewComponent implements OnInit, OnChanges {
   ngOnChanges() {
     console.log('MapView received poles:', this.poles.length);
   }
-
-  /* fetchPoles = async (cdate: string) => {
-    this.sharedDataService.setPolesData([]);
-
-    const capturedDate = parseInt(cdate);
-
-    try {
-      const poles = await this.polesService
-        .getPolesByDate(capturedDate)
-        .toPromise();
-
-      if (poles) {
-        this.sharedDataService.setPolesData(poles);
-      }
-    } catch (error) {
-      console.error('Error fetching poles:', error);
-    }
-  }; */
 
   navigateTo(page: string) {
     this.router.navigate([page]);

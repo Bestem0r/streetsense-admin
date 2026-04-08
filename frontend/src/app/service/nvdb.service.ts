@@ -1,8 +1,9 @@
-import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { veiSystem } from '../interfaces/vei-system';
-import { Veikategori } from '../enums/vegkategori.enum';
+import { inject,Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+
+import { Veikategori } from '../enums/vegkategori.enum';
+import { veiSystem } from '../interfaces/vei-system';
 
 @Injectable({
   providedIn: 'root',

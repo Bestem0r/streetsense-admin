@@ -1,13 +1,13 @@
 import { Component, inject, OnInit } from '@angular/core';
-
+import { MatIconModule } from '@angular/material/icon';
+import { Router } from '@angular/router';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions } from '@fullcalendar/core'; // useful for typechecking
 import dayGridPlugin from '@fullcalendar/daygrid';
+import { lastValueFrom } from 'rxjs';
+
 import { PolesService } from '../service/poles.service';
 import { normalizeDate } from '../utils/dateNormalizer';
-import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-calender',

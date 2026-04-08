@@ -1,5 +1,22 @@
 /* You can add global styles to this file, and also import other style files */
 @use "tailwindcss";
+:root {
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-soft: #dbeafe;
+
+  --color-bg: #f8fafc;
+  --color-card: #ffffff;
+  --color-border: #e2e8f0;
+
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-text-strong: #334155;
+
+  --color-success-bg: #ecfdf5;
+  --color-success-text: #047857;
+  --color-success-border: #6ee7b7;
+}
 html,
 body {
   height: 100%;
@@ -28,4 +45,20 @@ mat-expansion-panel-header:hover {
   display: flex;
   flex-direction: column;
   border-radius: 0;
+}
+
+// src/styles.scss
+.success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+.info-snackbar {
+  background-color: #2196f3 !important;
+  color: white !important;
 }
