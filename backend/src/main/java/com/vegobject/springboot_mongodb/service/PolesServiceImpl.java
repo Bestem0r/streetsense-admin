@@ -37,15 +37,6 @@ public class PolesServiceImpl implements PolesService {
     return polesRepository.findAll().toArray(Pole[]::new);
   }
 
-  /* public Pole[] getPolesByDate(long cdate) {
-    System.out.println("Received cdate: " + cdate);
-    Timestamp ts = new Timestamp(cdate);
-    System.out.println("Converted timestamp: " + ts);
-    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-    String captureddate = formatter.format(ts);
-    return polesRepository.findAllByCapturedDate(captureddate).toArray(Pole[]::new);
-  } */
-
   public Pole[] getPolesByDate(long cdate) {
     LocalDate date = Instant.ofEpochSecond(cdate)
             .atZone(ZoneOffset.UTC)
@@ -123,23 +114,17 @@ public class PolesServiceImpl implements PolesService {
     }
   }
 
-  // to be deleted after all capturedDate values have been updated to unix timestamps
-  /* public void updateCapturedDatesToUnixTimestamps() {
-    polesRepository.findAll().forEach(pole -> {
-      try {
-        Long unixSeconds = Dateparser.toUnixSeconds(pole.getCapturedDate());
-        if (unixSeconds != null) {
-          pole.setCapturedDate(String.valueOf(unixSeconds));
-          polesRepository.save(pole);
-        } else {
-          System.out.println("Could not parse capturedDate for pole with id: " + pole.getId());
-        }
-      } catch (Exception e) {
-        System.out.println("Error updating capturedDate for pole with id: " + pole.getId() + " - " + e.getMessage());
-      }
-
-    }); }
- */
+  @Override
+public Pole updatePole(String id, Pole updatedPole) {
+  try {
+    updatedPole.setId(id);
+    updatedPole.setLastModified(System.currentTimeMillis());
+    System.out.println(updatedPole.toString());
+    return polesRepository.save(updatedPole);
+  } catch (Exception e) {
+    throw new RuntimeException("Error updating pole with id: " + id, e);
+  }
+}
   
 
   

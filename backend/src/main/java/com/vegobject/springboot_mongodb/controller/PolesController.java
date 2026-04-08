@@ -88,6 +88,11 @@ public class PolesController {
     return polesService.getPoleById(id);
   }
 
+  @PutMapping("/{id}")
+  public Pole updatePole(@PathVariable String id, @RequestBody Pole updatedPole) {
+    return polesService.updatePole(id, updatedPole);
+  }
+
   /* @PutMapping("/updateCapturedDates")
   public void updateCapturedDatesToUnixTimestamps() {
     polesService.updateCapturedDatesToUnixTimestamps();
