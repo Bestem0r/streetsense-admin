@@ -1,5 +1,7 @@
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs/internal/Observable';
+
 import { environment } from '../../environments/environment';
 import { PoleInterface } from '../interfaces/pole-interface';
 
@@ -27,5 +29,13 @@ export class PolesService {
   getPoleById(id: string) {
     const url = this.baseUrl + '/id/' + id;
     return this.httpClient.get<PoleInterface>(url);
+  }
+
+  updatePole(pole: PoleInterface): Observable<HttpResponse<PoleInterface>> {
+    const url = this.baseUrl + '/' + pole.id;
+
+    return this.httpClient.put<PoleInterface>(url, pole, {
+      observe: 'response',
+    });
   }
 }

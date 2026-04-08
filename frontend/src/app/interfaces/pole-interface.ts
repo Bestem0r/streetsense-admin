@@ -12,5 +12,14 @@ export interface PoleInterface {
   };
   county?: string;
   municipality?: string;
-  images?: { imageId: string; capturedDate: number }[];
+  images?: {
+    imageId: string;
+    capturedDate: number;
+    inspectionDate?: number;
+    inspectionStatus?: string;
+    action?: string;
+    assignedInspector?: string;
+    notes?: string;
+  }[];
+  lastModified?: number;
 }

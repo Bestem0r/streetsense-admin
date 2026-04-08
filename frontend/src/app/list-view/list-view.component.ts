@@ -190,4 +190,25 @@ export class ListViewComponent implements OnInit {
     const img = event.target as HTMLImageElement;
     img.src = 'assets/placeholder.svg';
   }
+
+  getLatestImageId(pole: PoleInterface): string {
+    if (!pole.images || pole.images.length === 0) return '';
+
+    let latestImageId = '';
+    let latestDate = 0;
+
+    pole.images.forEach((image) => {
+      const captureDate =
+        typeof image.capturedDate === 'string'
+          ? parseInt(image.capturedDate)
+          : (image.capturedDate ?? 0);
+
+      if (captureDate > latestDate) {
+        latestDate = captureDate;
+        latestImageId = image.imageId || '';
+      }
+    });
+
+    return latestImageId;
+  }
 }

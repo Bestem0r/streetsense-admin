@@ -1,0 +1,14 @@
+::ng-deep .success-snackbar {
+  background-color: #4caf50 !important; // Green
+  color: white;
+}
+
+::ng-deep .error-snackbar {
+  background-color: #f44336 !important; // Red
+  color: white;
+}
+
+::ng-deep .info-snackbar {
+  background-color: #2196f3 !important; // Blue
+  color: white;
+}

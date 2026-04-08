@@ -1,0 +1,449 @@
+<div
+  class="grid grid-cols-10 grid-rows-10 bg-slate-50 text-slate-700 text-[13px] font-sans w-full h-screen"
+>
+  <div class="col-span-10 row-span-1 h-full"><app-nav></app-nav></div>
+  <div class="col-span-4 row-span-9 row-start-2 col-start-1 h-full">
+    <div
+      class="flex flex-col h-full bg-gray-50 border-r-2 border-gray-300 overflow-hidden"
+    >
+      <div class="px-3.5 py-3 border-b border-gray-300 bg-white">
+        <div class="text-[15px] font-bold">Pole Information</div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-3 flex flex-col gap-2.5">
+        <div
+          class="relative h-[200px] flex flex-col items-center justify-center text-sm text-gray-500 bg-gray-200 border border-gray-400 rounded"
+        >
+          <app-leaflet-map
+            class="h-full w-full"
+            [poles]="selectedPole ? [selectedPole] : []"
+          ></app-leaflet-map>
+
+          <div
+            class="absolute bottom-3 left-1/2 -translate-x-1/2 text-sm bg-white border border-gray-400 rounded-full whitespace-nowrap px-2 py-0.5 z-9999"
+          >
+            📍 {{ selectedPole?.location?.coordinates?.[1]?.toFixed(5) }},
+            {{ selectedPole?.location?.coordinates?.[0]?.toFixed(5) }}
+          </div>
+        </div>
+        <div class="bg-white border border-gray-300 rounded p-2.5">
+          <div
+            class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1.5"
+          >
+            Pole Information
+          </div>
+
+          <div
+            class="flex justify-between text-[11px] py-1 border-b border-gray-100"
+          >
+            <span class="text-gray-500">Pole ID</span>
+            <span class="font-bold font-mono text-[10px] text-gray-800">{{
+              selectedPole?.id
+            }}</span>
+          </div>
+
+          <div
+            class="flex justify-between text-[11px] py-1 border-b border-gray-100"
+          >
+            <span class="text-gray-500">Captured</span>
+            <span class="font-bold font-mono text-[10px] text-gray-800">{{
+              formatDateForInput(
+                selectedPole?.images?.[imageNumber]?.capturedDate
+              )
+            }}</span>
+          </div>
+
+          <div
+            class="flex justify-between text-[11px] py-1 border-b border-gray-100"
+          >
+            <span class="text-gray-500">County</span>
+            <span class="font-bold font-mono text-[10px] text-gray-800">{{
+              selectedPole?.county
+            }}</span>
+          </div>
+          <div
+            class="flex justify-between text-[11px] py-1 border-b border-gray-100"
+          >
+            <span class="text-gray-500">Municipality</span>
+            <span class="font-bold font-mono text-[10px] text-gray-800">{{
+              selectedPole?.municipality
+            }}</span>
+          </div>
+
+          <div
+            class="flex justify-between text-[11px] py-1 border-b border-gray-100"
+          >
+            <span class="text-gray-500">Vei Kategori</span>
+            <span class="font-bold font-mono text-[10px] text-gray-800">{{
+              vegkategori || "-"
+            }}</span>
+          </div>
+
+          <div class="flex justify-between text-[11px] py-1">
+            <span class="text-gray-500">Avstand</span>
+            <span class="font-bold font-mono text-[10px] text-gray-800">{{
+              avstand > 0 ? avstand + " m" : "-"
+            }}</span>
+          </div>
+        </div>
+        <div>
+          <div
+            class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1.5"
+          >
+            Attached Photo
+          </div>
+          <div class="w-full h-60 flex items-center justify-center">
+            @if ((selectedPole?.images?.length ?? 0) > 0) {
+              <img
+                [src]="
+                  'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
+                  getCurrentImage()?.imageId +
+                  '.jpg'
+                "
+                (error)="onImageError($event)"
+                alt="Pole Image"
+                class="rounded border border-gray-300 object-cover max-h-full max-w-full"
+              />
+            } @else {
+              <div
+                class="flex flex-col items-center justify-center text-sm text-gray-500 bg-gray-200 border border-gray-400 rounded h-[150px]"
+              >
+                No photos available
+              </div>
+            }
+          </div>
+        </div>
+        <div class="flex justify-center">
+          <button
+            class="w-full flex items-center justify-center border border-gray-400 rounded px-3 py-2 bg-gray-100 hover:bg-gray-200 text-[11px] cursor-pointer"
+            [routerLink]="['/']"
+          >
+            Back to List
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-span-6 row-span-9 row-start-2 col-start-5">
+    <form
+      [formGroup]="form"
+      class="flex flex-col h-full bg-white overflow-hidden"
+      (ngSubmit)="onSubmit()"
+    >
+      <div
+        class="flex items-center justify-between px-4 py-2.5 border-b-2 border-gray-300"
+      >
+        <div class="text-[16px] font-bold">
+          Edit Inspection Record for Pole #{{ selectedPole?.id }}
+        </div>
+
+        <div
+          class="border border-dashed border-gray-400 rounded px-2.5 py-1 text-[10px] text-gray-500"
+          [ngClass]="
+            isModified
+              ? 'border-red-400 text-red-600'
+              : 'border-gray-400 text-gray-500'
+          "
+        >
+          @if (isModified) {
+            Unsaved Changes
+          } @else {
+            No Changes Made
+          }
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-4 py-3">
+        <div
+          class="text-[11px] font-bold text-gray-600 uppercase tracking-wide border-b border-gray-300 pb-1 mb-3"
+        >
+          Inspection Details
+        </div>
+        <div class="mb-5">
+          <label
+            for="inspectionDate"
+            class="text-xs font-semibold text-slate-700 mb-2 flex items-center"
+          >
+            <span class="text-red-600">* </span> Inspection Date
+          </label>
+
+          <input
+            type="date"
+            id="inspectionDate"
+            formControlName="inspectionDate"
+            [min]="getMinDate()"
+            [max]="getMaxDate()"
+            class="w-full px-3 py-2 border border-slate-300 rounded bg-white text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 hover:border-slate-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+            [ngClass]="{
+              'border-red-500 border-2': hasError('inspectionDate', 'required'),
+            }"
+            (change)="isModified = true"
+            placeholder="Select date..."
+          />
+
+          @if (hasError("inspectionDate", "required")) {
+            <p class="text-xs text-red-600 mt-1">Inspection Date is required</p>
+          }
+        </div>
+        <!-- Status -->
+        <div class="mb-3">
+          <div class="text-[11px] font-bold text-gray-600 mb-1">
+            <span class="text-red-600">*</span> Status
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              (click)="
+                form.get('status')?.setValue('Inspected'); isModified = true
+              "
+              [ngClass]="{
+                'border-gray-800 bg-gray-100 font-bold':
+                  form.get('status')?.value === 'Inspected',
+                'border-gray-300': form.get('status')?.value !== 'Inspected',
+              }"
+              class="border rounded px-2 py-1 text-[11px] cursor-pointer hover:bg-gray-50"
+            >
+              Inspected
+            </button>
+
+            <button
+              type="button"
+              (click)="
+                form.get('status')?.setValue('Not Inspected'); isModified = true
+              "
+              [ngClass]="{
+                'border-gray-800 bg-gray-100 font-bold':
+                  form.get('status')?.value === 'Not Inspected',
+                'border-gray-300':
+                  form.get('status')?.value !== 'Not Inspected',
+              }"
+              class="border rounded px-2 py-1 text-[11px] cursor-pointer hover:bg-gray-50"
+            >
+              Not Inspected
+            </button>
+          </div>
+
+          @if (hasError("status", "required")) {
+            <p class="text-xs text-red-600 mt-1">⚠ Status is required</p>
+          }
+        </div>
+
+        <!-- Action -->
+        <div class="mb-3">
+          <div class="text-[11px] font-bold text-gray-600 mb-1">
+            <span class="text-red-600">*</span> Action
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              (click)="
+                form.get('action')?.setValue('No Action needed');
+                isModified = true
+              "
+              [ngClass]="{
+                'border-gray-800 bg-gray-100 font-bold':
+                  form.get('action')?.value === 'No Action needed',
+                'border-gray-300':
+                  form.get('action')?.value !== 'No Action needed',
+              }"
+              class="border rounded px-2 py-1 text-[11px]"
+            >
+              No Action needed
+            </button>
+
+            <button
+              type="button"
+              (click)="
+                form.get('action')?.setValue('Need New Poles');
+                isModified = true
+              "
+              [ngClass]="{
+                'border-gray-800 bg-gray-100 font-bold':
+                  form.get('action')?.value === 'Need New Poles',
+                'border-gray-300':
+                  form.get('action')?.value !== 'Need New Poles',
+              }"
+              class="border rounded px-2 py-1 text-[11px]"
+            >
+              Need New Poles
+            </button>
+
+            <button
+              type="button"
+              (click)="
+                form.get('action')?.setValue('Need Replacement');
+                isModified = true
+              "
+              [ngClass]="{
+                'border-gray-800 bg-gray-100 font-bold':
+                  form.get('action')?.value === 'Need Replacement',
+                'border-gray-300':
+                  form.get('action')?.value !== 'Need Replacement',
+              }"
+              class="border rounded px-2 py-1 text-[11px]"
+            >
+              Need Replacement
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <div class="text-sm font-bold text-gray-600 mb-1">
+            <span class="text-red-600">*</span> Assigned Inspector
+          </div>
+
+          <div class="relative">
+            <input
+              type="text"
+              id="inspector"
+              placeholder="Search inspector…"
+              class="w-full border border-gray-400 rounded px-2.5 py-1.5 text-[12px] bg-gray-50"
+              (focus)="showDropdown()"
+              (blur)="hideDropdown()"
+              (input)="filterInspectors($event)"
+              [value]="selectedInspector?.name || ''"
+            />
+
+            @if (showInspectorDropdown && filteredInspectors.length > 0) {
+              <div
+                class="absolute flex flex-col top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-50"
+              >
+                @for (inspector of filteredInspectors; track inspector.id) {
+                  <button
+                    type="button"
+                    class="flex items-start w-full px-2.5 py-1.5 text-[11px] hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    (click)="selectInspector(inspector)"
+                  >
+                    {{ inspector.name }}
+                    <span class="text-gray-400">· {{ inspector.email }}</span>
+                  </button>
+                }
+              </div>
+            }
+
+            @if (showInspectorDropdown && filteredInspectors.length === 0) {
+              <div
+                class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg p-2.5 text-center text-[11px] text-gray-500"
+              >
+                No inspectors found
+              </div>
+            }
+          </div>
+
+          @if (selectedInspector) {
+            <div
+              class="mt-1.5 flex items-center gap-2 border border-gray-300 rounded px-2.5 py-1.5 bg-gray-50"
+            >
+              <div
+                class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-300 text-[10px] text-gray-600 font-bold"
+              >
+                {{ getInitials(selectedInspector.name) }}
+              </div>
+
+              <div>
+                <div class="text-[12px] font-bold">
+                  {{ selectedInspector.name }}
+                </div>
+                <div class="text-[10px] text-gray-400">
+                  {{ selectedInspector.email }}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="ml-auto border border-gray-400 rounded px-2 py-[2px] text-[10px] bg-white hover:bg-gray-100"
+                (click)="
+                  selectedInspector = null;
+                  isModified = true;
+                  showInspectorDropdown = true
+                "
+              >
+                Change
+              </button>
+            </div>
+          }
+        </div>
+
+        <div>
+          <div
+            class="flex justify-between items-center text-[11px] font-bold text-gray-600 mb-1"
+          >
+            <span>
+              Notes <span class="font-normal text-gray-400">(Optional)</span>
+            </span>
+            <span
+              class="text-xs font-mono"
+              [ngClass]="{
+                'text-gray-400': notesLength < 400,
+                'text-yellow-500': notesLength >= 400 && notesLength < 500,
+                'text-red-600': notesLength >= 500,
+              }"
+            >
+              {{ notesLength }} / 500
+            </span>
+          </div>
+
+          <textarea
+            formControlName="notes"
+            class="w-full h-[80px] border border-gray-400 rounded px-2.5 py-1.5 text-sm bg-gray-50 resize-none"
+            [ngClass]="{
+              'border-red-500 border-2': hasError('notes', 'maxlength'),
+            }"
+            placeholder="Record observations, issues…"
+            (input)="isModified = true"
+          ></textarea>
+        </div>
+      </div>
+
+      <div
+        class="flex items-center gap-2 px-4 py-2.5 border-t-2 border-gray-300 bg-gray-50"
+      >
+        <button
+          class="border border-gray-400 rounded px-3 py-1 text-[11px] bg-gray-100 hover:bg-gray-200 cursor-pointer"
+          type="button"
+          (click)="cancelChanges()"
+        >
+          Cancel
+        </button>
+
+        <div class="flex-1"></div>
+
+        <button
+          class="border border-gray-800 bg-gray-800 text-white rounded px-3 py-1 text-[11px] hover:bg-black disabled:bg-slate-400 disabled:border-slate-400 disabled:cursor-not-allowed"
+          type="submit"
+          [disabled]="form.invalid || !isModified"
+        >
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div
+  class="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-9999 h-screen w-screen"
+  [ngClass]="isCancelModalOpen ? 'block' : 'hidden'"
+>
+  <div class="bg-white rounded p-6 w-[300px]">
+    <div class="text-[14px] font-bold mb-4">Discard Changes?</div>
+    <div class="text-[12px] text-gray-600 mb-6">
+      Are you sure you want to discard your unsaved changes?
+    </div>
+    <div class="flex justify-end gap-2">
+      <button
+        class="border border-gray-400 rounded px-3 py-1 text-[11px] bg-gray-100 hover:bg-gray-200"
+        (click)="isCancelModalOpen = false"
+      >
+        Cancel
+      </button>
+      <button
+        class="border border-red-600 bg-red-600 text-white rounded px-3 py-1 text-[11px] hover:bg-red-700"
+        (click)="discardChanges()"
+      >
+        Discard
+      </button>
+    </div>
+  </div>
+</div>
