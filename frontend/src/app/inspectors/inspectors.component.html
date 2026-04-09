@@ -1,0 +1,222 @@
+<div
+  class="grid grid-cols-10 grid-rows-10 bg-slate-50 text-slate-700 text-[13px] font-sans w-full h-screen"
+>
+  <div class="col-span-10 row-span-1 h-full"><app-nav></app-nav></div>
+  <div class="col-span-3 row-span-9 row-start-2 col-start-1 h-full">
+    <div class="w-full h-full bg-gray-50 border-r-2 flex flex-col">
+      <div class="p-3 border-b bg-white flex flex-col gap-2">
+        <div class="font-bold text-sm mb-2">Inspectors</div>
+        <div class="flex items-center border rounded bg-gray-50 px-2">
+          <mat-icon class="text-gray-400 text-sm">search</mat-icon>
+          <input
+            class="flex-1 border-0 px-2 py-1 text-xs bg-gray-50 focus:outline-none"
+            placeholder="Search…"
+            [(ngModel)]="searchQuery"
+            (input)="search()"
+          />
+        </div>
+        <button
+          class="w-full bg-gray-700 text-white text-xs py-1 cursor-pointer"
+          (click)="openAddInspectorModal()"
+        >
+          + Add New Inspector
+        </button>
+      </div>
+
+      <div class="text-[10px] text-gray-400 px-3 py-1 bg-white border-b">
+        {{ inspectors.length }} inspectors · 860 poles assigned
+      </div>
+
+      <div class="overflow-y-auto flex-1">
+        @for (inspector of inspectors; track inspector.id) {
+          <button
+            (click)="selectInspector(inspector)"
+            class="w-full flex justify-start items-start gap-2 p-3 border-b cursor-pointer text-left"
+            [ngClass]="{
+              'bg-gray-200 border-l-4 border-gray-700':
+                selectedInspector?.id === inspector.id,
+              'bg-white hover:bg-gray-100':
+                selectedInspector?.id !== inspector.id,
+            }"
+          >
+            <div
+              class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold"
+            >
+              {{ getInitials(inspector.firstName, inspector.lastName) }}
+            </div>
+            <div class="flex-1">
+              <div
+                class="text-xs"
+                [class.font-bold]="selectedInspector?.id === inspector.id"
+              >
+                {{ inspector.firstName || "" }} {{ inspector.lastName || "" }}
+              </div>
+              <div class="text-[10px] text-gray-400">
+                {{ inspector.email }}
+              </div>
+            </div>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+  <div class="col-span-7 row-span-9 row-start-2 col-start-4 h-full">
+    <div class="h-full flex flex-col bg-white overflow-hidden">
+      <!-- Header -->
+      <div class="flex justify-between p-5 border-b">
+        <div class="flex items-center gap-4">
+          <div
+            class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center font-bold"
+          >
+            {{
+              getInitials(
+                selectedInspector?.firstName || "",
+                selectedInspector?.lastName || ""
+              )
+            }}
+          </div>
+          <div>
+            <div class="font-bold text-lg">
+              {{ selectedInspector?.firstName }}
+              {{ selectedInspector?.lastName }}
+            </div>
+            <div class="text-xs text-gray-400">
+              {{ selectedInspector?.email }}
+            </div>
+            <div class="text-[10px] text-gray-500 mt-1">
+              Member since Jan 2025
+            </div>
+          </div>
+        </div>
+        <div class="space-x-2">
+          <button
+            class="bg-gray-700 text-white px-3 py-1 text-xs cursor-pointer"
+          >
+            Edit
+          </button>
+          <button
+            class="border px-3 py-1 text-xs cursor-pointer"
+            (click)="removeInspector(selectedInspector?.id!)"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 overflow-y-auto flex-1">
+        <!-- Workload -->
+        <div class="mb-5">
+          <div class="text-xs font-bold text-gray-500 mb-2 uppercase">
+            Workload Distribution
+          </div>
+
+          <div class="h-5 bg-gray-200 mb-1">
+            <div
+              class="h-full bg-gray-500 w-[82%] flex items-center justify-end pr-2 text-white text-xs"
+            >
+              82%
+            </div>
+          </div>
+
+          <div class="text-[10px] text-gray-400">
+            121 inspected of 148 assigned poles
+          </div>
+
+          <div class="grid grid-cols-4 border mt-2 text-center text-xs">
+            <div class="p-2 border-r">
+              <div class="text-lg font-bold">148</div>
+              <div class="text-[10px] text-gray-400">Assigned</div>
+            </div>
+            <div class="p-2 border-r">
+              <div class="text-lg font-bold">121</div>
+              <div class="text-[10px] text-gray-400">Inspected</div>
+            </div>
+            <div class="p-2 border-r">
+              <div class="text-lg font-bold">27</div>
+              <div class="text-[10px] text-gray-400">Pending</div>
+            </div>
+            <div class="p-2">
+              <div class="text-lg font-bold">12</div>
+              <div class="text-[10px] text-gray-400">Need Action</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="mb-5">
+          <div class="text-xs font-bold text-gray-500 mb-2 uppercase">
+            Monthly Activity
+          </div>
+          <div class="flex items-end gap-1 h-20 border-l border-b px-1">
+            <div class="flex-1 flex flex-col items-center">
+              <div class="w-full bg-gray-400 h-[22px]"></div>
+              <div class="w-full bg-gray-200 h-[14px]"></div>
+              <div class="text-[8px] text-gray-400">Oct</div>
+            </div>
+            <!-- Repeat columns -->
+          </div>
+        </div>
+
+        <!-- Poles -->
+        <div>
+          <div
+            class="text-xs font-bold text-gray-500 mb-2 uppercase overflow-y-hidden"
+          >
+            Assigned Poles
+          </div>
+
+          <div class="text-[10px] text-gray-400 flex justify-between mb-2">
+            <span>Showing 5 of 148</span>
+            <span>Sort: Newest ↓</span>
+          </div>
+
+          @for (pole of visiblePoles; track pole.id) {
+            <div class="space-y-1">
+              <div
+                class="flex items-center gap-2 border p-2 bg-gray-50 text-xs"
+              >
+                <div class="text-gray-400">#{{ pole.id }}</div>
+                <div class="flex-1">📍 {{ pole.location }}</div>
+                <div class="text-[10px] border px-2 bg-gray-200">
+                  ✓ Inspected
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (assignedPoles.length > 6) {
+            <button
+              class="w-full text-center text-xs text-gray-500 mt-2 cursor-pointer"
+              (click)="showAllPoles = !showAllPoles"
+            >
+              {{
+                showAllPoles
+                  ? "Show less"
+                  : "View all " + assignedPoles.length + " assigned poles →"
+              }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Inspector Modal -->
+  @if (showAddInspectorModal) {
+    <div class="fixed inset-0 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 relative">
+        <button
+          (click)="closeAddInspectorModal()"
+          class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl leading-none"
+        >
+          ×
+        </button>
+        <app-add-inspector
+          (inspectorAdded)="onInspectorAdded()"
+          (cancelForm)="closeAddInspectorModal()"
+        ></app-add-inspector>
+      </div>
+    </div>
+  }
+</div>
