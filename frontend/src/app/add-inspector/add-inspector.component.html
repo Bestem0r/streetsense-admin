@@ -1,0 +1,178 @@
+<!-- Overlay -->
+<div class="fixed inset-0 bg-gray-100/80 flex items-center justify-center z-50">
+  <!-- Modal -->
+  <div
+    class="bg-white w-full max-w-lg max-h-[85vh] rounded-lg border border-gray-300 flex flex-col shadow-xl"
+  >
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b">
+      <div>
+        <h2 class="text-sm font-semibold flex items-center gap-1">
+          <mat-icon>add</mat-icon> <span>Add New Inspector</span>
+        </h2>
+      </div>
+      <button
+        class="w-7 h-7 flex items-center justify-center rounded-full border bg-gray-50 hover:bg-gray-200 text-sm cursor-pointer"
+        (click)="onCancel()"
+      >
+        <mat-icon>clear</mat-icon>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-5 py-4 overflow-y-auto">
+      <!-- Avatar Preview -->
+      <div class="flex items-center gap-4 mb-5">
+        <div
+          class="w-12 h-12 rounded-full border-2 border-dashed border-gray-300 bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-500"
+        >
+          {{ firstNameInitial }}
+        </div>
+      </div>
+
+      <!-- Section -->
+      <p
+        class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide border-b pb-1 mb-3"
+      >
+        Personal Details
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="flex flex-col gap-1">
+            <label for="firstName" class="text-[10px] text-gray-500"
+              >First Name *</label
+            >
+            <input
+              id="firstName"
+              formControlName="firstName"
+              class="border rounded px-3 py-2 text-sm bg-gray-50"
+              placeholder="First name"
+            />
+            @if (submitted && form.get("firstName")?.invalid) {
+              <span class="text-[10px] text-red-500">Required</span>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="lastName" class="text-[10px] text-gray-500"
+              >Last Name *</label
+            >
+            <input
+              id="lastName"
+              formControlName="lastName"
+              class="border rounded px-3 py-2 text-sm bg-gray-50"
+              placeholder="Last name"
+            />
+            @if (submitted && form.get("lastName")?.invalid) {
+              <span class="text-[10px] text-red-500">Required</span>
+            }
+          </div>
+
+          <div class="col-span-2 flex flex-col gap-1">
+            <label for="email" class="text-[10px] text-gray-500"
+              >Email Address *</label
+            >
+            <input
+              id="email"
+              formControlName="email"
+              class="border rounded px-3 py-2 text-sm bg-gray-50"
+              placeholder="kari.nordmann@example.com"
+              type="email"
+            />
+
+            @if (submitted && form.get("email")?.invalid) {
+              <span class="text-[10px] text-red-500">
+                @if (form.get("email")?.errors?.["required"]) {
+                  Required
+                } @else if (form.get("email")?.errors?.["email"]) {
+                  Invalid email format
+                }
+              </span>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="phone" class="text-[10px] text-gray-500">Phone</label>
+            <input
+              id="phone"
+              formControlName="phone"
+              class="border rounded px-3 py-2 text-sm bg-gray-50"
+              placeholder="+47 000 00 000"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="county" class="text-[10px] text-gray-500"
+              >County / Region</label
+            >
+            <select
+              id="county"
+              formControlName="county"
+              class="border rounded px-3 py-2 text-sm bg-gray-50"
+            >
+              <option>All Counties</option>
+              <option>Trøndelag</option>
+              <option>Viken</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section -->
+        <p
+          class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide border-b pb-1 mb-3"
+        >
+          Account Settings
+        </p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label for="role" class="text-[10px] text-gray-500">Role</label>
+            <select
+              id="role"
+              formControlName="role"
+              class="border rounded px-3 py-2 text-sm bg-gray-50"
+            >
+              <option>Field Inspector</option>
+              <option>Senior Inspector</option>
+              <option>Supervisor</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="status" class="text-[10px] text-gray-500">Status</label>
+            <select
+              id="status"
+              formControlName="status"
+              class="border rounded px-3 py-2 text-sm bg-gray-50"
+            >
+              <option>Active</option>
+              <option>Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div
+          class="flex items-center justify-between px-5 py-3 border-t bg-gray-50 mt-5 -mx-5 -mb-4"
+        >
+          <div class="flex gap-2">
+            <button
+              type="button"
+              (click)="onCancel()"
+              class="px-4 py-1.5 text-sm border rounded bg-gray-100 hover:bg-gray-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-1.5 text-sm border border-gray-800 bg-gray-800 text-white rounded hover:bg-gray-700"
+            >
+              Save Inspector
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
