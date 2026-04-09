@@ -1,14 +1,16 @@
+import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { MatExpansionModule, MatAccordion } from '@angular/material/expansion';
-import { MatIcon } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { PolesInterface } from '../interfaces/poles-interface';
-import { PolesService } from '../service/poles.service';
+import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
+import { MatIcon } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+
+import { PoleInterface } from '../interfaces/pole-interface';
 import { MapViewComponent } from '../map-view/map-view.component';
 import { NavComponent } from '../navbar/nav.component';
-import { Router } from '@angular/router';
+import { PolesService } from '../service/poles.service';
 
 @Component({
   selector: 'app-list-view',
@@ -21,6 +23,7 @@ import { Router } from '@angular/router';
     MatIcon,
     NavComponent,
     FormsModule,
+    RouterLink,
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -28,14 +31,16 @@ import { Router } from '@angular/router';
 export class ListViewComponent implements OnInit {
   @ViewChild(MatAccordion) accordion!: MatAccordion;
 
-  polesData: PolesInterface[] = [];
+  polesData: PoleInterface[] = [];
   filteredData = this.polesData;
-  groupedData = new Map<string, PolesInterface[]>();
-  openDate: string | null = null;
+  groupedData = new Map<string, PoleInterface[]>();
+  openDate: string | null = sessionStorage.getItem('openDate');
   focusedPole: string | null = null;
-  selectedDate: string | null = null;
+  selectedDate: string | null = sessionStorage.getItem('selectedDate');
   isFilterOpen = false;
-  selectedFilters: string[] = [];
+  selectedFilters: string[] = JSON.parse(
+    sessionStorage.getItem('selectedFilters') || '[]',
+  );
   filterOptions = [
     { label: 'Inspected', value: 'inspected' },
     { label: 'Not Inspected', value: 'not_inspected' },
@@ -49,24 +54,28 @@ export class ListViewComponent implements OnInit {
   ngOnInit() {
     this.polesService.getPoles().subscribe((data) => {
       this.polesData = data;
-      this.groupByDate();
+      this.groupByDate(this.selectedDate);
     });
   }
 
   toggleAccordion(date: string) {
     this.openDate = this.openDate === date ? null : date;
-    this.selectedDate = date;
+    sessionStorage.setItem('openDate', date || '');
   }
 
   groupByDate(date: string | null = null) {
     this.groupedData.clear();
 
     if (date === 'ALL' || date === null) {
-      this.openDate = null;
+      sessionStorage.removeItem('openDate');
       this.selectedDate = null;
+      this.focusedPole = null;
+      sessionStorage.removeItem('selectedDate');
       this.polesData.forEach((pole) => {
         if (pole.capturedDate) {
-          const date = new Date(pole.capturedDate).toISOString().split('T')[0];
+          const date = new Date(pole.capturedDate)
+            .toLocaleDateString()
+            .split('T')[0];
 
           if (!this.groupedData.has(date)) {
             this.groupedData.set(date, []);
@@ -78,10 +87,12 @@ export class ListViewComponent implements OnInit {
       this.filteredData = this.polesData;
     } else {
       this.selectedDate = date;
+      sessionStorage.setItem('selectedDate', date);
+      this.focusedPole = null;
       this.polesData.forEach((pole) => {
         if (pole.capturedDate) {
           const poleDate = new Date(pole.capturedDate)
-            .toISOString()
+            .toLocaleDateString()
             .split('T')[0];
           if (poleDate === date) {
             if (!this.groupedData.has(date)) {
@@ -93,6 +104,7 @@ export class ListViewComponent implements OnInit {
       });
       this.filteredData = this.groupedData.get(date) || [];
       this.openDate = date;
+      sessionStorage.setItem('openDate', date);
     }
   }
 
@@ -102,7 +114,7 @@ export class ListViewComponent implements OnInit {
     );
   }
 
-  getPolesByDate(date: string): PolesInterface[] {
+  getPolesByDate(date: string): PoleInterface[] {
     return this.groupedData.get(date) || [];
   }
 
@@ -111,7 +123,7 @@ export class ListViewComponent implements OnInit {
       .filter((p) => p.capturedDate)
       .map((p) =>
         p.capturedDate
-          ? new Date(p.capturedDate).toISOString().split('T')[0]
+          ? new Date(p.capturedDate).toLocaleDateString().split('T')[0]
           : '',
       );
 
@@ -141,14 +153,7 @@ export class ListViewComponent implements OnInit {
     return days[dayIndex];
   }
 
-  expandAll() {
-    this.openDate = 'ALL';
-  }
-
-  collapseAll() {
-    this.openDate = null;
-  }
-  navigateTo(pole: PolesInterface) {
+  navigateTo(pole: PoleInterface) {
     const coordinates = pole.location?.coordinates;
 
     if (!coordinates) return;
@@ -161,6 +166,7 @@ export class ListViewComponent implements OnInit {
 
   setFocusedPole(id: string) {
     this.focusedPole = this.focusedPole === id ? null : id;
+    sessionStorage.setItem('focusedPole', this.focusedPole || '');
   }
 
   toggleFilters() {
@@ -171,16 +177,24 @@ export class ListViewComponent implements OnInit {
     const index = this.selectedFilters.indexOf(value);
     if (index > -1) {
       this.selectedFilters.splice(index, 1);
+      // also add to session storage
+      sessionStorage.setItem(
+        'selectedFilters',
+        JSON.stringify(this.selectedFilters),
+      );
     } else {
       this.selectedFilters.push(value);
+      sessionStorage.setItem(
+        'selectedFilters',
+        JSON.stringify(this.selectedFilters),
+      );
     }
   }
 
-  /* applyFilters() {
-    this.filterData();
+  applyFilters() {
+    this.isFilterOpen = false;
   }
 
-  */
   resetFilters() {
     this.selectedFilters = [];
     sessionStorage.removeItem('selectedFilters');
