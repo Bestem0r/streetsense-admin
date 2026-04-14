@@ -10,7 +10,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { Toast } from '../utils/toast';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -61,7 +61,7 @@ export class InspectionEditorComponent implements OnInit {
   errorMessage = '';
   durationInSeconds = 4;
 
-  private _snackBar = inject(MatSnackBar);
+  private toast = inject(Toast);
   private route = inject(ActivatedRoute);
   private polesService = inject(PolesService);
   private nvdbService = inject(NVDBService);
@@ -255,7 +255,7 @@ export class InspectionEditorComponent implements OnInit {
       this.polesService.updatePole(updatedPole).subscribe({
         next: (response) => {
           if (response.status === 200) {
-            this.openSnackBar('Inspection saved successfully', 'Close');
+            this.toast.show('Inspection saved successfully!', 'Close', 3000);
           }
           this.isSubmitting = false;
           this.isModified = false;
@@ -263,7 +263,7 @@ export class InspectionEditorComponent implements OnInit {
         error: (_err) => {
           this.isSubmitting = false;
           this.errorMessage = 'Failed to save inspection. Please try again.';
-          this.openSnackBar(this.errorMessage, 'Close');
+          this.toast.show(this.errorMessage, 'Close', 3000);
         },
       });
     } else {
@@ -306,15 +306,6 @@ export class InspectionEditorComponent implements OnInit {
   onImageError(event: Event) {
     const img = event.target as HTMLImageElement;
     img.src = 'assets/placeholder.svg';
-  }
-
-  openSnackBar(message: string, action: string) {
-    this._snackBar.open(message, action, {
-      duration: this.durationInSeconds * 1000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      panelClass: ['success-snackbar'],
-    });
   }
 
   get notesLength(): number {

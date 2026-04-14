@@ -1,8 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { NavComponent } from '../navbar/nav.component';
 import { MapViewComponent } from '../map-view/map-view.component';
 import { PolesService } from '../service/poles.service';
@@ -10,6 +9,7 @@ import { NVDBService } from '../service/nvdb.service';
 import { PoleInterface } from '../interfaces/pole-interface';
 import { CaptureInterface } from '../interfaces/Capture-interface';
 import { PlanCaptureService } from '../service/plan-capture.service';
+import { Toast } from '../utils/toast';
 
 type GroupBy =
   | 'road'
@@ -34,9 +34,10 @@ interface PoleWithRoad extends PoleInterface {
   styleUrl: './plan-capture-round.component.scss',
   providers: [],
 })
-export class PlanCaptureRoundComponent implements OnInit {
+export class PlanCaptureRoundComponent implements OnInit, OnChanges {
   poles: PoleWithRoad[] = [];
   focusedPole: string | null = null;
+  plannedCaptures: CaptureInterface[] = [];
   groupedPoles: GroupedPoles = {};
   hierarchicalGroupedPoles: HierarchicalGroupedPoles = {};
   groupBy: GroupBy = 'county';
@@ -53,15 +54,26 @@ export class PlanCaptureRoundComponent implements OnInit {
   private polesService = inject(PolesService);
   private nvdbService = inject(NVDBService);
   private planCaptureService = inject(PlanCaptureService);
-  private _snackBar = inject(MatSnackBar);
+  private toast = inject(Toast);
   ngOnInit(): void {
     this.loadPoles();
+    this.loadCaptures();
+  }
+
+  ngOnChanges(): void {
+    this.loadCaptures();
   }
 
   loadPoles(): void {
     this.polesService.getPoles().subscribe((data) => {
       this.poles = data as PoleWithRoad[];
       this.groupPoles();
+    });
+  }
+
+  loadCaptures(): void {
+    this.planCaptureService.getCaptures().subscribe((captures) => {
+      this.plannedCaptures = captures;
     });
   }
 
@@ -257,27 +269,27 @@ export class PlanCaptureRoundComponent implements OnInit {
       selectedPoles = this.groupedPoles[groupKey];
     }
 
-    // TODO: Implement capture round creation
     const newCapture: CaptureInterface = {
       id: crypto.randomUUID(),
       groupBy: this.groupBy,
-      groupKey: groupKey,
-      subGroupKey: subGroupKey,
+      groupByValue: groupKey,
+      subGroupValue: subGroupKey,
       poles: selectedPoles.map((p) => p.id),
       startDate: new Date(this.startDate).getTime(),
       endDate: new Date(this.endDate).getTime(),
       createdDate: Date.now(),
     };
+
     this.planCaptureService.createCapture(newCapture).subscribe({
-      next: (capture) => {
-        console.log('Capture round created successfully:', capture);
-        this.openSnackBar('Capture round created successfully', 'Close');
+      next: () => {
+        this.toast.show('Capture round created successfully!', 'Close', 3000);
+        this.loadCaptures();
       },
-      error: (error) => {
-        console.error('Error creating capture round:', error);
-        this.openSnackBar(
+      error: () => {
+        this.toast.show(
           'Failed to create capture round. Please try again.',
           'Close',
+          3000,
         );
       },
     });
@@ -303,20 +315,5 @@ export class PlanCaptureRoundComponent implements OnInit {
 
   switchTab(tab: 0 | 1): void {
     this.activeTab = tab;
-  }
-
-  /**
-   * Display a snack bar notification
-   *
-   * @param message the message to display
-   * @param action the action button label
-   */
-  openSnackBar(message: string, action: string): void {
-    this._snackBar.open(message, action, {
-      duration: 4 * 1000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      panelClass: ['success-snackbar'],
-    });
   }
 }
