@@ -366,10 +366,64 @@
     }
 
     @if (activeTab === 1) {
-      <div class="flex px-6 text-xs items-center justify-center h-full">
+      <!-- <div class="flex px-6 text-xs items-center justify-center h-full">
         No planned capture rounds yet. Once you create a round, it will appear
         here with details and options to manage it.
-      </div>
+      </div> -->
+
+      @if (activeTab === 1) {
+        <div class="flex-1 overflow-y-auto p-2 text-xs space-y-2">
+          @if (plannedCaptures.length === 0) {
+            <div class="text-center text-gray-400 py-10">
+              No planned capture rounds yet.
+            </div>
+          }
+
+          @for (capture of plannedCaptures; track capture.id) {
+            <div class="border border-slate-300 rounded p-2 bg-slate-50">
+              <div class="flex justify-between items-center mb-1">
+                <div class="font-bold text-slate-700">
+                  {{ capture.groupBy }}
+                </div>
+
+                <div class="text-[10px] text-gray-400">
+                  {{ capture.poles.length }} poles
+                </div>
+              </div>
+
+              <div class="text-[11px] text-gray-600 mb-1">
+                {{ capture.groupByValue }}
+                @if (capture.subGroupValue) {
+                  → {{ capture.subGroupValue }}
+                }
+              </div>
+
+              <div class="text-[10px] text-gray-500 mb-1">
+                {{ capture.startDate | date: "dd MMM yyyy" }} →
+                {{ capture.endDate | date: "dd MMM yyyy" }}
+              </div>
+
+              <div class="text-[10px] text-gray-400">
+                Created: {{ capture.createdDate | date: "dd MMM yyyy, HH:mm" }}
+              </div>
+
+              <div class="flex gap-1 mt-2">
+                <button
+                  class="border border-blue-300 px-2 py-1 rounded text-[10px] text-blue-600"
+                >
+                  View
+                </button>
+
+                <button
+                  class="border border-red-300 px-2 py-1 rounded text-[10px] text-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
     }
   </div>
 </div>

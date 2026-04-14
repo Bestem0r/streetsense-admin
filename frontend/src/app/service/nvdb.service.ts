@@ -16,7 +16,6 @@ export class NVDBService {
 
     const data = await firstValueFrom(this.http.get<any[]>(url));
     const veiSystem = data[0];
-    console.log('Received data from NVDB API:', veiSystem);
     if (!veiSystem) return null;
     if (!this.isVegkategori(veiSystem.vegsystemreferanse.vegsystem.vegkategori))
       return null;

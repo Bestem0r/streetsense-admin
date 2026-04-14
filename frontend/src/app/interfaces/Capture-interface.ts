@@ -1,8 +1,8 @@
 export interface CaptureInterface {
   id: string;
   groupBy: string;
-  groupKey: string;
-  subGroupKey?: string;
+  groupByValue: string;
+  subGroupValue?: string;
   poles: string[];
   startDate: number;
   endDate: number;

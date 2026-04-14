@@ -126,6 +126,15 @@
             + {{ remainingDates }} more
           </button>
         }
+
+        @if (showAllDates && remainingDates > 0) {
+          <button
+            (click)="showLessDates()"
+            class="border border-slate-300 bg-slate-100 text-slate-600 rounded-full px-3 py-0.5 text-[11px] hover:bg-slate-200 cursor-pointer transition-colors font-medium"
+          >
+            Show Less
+          </button>
+        }
       </div>
       <div class="overflow-y-auto" style="scrollbar-gutter: stable">
         <div class="flex-1 px-3 py-2 space-y-2">

@@ -141,6 +141,10 @@ export class ListViewComponent implements OnInit {
     this.showAllDates = true;
   }
 
+  showLessDates() {
+    this.showAllDates = false;
+  }
+
   dayOfWeek(date: string): string {
     const days = [
       'Sunday',
@@ -175,7 +179,6 @@ export class ListViewComponent implements OnInit {
     return unique.sort((a, b) => parse(b) - parse(a));
   }
   navigateTo(pole: PoleInterface) {
-    console.log('Navigating to pole:', pole);
     const coordinates = pole.location?.coordinates;
 
     if (!coordinates) return;
