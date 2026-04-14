@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject,Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { Veikategori } from '../enums/vegkategori.enum';
@@ -16,6 +16,7 @@ export class NVDBService {
 
     const data = await firstValueFrom(this.http.get<any[]>(url));
     const veiSystem = data[0];
+    console.log('Received data from NVDB API:', veiSystem);
     if (!veiSystem) return null;
     if (!this.isVegkategori(veiSystem.vegsystemreferanse.vegsystem.vegkategori))
       return null;

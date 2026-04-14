@@ -42,6 +42,7 @@ export class InspectionEditorComponent implements OnInit {
   showInspectorDropdown = false;
   filteredInspectors: any[] = [];
   selectedInspector: any = null;
+  defaultDate = new Date().toISOString().split('T')[0];
   today: string = (() => {
     const now = new Date();
     const year = now.getFullYear();
@@ -137,20 +138,6 @@ export class InspectionEditorComponent implements OnInit {
   formatDateForSubmit(dateString: string): number {
     if (!dateString) return 0;
     return new Date(dateString).getTime();
-  }
-
-  getMinDate(): string {
-    const captured =
-      this.selectedPole?.images?.[this.imageNumber]?.capturedDate;
-    return this.formatDateForInput(captured);
-  }
-
-  getMaxDate(): string {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 
   /**

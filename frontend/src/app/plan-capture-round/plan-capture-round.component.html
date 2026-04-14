@@ -1,0 +1,375 @@
+<div
+  class="grid grid-cols-10 grid-rows-10 bg-slate-50 text-slate-700 text-[13px] font-sans w-full h-screen"
+>
+  <div class="col-span-10 row-span-1 h-full"><app-nav></app-nav></div>
+  <div
+    class="col-span-7 row-span-9 row-start-2 inset-0 bg-gray-200 flex flex-col items-center justify-center text-gray-400 gap-2"
+  >
+    <app-map-view
+      class="w-full h-full"
+      [poles]="poles"
+      [focusedPole]="focusedPole"
+    ></app-map-view>
+  </div>
+  <div
+    class="col-span-3 row-span-9 row-start-2 col-start-8 overflow-hidden w-full h-full flex flex-col gap-2 bg-white"
+  >
+    <div class="flex flex-col gap-4 bg-slate-700 text-white p-3 border-b">
+      <div class="text-sm font-bold">📅 Capture Rounds</div>
+      <div class="flex text-xs">
+        <button
+          class="flex-1 text-center pb-1"
+          [ngClass]="
+            activeTab === 0
+              ? 'border-b-2 border-white text-white'
+              : 'text-gray-300'
+          "
+          (click)="switchTab(0)"
+        >
+          Plan New
+        </button>
+
+        <button
+          class="flex-1 text-center pb-1"
+          [ngClass]="
+            activeTab === 1
+              ? 'border-b-2 border-white text-white'
+              : 'text-gray-300'
+          "
+          (click)="switchTab(1)"
+        >
+          Planned
+        </button>
+      </div>
+    </div>
+
+    @if (activeTab === 0) {
+      <div class="flex flex-col gap-1 p-3 border-b text-xs">
+        <div class="text-gray-400">Date Range</div>
+        <div class="flex gap-2">
+          <input
+            type="date"
+            [(ngModel)]="startDate"
+            class="flex-1 border rounded px-2 py-1 bg-gray-50"
+          />
+
+          <input
+            type="date"
+            [(ngModel)]="endDate"
+            class="flex-1 border rounded px-2 py-1 bg-gray-50"
+          />
+        </div>
+
+        <div class="text-gray-400">Group By</div>
+        <div class="flex gap-1 flex-wrap">
+          <button
+            class="px-2 py-1 rounded text-xs"
+            [ngClass]="
+              groupBy === 'county' ? 'bg-slate-700 text-white' : 'border'
+            "
+            (click)="onGroupByChange('county')"
+          >
+            County
+          </button>
+
+          <button
+            class="px-2 py-1 rounded text-xs"
+            [ngClass]="
+              groupBy === 'municipality' ? 'bg-slate-700 text-white' : 'border'
+            "
+            (click)="onGroupByChange('municipality')"
+          >
+            Municipality
+          </button>
+
+          <button
+            class="px-2 py-1 rounded text-xs"
+            [ngClass]="
+              groupBy === 'road' ? 'bg-slate-700 text-white' : 'border'
+            "
+            (click)="onGroupByChange('road')"
+          >
+            Road Route
+          </button>
+
+          <button
+            class="px-2 py-1 rounded text-xs"
+            [ngClass]="
+              groupBy === 'county_road' ? 'bg-slate-700 text-white' : 'border'
+            "
+            (click)="onGroupByChange('county_road')"
+            title="Plan for specific road in a county"
+          >
+            County → Road
+          </button>
+
+          <button
+            class="px-2 py-1 rounded text-xs"
+            [ngClass]="
+              groupBy === 'municipality_road'
+                ? 'bg-slate-700 text-white'
+                : 'border'
+            "
+            (click)="onGroupByChange('municipality_road')"
+            title="Plan for specific road in a municipality"
+          >
+            Municipality → Road
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-2 text-xs">
+        @if (!isHierarchical()) {
+          @for (groupKey of groupKeys; track groupKey) {
+            <div class="border border-slate-300 rounded overflow-hidden">
+              <button
+                class="w-full flex justify-between items-center bg-slate-700 text-white px-2 py-2 cursor-pointer"
+                (click)="toggleGroup(groupKey)"
+              >
+                <div class="flex items-center gap-2">
+                  <mat-icon class="text-white">
+                    {{
+                      isGroupExpanded(groupKey)
+                        ? "expand_more"
+                        : "chevron_right"
+                    }}
+                  </mat-icon>
+
+                  <span class="font-bold">
+                    {{ groupKey }}
+                  </span>
+
+                  <span
+                    class="bg-blue-500 text-white rounded-full px-2 text-[11px]"
+                  >
+                    {{ groupedPoles[groupKey].length }}
+                  </span>
+                </div>
+
+                <div class="flex gap-1">
+                  <button
+                    class="border border-green-400 text-green-400 px-2 rounded text-xs"
+                    (click)="
+                      createCaptureRound(groupKey); $event.stopPropagation()
+                    "
+                  >
+                    ＋ Create Round
+                  </button>
+                </div>
+              </button>
+
+              @if (isGroupExpanded(groupKey)) {
+                <div class="bg-gray-50 p-2">
+                  @for (
+                    pole of groupedPoles[groupKey];
+                    track pole.id;
+                    let index = $index
+                  ) {
+                    @if (isPolesListExpanded(groupKey) || index < 5) {
+                      <div class="flex justify-between border-b py-1">
+                        <span class="text-gray-400">
+                          #{{ pole.id.slice(-7) }}
+                        </span>
+
+                        <span>
+                          {{ pole.municipality || pole.county || "Unknown" }}
+                        </span>
+
+                        <span class="text-gray-400 text-xs">
+                          Not Inspected
+                        </span>
+                      </div>
+                    }
+                  }
+
+                  @if (
+                    !isPolesListExpanded(groupKey) &&
+                    groupedPoles[groupKey].length > 5
+                  ) {
+                    <button
+                      class="w-full text-center text-[10px] text-blue-500 hover:text-blue-700 mt-1 cursor-pointer font-semibold"
+                      (click)="togglePolesList(groupKey)"
+                    >
+                      … {{ groupedPoles[groupKey].length - 5 }} more poles
+                    </button>
+                  }
+
+                  @if (
+                    isPolesListExpanded(groupKey) &&
+                    groupedPoles[groupKey].length > 5
+                  ) {
+                    <button
+                      class="w-full text-center text-[10px] text-blue-500 hover:text-blue-700 mt-1 cursor-pointer font-semibold"
+                      (click)="togglePolesList(groupKey)"
+                    >
+                      Show less
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          @for (parentKey of getParentGroupKeys(); track parentKey) {
+            <div class="border border-slate-300 rounded overflow-hidden">
+              <button
+                class="w-full flex justify-between items-center bg-slate-700 text-white px-2 py-2 cursor-pointer"
+                (click)="selectParentGroup(parentKey)"
+              >
+                <div class="flex items-center gap-2">
+                  <mat-icon class="text-white">
+                    {{
+                      selectedParentGroup === parentKey
+                        ? "expand_more"
+                        : "chevron_right"
+                    }}
+                  </mat-icon>
+
+                  <span class="font-bold">
+                    {{ parentKey }}
+                  </span>
+
+                  <span
+                    class="bg-blue-500 text-white rounded-full px-2 text-[11px]"
+                  >
+                    {{ getParentGroupPoleCount(parentKey) }}
+                  </span>
+                </div>
+              </button>
+
+              @if (selectedParentGroup === parentKey) {
+                <div class="bg-gray-100 p-2">
+                  @for (
+                    roadKey of getRoadsForParent(parentKey);
+                    track roadKey
+                  ) {
+                    <div
+                      class="border border-slate-200 rounded bg-white overflow-hidden"
+                    >
+                      <button
+                        class="w-full flex justify-between items-center bg-slate-600 text-white px-2 py-1 cursor-pointer text-xs"
+                        (click)="toggleSubGroup(parentKey + ':' + roadKey)"
+                      >
+                        <div class="flex items-center gap-2">
+                          <mat-icon class="text-white text-sm">
+                            {{
+                              isSubGroupExpanded(parentKey + ":" + roadKey)
+                                ? "expand_more"
+                                : "chevron_right"
+                            }}
+                          </mat-icon>
+
+                          <span class="font-semibold">
+                            {{ roadKey }}
+                          </span>
+
+                          <span
+                            class="bg-green-500 text-white rounded-full px-1 text-[10px]"
+                          >
+                            {{
+                              hierarchicalGroupedPoles[parentKey][roadKey]
+                                .length
+                            }}
+                          </span>
+                        </div>
+
+                        <button
+                          class="border border-green-400 text-green-400 px-2 rounded text-[11px]"
+                          (click)="
+                            createCaptureRound(parentKey, roadKey);
+                            $event.stopPropagation()
+                          "
+                        >
+                          ＋ Create Round
+                        </button>
+                      </button>
+
+                      @if (isSubGroupExpanded(parentKey + ":" + roadKey)) {
+                        <div class="bg-gray-50 p-1">
+                          @for (
+                            pole of hierarchicalGroupedPoles[parentKey][
+                              roadKey
+                            ];
+                            track pole.id;
+                            let index = $index
+                          ) {
+                            @if (
+                              isPolesListExpanded(parentKey + ":" + roadKey) ||
+                              index < 3
+                            ) {
+                              <div
+                                class="flex justify-between border-b py-0.5 text-[11px]"
+                              >
+                                <span class="text-gray-400">
+                                  #{{ pole.id.slice(-7) }}
+                                </span>
+
+                                <span>
+                                  {{
+                                    pole.municipality ||
+                                      pole.county ||
+                                      "Unknown"
+                                  }}
+                                </span>
+
+                                <span class="text-gray-400 text-[10px]">
+                                  Not Inspected
+                                </span>
+                              </div>
+                            }
+                          }
+
+                          @if (
+                            !isPolesListExpanded(parentKey + ":" + roadKey) &&
+                            hierarchicalGroupedPoles[parentKey][roadKey]
+                              .length > 3
+                          ) {
+                            <button
+                              class="w-full text-center text-[9px] text-blue-500 hover:text-blue-700 mt-0.5 cursor-pointer font-semibold"
+                              (click)="
+                                togglePolesList(parentKey + ':' + roadKey)
+                              "
+                            >
+                              …
+                              {{
+                                hierarchicalGroupedPoles[parentKey][roadKey]
+                                  .length - 3
+                              }}
+                              more poles
+                            </button>
+                          }
+
+                          @if (
+                            isPolesListExpanded(parentKey + ":" + roadKey) &&
+                            hierarchicalGroupedPoles[parentKey][roadKey]
+                              .length > 3
+                          ) {
+                            <button
+                              class="w-full text-center text-[9px] text-blue-500 hover:text-blue-700 mt-0.5 cursor-pointer font-semibold"
+                              (click)="
+                                togglePolesList(parentKey + ':' + roadKey)
+                              "
+                            >
+                              Show less
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    }
+
+    @if (activeTab === 1) {
+      <div class="flex px-6 text-xs items-center justify-center h-full">
+        No planned capture rounds yet. Once you create a round, it will appear
+        here with details and options to manage it.
+      </div>
+    }
+  </div>
+</div>

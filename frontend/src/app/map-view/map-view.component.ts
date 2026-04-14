@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -15,7 +15,7 @@ import { PolesService } from '../service/poles.service';
   templateUrl: './map-view.component.html',
   styleUrl: './map-view.component.scss',
 })
-export class MapViewComponent implements OnInit, OnChanges {
+export class MapViewComponent implements OnInit {
   @Input() poles: PoleInterface[] = [];
   @Input() focusedPole: string | null = null;
   cdate!: string;
@@ -25,10 +25,6 @@ export class MapViewComponent implements OnInit, OnChanges {
   ngOnInit() {
     localStorage.removeItem('poleData');
     this.cdate = this.activateRouter.snapshot.paramMap.get('cdate') || '';
-  }
-
-  ngOnChanges() {
-    console.log('MapView received poles:', this.poles.length);
   }
 
   navigateTo(page: string) {

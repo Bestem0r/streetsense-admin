@@ -12,6 +12,13 @@ import { MapViewComponent } from '../map-view/map-view.component';
 import { NavComponent } from '../navbar/nav.component';
 import { PolesService } from '../service/poles.service';
 
+interface PoleWithComputed extends PoleInterface {
+  _dateObj: Date;
+  _dateStr: string;
+}
+
+//TODO: capture date fra selv objecetet burde fjernes.
+
 @Component({
   selector: 'app-list-view',
   standalone: true,
@@ -31,9 +38,12 @@ import { PolesService } from '../service/poles.service';
 export class ListViewComponent implements OnInit {
   @ViewChild(MatAccordion) accordion!: MatAccordion;
 
-  polesData: PoleInterface[] = [];
+  polesData: PoleWithComputed[] = [];
   filteredData = this.polesData;
-  groupedData = new Map<string, PoleInterface[]>();
+  allDates: string[] = [];
+  showAllDates = false;
+  groupedData = new Map<string, PoleWithComputed[]>();
+  cachedSortedDates: string[] = [];
   openDate: string | null = sessionStorage.getItem('openDate');
   focusedPole: string | null = null;
   selectedDate: string | null = sessionStorage.getItem('selectedDate');
@@ -53,9 +63,42 @@ export class ListViewComponent implements OnInit {
 
   ngOnInit() {
     this.polesService.getPoles().subscribe((data) => {
-      this.polesData = data;
-      this.groupByDate(this.selectedDate);
+      this.polesData = data.map((p) => ({
+        ...p,
+        _dateObj: new Date(p.capturedDate!),
+        _dateStr: new Date(p.capturedDate!).toLocaleDateString('no-NO'),
+      }));
+
+      this.initializeData();
     });
+  }
+
+  initializeData() {
+    const dateMap = new Map<string, PoleWithComputed[]>();
+
+    this.polesData.forEach((pole) => {
+      if (!pole._dateStr) return;
+
+      if (!dateMap.has(pole._dateStr)) {
+        dateMap.set(pole._dateStr, []);
+      }
+
+      dateMap.get(pole._dateStr)!.push(pole);
+    });
+
+    this.groupedData = dateMap;
+
+    this.allDates = Array.from(dateMap.keys()).sort(
+      (a, b) => this.parseDate(b) - this.parseDate(a),
+    );
+
+    this.cachedSortedDates = this.allDates;
+    this.filteredData = this.polesData;
+  }
+
+  parseDate(date: string): number {
+    const [day, month, year] = date.split('.').map(Number);
+    return new Date(year, month - 1, day).getTime();
   }
 
   toggleAccordion(date: string) {
@@ -64,79 +107,38 @@ export class ListViewComponent implements OnInit {
   }
 
   groupByDate(date: string | null = null) {
-    this.groupedData.clear();
-
-    if (date === 'ALL' || date === null) {
-      sessionStorage.removeItem('openDate');
-      this.selectedDate = null;
-      this.focusedPole = null;
-      sessionStorage.removeItem('selectedDate');
-      this.polesData.forEach((pole) => {
-        if (pole.capturedDate) {
-          const date = new Date(pole.capturedDate)
-            .toLocaleDateString()
-            .split('T')[0];
-
-          if (!this.groupedData.has(date)) {
-            this.groupedData.set(date, []);
-          }
-
-          this.groupedData.get(date)?.push(pole);
-        }
-      });
+    if (!date) {
       this.filteredData = this.polesData;
-    } else {
-      this.selectedDate = date;
-      sessionStorage.setItem('selectedDate', date);
-      this.focusedPole = null;
-      this.polesData.forEach((pole) => {
-        if (pole.capturedDate) {
-          const poleDate = new Date(pole.capturedDate)
-            .toLocaleDateString()
-            .split('T')[0];
-          if (poleDate === date) {
-            if (!this.groupedData.has(date)) {
-              this.groupedData.set(date, []);
-            }
-            this.groupedData.get(date)?.push(pole);
-          }
-        }
-      });
-      this.filteredData = this.groupedData.get(date) || [];
-      this.openDate = date;
-      sessionStorage.setItem('openDate', date);
+      this.selectedDate = null;
+      this.openDate = null;
+      return;
     }
+
+    this.selectedDate = date;
+    this.filteredData = this.groupedData.get(date) || [];
+    this.openDate = date;
   }
 
   get sortedDates(): string[] {
-    return Array.from(this.groupedData.keys()).sort((a, b) =>
-      b.localeCompare(a),
-    );
+    return this.cachedSortedDates;
   }
 
-  getPolesByDate(date: string): PoleInterface[] {
+  getPolesByDate(date: string): PoleWithComputed[] {
     return this.groupedData.get(date) || [];
   }
 
   get visibleDates(): string[] {
-    const dates = this.polesData
-      .filter((p) => p.capturedDate)
-      .map((p) =>
-        p.capturedDate
-          ? new Date(p.capturedDate).toLocaleDateString().split('T')[0]
-          : '',
-      );
-
-    const uniqueDates = [...new Set(dates)];
-
-    uniqueDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    return uniqueDates.slice(0, 4);
+    return this.showAllDates ? this.allDates : this.allDates.slice(0, 4);
   }
   get remainingDates(): number {
-    return Math.max(this.sortedDates.length - 3, 0);
+    return Math.max(this.allDates.length - 4, 0);
   }
   get totalVisiblePoles(): number {
     return this.filteredData.length;
+  }
+
+  showMoreDates() {
+    this.showAllDates = true;
   }
 
   dayOfWeek(date: string): string {
@@ -149,19 +151,35 @@ export class ListViewComponent implements OnInit {
       'Friday',
       'Saturday',
     ];
-    const dayIndex = new Date(date).getDay();
-    return days[dayIndex];
-  }
 
+    const d = new Date(this.parseDate(date));
+    return isNaN(d.getTime()) ? 'Invalid Date' : days[d.getDay()];
+  }
+  extractAndSortDates(data: PoleInterface[]): string[] {
+    const dates = data
+      .filter(
+        (p): p is PoleInterface & { capturedDate: string } => !!p.capturedDate,
+      )
+      .map((p) => {
+        const d = new Date(p.capturedDate);
+        return d.toLocaleDateString('no-NO');
+      });
+
+    const unique = [...new Set(dates)];
+
+    const parse = (d: string) => {
+      const [day, month, year] = d.split('.').map(Number);
+      return new Date(year, month - 1, day).getTime();
+    };
+
+    return unique.sort((a, b) => parse(b) - parse(a));
+  }
   navigateTo(pole: PoleInterface) {
+    console.log('Navigating to pole:', pole);
     const coordinates = pole.location?.coordinates;
 
     if (!coordinates) return;
     this.router.navigate([`pole-details/${pole.id}`]);
-  }
-
-  showMoreDates() {
-    this.openDate = 'ALL';
   }
 
   setFocusedPole(id: string) {
@@ -177,7 +195,7 @@ export class ListViewComponent implements OnInit {
     const index = this.selectedFilters.indexOf(value);
     if (index > -1) {
       this.selectedFilters.splice(index, 1);
-      // also add to session storage
+
       sessionStorage.setItem(
         'selectedFilters',
         JSON.stringify(this.selectedFilters),
@@ -206,23 +224,18 @@ export class ListViewComponent implements OnInit {
   }
 
   getLatestImageId(pole: PoleInterface): string {
-    if (!pole.images || pole.images.length === 0) return '';
+    return (
+      pole.images?.reduce(
+        (latest, img) => {
+          const date =
+            typeof img.capturedDate === 'string'
+              ? parseInt(img.capturedDate)
+              : (img.capturedDate ?? 0);
 
-    let latestImageId = '';
-    let latestDate = 0;
-
-    pole.images.forEach((image) => {
-      const captureDate =
-        typeof image.capturedDate === 'string'
-          ? parseInt(image.capturedDate)
-          : (image.capturedDate ?? 0);
-
-      if (captureDate > latestDate) {
-        latestDate = captureDate;
-        latestImageId = image.imageId || '';
-      }
-    });
-
-    return latestImageId;
+          return date > latest.date ? { id: img.imageId || '', date } : latest;
+        },
+        { id: '', date: 0 },
+      ).id || ''
+    );
   }
 }

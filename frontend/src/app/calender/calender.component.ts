@@ -5,13 +5,13 @@ import { FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions } from '@fullcalendar/core'; // useful for typechecking
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { lastValueFrom } from 'rxjs';
-
+import { NavComponent } from '../navbar/nav.component';
 import { PolesService } from '../service/poles.service';
 import { normalizeDate } from '../utils/dateNormalizer';
 
 @Component({
   selector: 'app-calender',
-  imports: [FullCalendarModule, MatIconModule],
+  imports: [FullCalendarModule, MatIconModule, NavComponent],
   templateUrl: './calender.component.html',
   styleUrl: './calender.component.scss',
 })

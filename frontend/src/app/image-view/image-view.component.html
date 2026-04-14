@@ -44,7 +44,7 @@
       </div>
 
       <div class="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
-        @for (image of Images; track image; let i = $index) {
+        @for (image of Images; track image.imageId; let i = $index) {
           <div
             class="relative flex gap-3 p-3 border border-gray-300 rounded bg-white hover:bg-gray-100 cursor-pointer"
           >

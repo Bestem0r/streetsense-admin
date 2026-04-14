@@ -118,7 +118,7 @@
           </button>
         }
 
-        @if (remainingDates > 0) {
+        @if (remainingDates > 0 && !showAllDates) {
           <button
             (click)="showMoreDates()"
             class="border border-slate-300 bg-slate-100 text-slate-600 rounded-full px-3 py-0.5 text-[11px] hover:bg-slate-200 cursor-pointer transition-colors font-medium"
@@ -161,7 +161,7 @@
 
               @if (openDate === date) {
                 <div class="flex-1 overflow-y-auto px-3 py-2 space-y-2">
-                  @for (pole of getPolesByDate(date); track pole) {
+                  @for (pole of getPolesByDate(date); track pole.id) {
                     <div
                       class="flex gap-3 p-2 border border-slate-200 rounded bg-slate-50 hover:border-blue-300 transition-colors"
                     >

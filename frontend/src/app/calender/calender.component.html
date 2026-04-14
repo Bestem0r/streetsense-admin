@@ -1,10 +1,13 @@
-<div class="calenderContainer">
-  <nav>
-    <a routerLink="/list" class="cursor-pointer"
-      ><mat-icon (click)="navigateTo('list')">view_headline</mat-icon></a
-    >
-  </nav>
-  <h1>Inspection Calender</h1>
-
-  <full-calendar class="calender" [options]="calendarOptions"></full-calendar>
+<div
+  class="grid grid-cols-10 grid-rows-10 bg-slate-50 text-slate-700 text-[13px] font-sans w-full h-screen"
+>
+  <div class="col-span-10 row-span-1 h-full"><app-nav></app-nav></div>
+  <div
+    class="col-span-10 row-span-9 row-start-2 flex flex-col gap-4 p-4 items-center justify-center"
+  >
+    <full-calendar
+      class="calender w-200 h-160"
+      [options]="calendarOptions"
+    ></full-calendar>
+  </div>
 </div>

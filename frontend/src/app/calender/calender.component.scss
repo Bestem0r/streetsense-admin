@@ -1,23 +1,10 @@
 .calenderContainer {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-rows: repeat(10, minmax(0, 1fr));
   margin: 0 auto;
   width: 50%;
   height: auto;
-
-  nav {
-    display: flex;
-    padding: 10px;
-    justify-content: end;
-    gap: 20px;
-
-    a {
-      text-decoration: none;
-      color: #327694;
-      font-weight: bold;
-      &:hover {
-        color: #1b4f72;
-      }
-    }
-  }
 
   .calender {
     color: #327694;

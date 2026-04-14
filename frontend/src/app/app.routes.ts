@@ -6,6 +6,7 @@ import { InspectionEditorComponent } from './inspection-editor/inspection-editor
 import { ListViewComponent } from './list-view/list-view.component';
 import { MapViewComponent } from './map-view/map-view.component';
 import { InspectorsComponent } from './inspectors/inspectors.component';
+import { PlanCaptureRoundComponent } from './plan-capture-round/plan-capture-round.component';
 
 export const routes: Routes = [
   { path: '', component: ListViewComponent },
@@ -17,4 +18,5 @@ export const routes: Routes = [
     path: 'inspection/edit/:id/:imageId',
     component: InspectionEditorComponent,
   },
+  { path: 'plan', component: PlanCaptureRoundComponent },
 ];

@@ -126,11 +126,15 @@ export class LeafletMapComponent
 
         this.markerCoordinates.push([latitude, longitude]);
 
-        const latestImage = pole.images?.reduce((latest, current) => {
-          return new Date(current.capturedDate) > new Date(latest.capturedDate)
-            ? current
-            : latest;
-        });
+        const latestImage =
+          pole.images && pole.images.length > 0
+            ? pole.images.reduce((latest, current) => {
+                return new Date(current.capturedDate) >
+                  new Date(latest.capturedDate)
+                  ? current
+                  : latest;
+              })
+            : undefined;
 
         const isFocused = pole.id === this.focusedPole;
 
