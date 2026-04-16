@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ImageInfo {
   private String imageId;
-  private String capturedDate;
+  private Long capturedDate;
   private String inspectionStatus; 
   private String action;
   private Long inspectionDate;

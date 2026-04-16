@@ -8,8 +8,9 @@ import com.mongodb.client.MongoDatabase;
 import com.vegobject.springboot_mongodb.collection.CapturedDates;
 import com.vegobject.springboot_mongodb.collection.Pole;
 import com.vegobject.springboot_mongodb.repository.PolesRepository;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
+
+import io.micrometer.common.lang.NonNull;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -19,7 +20,6 @@ import java.util.List;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +27,6 @@ import org.springframework.stereotype.Service;
 public class PolesServiceImpl implements PolesService {
 
   @Autowired private PolesRepository polesRepository;
-
-  @Autowired private MongoTemplate mongoTemplate;
 
   @Value("${spring.data.mongodb.uri}")
   private String mongoUri;
@@ -99,14 +97,16 @@ public class PolesServiceImpl implements PolesService {
     }
   }
 
-  public void deletePoleById(String id) {
+  @SuppressWarnings("null")
+  public void deletePoleById(@NonNull String id) {
     try {
       polesRepository.deleteById(id);
     } catch (Exception e) {
       throw new RuntimeException("Error deleting pole with id: " + id, e);
     }}
 
-  public Pole getPoleById(String id) {
+  @SuppressWarnings("null")
+  public Pole getPoleById(@NonNull String id) {
     try {
       return polesRepository.findById(id).orElseThrow(() -> new RuntimeException("Pole not found with id: " + id));
     } catch (Exception e) {
@@ -115,7 +115,7 @@ public class PolesServiceImpl implements PolesService {
   }
 
   @Override
-public Pole updatePole(String id, Pole updatedPole) {
+public Pole updatePole(@NonNull String id, @NonNull Pole updatedPole) {
   try {
     updatedPole.setId(id);
     updatedPole.setLastModified(System.currentTimeMillis());
