@@ -12,6 +12,9 @@ import com.vegData.kafka_mongodb.collection.ImageInfo;
 import com.vegData.kafka_mongodb.collection.Pole;
 import com.vegData.kafka_mongodb.collection.RawDataPole;
 import com.vegData.kafka_mongodb.repository.PolesRepository;
+
+import jakarta.annotation.PostConstruct;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,10 +50,28 @@ private String collectionName;
 
   @Autowired private PolesRepository polesRepository;
   @Autowired private GeoService geoService;
+  @Autowired private BatchNotificationCollector batchCollector;
+ @Autowired private BatchNotificationService notificationService;
 
   private final String imgDir = "/var/www/RoadPolesImages/2026/";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
+
+
+
+  @PostConstruct
+ private void initializeBatchNotifications() {
+ // Configure batch settings: min 3 poles per batch, 5 second timeout
+    batchCollector.configure(3, 50000);
+
+    // Set the callback for when batch is ready
+    batchCollector.setOnBatchReady(batch -> {
+    LOGGER.info("Batch ready with {} poles", batch.size());
+    // Create batch notification from the collected poles
+    notificationService.createBatchCaptureNotification(batch);
+ });
+ }
+  
 
   KafkaConsumer(
       MongoClient mongoClient, @Value("${spring.data.mongodb.database}") String databaseName) {
@@ -66,7 +87,7 @@ private String collectionName;
   @KafkaListener(
       topics = "${spring.kafka.topic.name}",
       groupId = "${spring.kafka.consumer.group-id}"
-      //containerFactory = "kafkaListenerContainerFactory"
+      
       )
   public void consume(RawDataPole data) {
 
@@ -87,10 +108,11 @@ private String collectionName;
         String imageId = UUID.randomUUID().toString();
         Long capturedDate = data.getCapturedDate();
         nearestPole.getImages().add(new ImageInfo(imageId, capturedDate));
-        polesRepository.save(nearestPole);
+        Pole savedPole = polesRepository.save(nearestPole);
         Path filePath = Paths.get(imgDir + imageId + ".jpg");
         Files.createDirectories(filePath.getParent());
         Files.write(filePath, data.getImageBytes().get(0));
+        batchCollector.addPole(savedPole);
 
       } else {
         Pole pole = new Pole();
@@ -112,8 +134,9 @@ private String collectionName;
           Files.createDirectories(filePath.getParent());
           Files.write(filePath, data.getImageBytes().get(0));
         }
-        InsertOneResult result = collection.insertOne(pole);
-
+       InsertOneResult result = collection.insertOne(pole);
+        batchCollector.addPole(pole);
+        
         if (result.wasAcknowledged()) {
           LOGGER.info("*** kafka Message saved **** ");
         } else {
@@ -125,18 +148,4 @@ private String collectionName;
       LOGGER.error("Error while consuming message", e);
     }
   }
-
-  /* @KafkaListener(topics = "pole-images", groupId = "${spring.kafka.consumer.group-id}", containerFactory = "kafkaListenerContainerFactoryImage")
-  public void ConsumeImage(byte[] image, @Header(KafkaHeaders.RECEIVED_KEY) String fileName) {
-      try {
-          Path filePath = Paths.get(imgDir + fileName);
-          LOGGER.info("Image file path: " + filePath.toString());
-          // Create the directory if it doesn't exist
-          Files.createDirectories(filePath.getParent());
-          Files.write(filePath, image);
-          LOGGER.info("Image saved to: " + filePath.toString());
-      } catch (Exception e) {
-          LOGGER.error("Error while consuming image", e);
-      }
-  } */
 }
