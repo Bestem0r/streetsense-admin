@@ -37,49 +37,184 @@
         <mat-icon class="!text-slate-300 hover:!text-white cursor-pointer">
           notifications
         </mat-icon>
-        <div
-          class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-700 border-1 rounded-full -top-2 -end-2"
-        >
-          20
-        </div>
+        @if (unreadCount > 0) {
+          <div
+            class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-700 border-1 rounded-full -top-2 -end-2"
+          >
+            {{ unreadCount }}
+          </div>
+        }
       </button>
 
-      <!-- Dropdown menu -->
       <div
         id="notificationDropdown"
         [ngClass]="{
           hidden: !isNotificationsOpen,
           block: isNotificationsOpen,
         }"
-        class="absolute right-0 mt-2 w-48 bg-gray-700 border border-gray-600 rounded-lg shadow-xl z-999"
+        class="absolute right-0 mt-2 w-80 bg-gray-700 border border-gray-600 rounded-lg shadow-xl z-999 max-h-96 overflow-y-auto"
       >
-        <div class="px-4 py-3 border-b border-gray-600">
-          <div class="font-semibold text-white">Bonnie Green</div>
-          <div class="text-xs text-slate-400 truncate">bonnieflowbite.com</div>
+        <div
+          class="sticky top-0 px-4 py-3 border-b border-gray-600 bg-gray-800 flex flex-col justify-between items-center gap-2"
+        >
+          <div class="flex justify-between items-center w-full">
+            <div class="font-semibold text-white">Notifications</div>
+            <div class="flex gap-2">
+              @if (unreadCount > 0) {
+                <button class="text-xs text-blue-400 hover:text-blue-300">
+                  Mark all read
+                </button>
+              }
+              @if (readCount > 0) {
+                <button
+                  (click)="clearAllRead()"
+                  class="text-xs text-gray-400 hover:text-gray-300"
+                >
+                  Clear read
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center w-full text-slate-400">
+            <button
+              (click)="tab = 0"
+              [ngClass]="{
+                'text-white font-semibold border-b-2 border-white': tab === 0,
+                'hover:text-white': tab !== 0,
+              }"
+              class="p-2"
+            >
+              All
+            </button>
+            <button
+              (click)="tab = 1"
+              [ngClass]="{
+                'text-white font-semibold border-b-2 border-white': tab === 1,
+                'hover:text-white': tab !== 1,
+              }"
+              class="p-2"
+            >
+              Unread
+            </button>
+            <button
+              (click)="tab = 2"
+              [ngClass]="{
+                'text-white font-semibold border-b-2 border-white': tab === 2,
+                'hover:text-white': tab !== 2,
+              }"
+              class="p-2"
+            >
+              Critical
+            </button>
+            <button
+              (click)="tab = 3"
+              [ngClass]="{
+                'text-white font-semibold border-b-2 border-white': tab === 3,
+                'hover:text-white': tab !== 3,
+              }"
+              class="p-2"
+            >
+              Warning
+            </button>
+            <button
+              (click)="tab = 4"
+              [ngClass]="{
+                'text-white font-semibold border-b-2 border-white': tab === 4,
+                'hover:text-white': tab !== 4,
+              }"
+              class="p-2"
+            >
+              Info
+            </button>
+          </div>
         </div>
-        <ul class="p-2 text-sm text-slate-300" aria-labelledby="avatarButton">
-          <li>
-            <a
-              href="#"
-              class="block w-full px-3 py-2 hover:bg-gray-600 hover:text-white rounded-md transition-colors duration-150"
-              >Dashboard</a
-            >
-          </li>
-          <li>
-            <a
-              href="#"
-              class="block w-full px-3 py-2 hover:bg-gray-600 hover:text-white rounded-md transition-colors duration-150"
-              >Settings</a
-            >
-          </li>
-          <li>
-            <a
-              href="#"
-              class="block w-full px-3 py-2 hover:bg-red-900 hover:text-red-200 text-red-400 rounded-md transition-colors duration-150"
-              >Sign out</a
-            >
-          </li>
-        </ul>
+
+        <!-- Notifications List -->
+        @if (notifications.length === 0) {
+          <div class="px-4 py-6 text-center text-slate-400 text-sm">
+            No notifications
+          </div>
+        }
+
+        @for (notif of currentTabNotifications; track notif.id) {
+          <div
+            [ngClass]="[
+              getSeverityClass(notif.severity),
+              notif.read ? 'opacity-50' : 'ring-2 bg-gray-700',
+            ]"
+            class="border-l-4 p-3 m-2 rounded cursor-pointer hover:bg-gray-600/50 transition-all"
+          >
+            <div class="flex justify-between items-start gap-2">
+              <div class="flex-1">
+                <div class="font-semibold text-white text-sm">
+                  {{
+                    notif.type === "capture" || notif.type === "batch-capture"
+                      ? "New images captured " +
+                        notif.polesCount +
+                        " poles affected"
+                      : notif.type === "overdue-inspection"
+                        ? "Overdue Inspection Pole " +
+                          notif.poleIds +
+                          " needs inspection"
+                        : "Action Needed"
+                  }}
+                </div>
+                <div class="text-xs text-slate-300 mt-1">
+                  {{
+                    notif.type === "capture" || notif.type === "batch-capture"
+                      ? "New images have been captured from the field vehicle. Please review and inspect the affected poles as soon as possible."
+                      : notif.type === "overdue-inspection"
+                        ? "One or more poles have exceeded the inspection due date. Please prioritize inspecting these poles to ensure safety and compliance."
+                        : "An issue has been detected that requires your attention. Please review the details and take necessary action."
+                  }}
+                </div>
+                <div class="text-xs text-slate-500 mt-2">
+                  {{ notif.createdDate | date: "yy-MM-dd HH:mm" }}
+                </div>
+              </div>
+
+              <button
+                (click)="clearNotification(notif.id)"
+                class="text-slate-400 hover:text-white text-lg leading-none"
+                title="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+
+            <div class="flex gap-2 mt-2">
+              <span
+                [ngClass]="{
+                  'bg-blue-600 text-blue-100':
+                    notif.type === 'capture' || notif.type === 'batch-capture',
+                  'bg-red-600 text-red-100':
+                    notif.type === 'overdue-inspection',
+                  'bg-yellow-600 text-yellow-100':
+                    notif.type === 'action-needed',
+                }"
+                class="text-xs px-2 py-1 rounded"
+              >
+                {{
+                  notif.type === "capture" || notif.type === "batch-capture"
+                    ? "New Capture"
+                    : notif.type === "overdue-inspection"
+                      ? "Overdue"
+                      : "Action Needed"
+                }}
+              </span>
+            </div>
+
+            @if (!notif.read) {
+              <button
+                (click)="markAsRead(notif.id)"
+                class="text-xs text-blue-400 hover:text-blue-300 mt-2"
+              >
+                Mark as read
+              </button>
+            }
+          </div>
+        }
       </div>
     </div>
 
@@ -93,7 +228,6 @@
         NR
       </button>
 
-      <!-- Dropdown menu -->
       <div
         id="userDropdown"
         [ngClass]="{
