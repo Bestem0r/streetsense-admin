@@ -15,11 +15,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.UUID;
 @Service
 public class AuthService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -125,6 +129,53 @@ public class AuthService {
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    public void forgotPassword(String email) throws Exception {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            throw new Exception("User with this email not found");
+        }
+
+        try {
+            String resetToken = UUID.randomUUID().toString();
+            user.setResetToken(resetToken);
+            user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(15));
+            userRepository.save(user);
+
+            String resetLink = "http://localhost:4200/reset-password?token=" + resetToken;
+
+            emailService.sendEmail(
+                user.getEmail(),
+                "Reset your password",
+                "<p>Click the link below to reset your password:</p>" +
+                "<a href=\"" + resetLink + "\">Reset Password</a>" +
+                "<p>This link expires in 15 minutes.</p>"
+            );
+        } catch (Exception e) {
+            throw new Exception("Failed to send password reset email: " + e.getMessage());
+        }
+    }
+
+    public void resetPassword(String token, String newPassword, String confirmPassword) throws Exception {
+        if (!newPassword.equals(confirmPassword)) {
+            throw new Exception("Passwords do not match");
+        }
+
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new Exception("Invalid or expired reset token"));
+
+        // Check if token has expired
+        if (user.getResetTokenExpiry() == null || LocalDateTime.now().isAfter(user.getResetTokenExpiry())) {
+            throw new Exception("Reset token has expired. Please request a new password reset.");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
     }

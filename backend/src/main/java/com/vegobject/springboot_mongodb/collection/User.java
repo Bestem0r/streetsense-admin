@@ -24,30 +24,20 @@ public class User {
   
   @Indexed(unique = true)
   private String email;
-  
   private String password;
-  
   private String firstName;
-  
   private String lastName;
-  
   private String phone;
-  
   private String county;
-  
   private String role = "USER";
-  
   private String status = "ACTIVE";
-  
   private boolean enabled = true;
-  
   private String profileImage;
-  
   private String bio;
-  
   private LocalDateTime createdAt;
-  
   private LocalDateTime updatedAt;
-  
   private LocalDateTime lastLogin;
+  private String resetToken;
+  private LocalDateTime resetTokenExpiry;
+
 }

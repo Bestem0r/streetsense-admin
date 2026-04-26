@@ -74,6 +74,39 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.forgotPassword(request.getEmail());
+            return new ResponseEntity<>(
+                    new ApiResponse(true, "Password reset email sent"),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    new ApiResponse(false, e.getMessage()),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request.getToken(), request.getNewPassword(), request.getConfirmPassword());
+            return new ResponseEntity<>(
+                    new ApiResponse(true, "Password reset successfully"),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    new ApiResponse(false, e.getMessage()),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+
     /**
      * Change password endpoint
      * POST /api/auth/change-password
