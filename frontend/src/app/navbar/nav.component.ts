@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { Notification } from '../interfaces/notification-interface';
 import { NotificationService } from '../service/notification.service';
+import { AuthService, UserData } from '../service/auth.service';
 
 @Component({
   selector: 'app-nav',
@@ -18,9 +19,11 @@ export class NavComponent implements OnInit {
   unreadCount = 0;
   readCount = 0;
   tab = 0;
+  currentUser: UserData | null = null;
 
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  private authService = inject(AuthService);
 
   ngOnInit(): void {
     this.notificationService.notifications$.subscribe((notifications) => {
@@ -31,6 +34,10 @@ export class NavComponent implements OnInit {
 
     this.notificationService.getNotifications().subscribe((notifications) => {
       this.notificationService.loadNotifications(notifications);
+    });
+
+    this.authService.currentUser$.subscribe((user) => {
+      this.currentUser = user;
     });
   }
 
@@ -163,6 +170,11 @@ export class NavComponent implements OnInit {
       default:
         return 'ring-blue-500';
     }
+  }
+
+  signOut(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
   @HostListener('document:click', ['$event'])

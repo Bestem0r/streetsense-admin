@@ -8,6 +8,7 @@ import {
 } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
 import { InspectorService } from '../service/inspector.service';
+import { AuthService } from '../service/auth.service';
 
 @Component({
   selector: 'app-add-inspector',
@@ -20,8 +21,11 @@ export class AddInspectorComponent {
   @Output() cancelForm = new EventEmitter<void>();
 
   form: FormGroup;
+  isLoading = false;
+  errorMessage = '';
   private fb = inject(FormBuilder);
   private inspectorService = inject(InspectorService);
+  private authService = inject(AuthService);
   submitted = false;
 
   constructor() {
@@ -30,6 +34,9 @@ export class AddInspectorComponent {
       lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phone: [''],
+      username: ['', [Validators.required, Validators.minLength(3)]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', [Validators.required, Validators.minLength(6)]],
       county: ['All Counties'],
       role: ['Field Inspector'],
       status: ['Active'],
@@ -48,32 +55,62 @@ export class AddInspectorComponent {
 
   onSubmit(): void {
     this.submitted = true;
+    this.errorMessage = '';
 
     if (this.form.invalid) {
       return;
     }
 
-    const { firstName, lastName, email, phone, county, role, status } =
-      this.form.value;
-    const fullName = `${firstName} ${lastName}`;
+    // Validate password match
+    if (
+      this.form.get('password')?.value !==
+      this.form.get('confirmPassword')?.value
+    ) {
+      this.errorMessage = 'Passwords do not match';
+      return;
+    }
 
-    console.log('Add Inspector Form Submitted:', {
-      name: fullName,
-      email: email,
-      phone: phone,
-      county: county,
-      role: role,
-      status: status,
-    });
+    this.isLoading = true;
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      username,
+      password,
+      confirmPassword,
+    } = this.form.value;
 
-    // TODO: Replace with actual service call
-    this.form.reset({
-      county: 'All Counties',
-      role: 'Field Inspector',
-      status: 'Active',
-    });
-    this.submitted = false;
-    this.inspectorAdded.emit();
+    this.authService
+      .register({
+        username,
+        email,
+        firstName,
+        lastName,
+        password,
+        confirmPassword,
+        phoneNumber: phone,
+      })
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.submitted = false;
+            this.isLoading = false;
+            this.inspectorAdded.emit();
+          }
+        },
+        error: (error) => {
+          if (error.error?.message) {
+            this.errorMessage = error.error.message;
+          } else if (error.error?.error?.message) {
+            this.errorMessage = error.error.error.message;
+          } else {
+            this.errorMessage =
+              'Failed to register inspector. Please try again.';
+          }
+          this.isLoading = false;
+        },
+      });
   }
 
   onCancel(): void {

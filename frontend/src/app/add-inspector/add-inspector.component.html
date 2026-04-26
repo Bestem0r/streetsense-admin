@@ -1,10 +1,7 @@
-<!-- Overlay -->
 <div class="fixed inset-0 bg-gray-100/80 flex items-center justify-center z-50">
-  <!-- Modal -->
   <div
     class="bg-white w-full max-w-lg max-h-[85vh] rounded-lg border border-gray-300 flex flex-col shadow-xl"
   >
-    <!-- Header -->
     <div class="flex items-center justify-between px-5 py-4 border-b">
       <div>
         <h2 class="text-sm font-semibold flex items-center gap-1">
@@ -19,9 +16,7 @@
       </button>
     </div>
 
-    <!-- Body -->
     <div class="px-5 py-4 overflow-y-auto">
-      <!-- Avatar Preview -->
       <div class="flex items-center gap-4 mb-5">
         <div
           class="w-12 h-12 rounded-full border-2 border-dashed border-gray-300 bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-500"
@@ -30,7 +25,6 @@
         </div>
       </div>
 
-      <!-- Section -->
       <p
         class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide border-b pb-1 mb-3"
       >
@@ -38,6 +32,13 @@
       </p>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        @if (errorMessage) {
+          <div
+            class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 text-xs rounded"
+          >
+            {{ errorMessage }}
+          </div>
+        }
         <div class="grid grid-cols-2 gap-3 mb-4">
           <div class="flex flex-col gap-1">
             <label for="firstName" class="text-[10px] text-gray-500"
@@ -125,7 +126,74 @@
           Account Settings
         </p>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="col-span-2 flex flex-col gap-1">
+            <label for="username" class="text-[10px] text-gray-500"
+              >Username *</label
+            >
+            <input
+              id="username"
+              formControlName="username"
+              class="border rounded px-3 py-2 text-sm bg-gray-50"
+              placeholder="Enter username"
+            />
+            @if (submitted && form.get("username")?.invalid) {
+              <span class="text-[10px] text-red-500">
+                @if (form.get("username")?.errors?.["required"]) {
+                  Required
+                } @else if (form.get("username")?.errors?.["minlength"]) {
+                  At least 3 characters
+                }
+              </span>
+            }
+          </div>
+
+          <div class="col-span-2 flex flex-col gap-1">
+            <label for="password" class="text-[10px] text-gray-500"
+              >Password *</label
+            >
+            <input
+              id="password"
+              formControlName="password"
+              type="password"
+              class="border rounded px-3 py-2 text-sm bg-gray-50"
+              placeholder="Enter password"
+            />
+            @if (submitted && form.get("password")?.invalid) {
+              <span class="text-[10px] text-red-500">
+                @if (form.get("password")?.errors?.["required"]) {
+                  Required
+                } @else if (form.get("password")?.errors?.["minlength"]) {
+                  At least 6 characters
+                }
+              </span>
+            }
+          </div>
+
+          <div class="col-span-2 flex flex-col gap-1">
+            <label for="confirmPassword" class="text-[10px] text-gray-500"
+              >Confirm Password *</label
+            >
+            <input
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              type="password"
+              class="border rounded px-3 py-2 text-sm bg-gray-50"
+              placeholder="Confirm password"
+            />
+            @if (submitted && form.get("confirmPassword")?.invalid) {
+              <span class="text-[10px] text-red-500">
+                @if (form.get("confirmPassword")?.errors?.["required"]) {
+                  Required
+                } @else if (
+                  form.get("confirmPassword")?.errors?.["minlength"]
+                ) {
+                  At least 6 characters
+                }
+              </span>
+            }
+          </div>
+
           <div class="flex flex-col gap-1">
             <label for="role" class="text-[10px] text-gray-500">Role</label>
             <select
@@ -166,9 +234,14 @@
             </button>
             <button
               type="submit"
-              class="px-4 py-1.5 text-sm border border-gray-800 bg-gray-800 text-white rounded hover:bg-gray-700"
+              [disabled]="isLoading"
+              class="px-4 py-1.5 text-sm border border-gray-800 bg-gray-800 text-white rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Inspector
+              @if (isLoading) {
+                <span>Registering...</span>
+              } @else {
+                <span>Register Inspector</span>
+              }
             </button>
           </div>
         </div>
