@@ -121,7 +121,6 @@ public class AuthController {
      * POST /api/auth/logout
      */
     @PostMapping("/logout")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> logout() {
         try {
             authService.logout();
@@ -133,6 +132,26 @@ public class AuthController {
             return new ResponseEntity<>(
                     new ApiResponse(false, e.getMessage()),
                     HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+    /**
+     * Refresh token endpoint
+     * POST /api/auth/refresh-token
+     */
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+        try {
+            AuthResponse response = authService.refreshToken(request.getRefreshToken());
+            return new ResponseEntity<>(
+                    new ApiResponse(true, "Token refreshed successfully", response),
+                    HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                    new ApiResponse(false, e.getMessage()),
+                    HttpStatus.UNAUTHORIZED
             );
         }
     }
