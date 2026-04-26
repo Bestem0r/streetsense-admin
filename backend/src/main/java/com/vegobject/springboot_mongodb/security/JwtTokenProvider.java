@@ -18,24 +18,65 @@ public class JwtTokenProvider {
     private String jwtSecret;
 
     @Value("${app.jwtExpirationMs:86400000}")
-    private int jwtExpirationMs;
+    private long jwtExpirationMs;
 
     @Value("${app.jwtRefreshExpirationMs:604800000}")
-    private int refreshTokenExpirationMs;
+    private long refreshTokenExpirationMs;
 
+    /**
+     * Retrieves the signing key for JWT token generation and validation.
+     * @return The SecretKey used for signing JWT tokens
+     */
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
+    /**
+     * Generates a JWT token for the given username with the default expiration time.
+     * @param username The username for which the token is generated
+     * @return The generated JWT token
+     */
     public String generateToken(String username) {
         return createToken(username, jwtExpirationMs);
     }
 
+    /**
+     * Generates a JWT token for the given username with a custom expiration time.
+     * @param username The username for which the token is generated
+     * @param expirationMs The expiration time for the token in milliseconds
+     * @return The generated JWT token
+     */
+    public String generateTokenWithExpiration(String username, long expirationMs) {
+        return createToken(username, expirationMs);
+    }
+
+    /**
+     * Generates a refresh token for the given username.
+     * @param username The username for which the token is generated
+     * @return The generated refresh token
+     */
     public String generateRefreshToken(String username) {
         return createToken(username, refreshTokenExpirationMs);
     }
 
-    private String createToken(String username, int expirationMs) {
+    /**
+     * Generates a refresh token for the given username with a custom expiration time.
+     * @param username The username for which the token is generated
+     * @param expirationMs The expiration time for the token in milliseconds
+     * @return The generated refresh token
+     */
+    public String generateRefreshTokenWithExpiration(String username, long expirationMs) {
+        return createToken(username, expirationMs);
+    }
+
+
+    /**
+     * Creates a JWT token with the specified username and expiration time.
+     * @param username The username for which the token is generated
+     * @param expirationMs The expiration time for the token in milliseconds
+     * @return The generated JWT token
+     */
+    private String createToken(String username, long expirationMs) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
 
@@ -43,10 +84,15 @@ public class JwtTokenProvider {
                 .subject(username)
                 .issuedAt(now)
                 .expiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .signWith(getSigningKey())
                 .compact();
     }
 
+    /**
+     * Extracts the username from the given JWT token. If the token is invalid or expired, it returns null.
+     * @param token The JWT token from which to extract the username
+     * @return The username if the token is valid, otherwise null
+     */
     public String getUsernameFromToken(String token) {
         try {
             return Jwts.parser()
@@ -69,6 +115,11 @@ public class JwtTokenProvider {
         return null;
     }
 
+    /**
+     * Validates the given JWT token by checking its signature, structure, and expiration.
+     * @param token The JWT token to validate
+     * @return true if the token is valid, false otherwise
+     */
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
