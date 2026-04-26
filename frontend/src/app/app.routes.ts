@@ -8,6 +8,7 @@ import { MapViewComponent } from './map-view/map-view.component';
 import { InspectorsComponent } from './inspectors/inspectors.component';
 import { PlanCaptureRoundComponent } from './plan-capture-round/plan-capture-round.component';
 import { LoginComponent } from './login/login.component';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -35,4 +36,5 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   { path: 'login', component: LoginComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
 ];
