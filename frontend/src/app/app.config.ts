@@ -1,4 +1,8 @@
-import { provideHttpClient } from '@angular/common/http';
+import {
+  provideHttpClient,
+  HTTP_INTERCEPTORS,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import {
   provideClientHydration,
@@ -8,6 +12,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
+import { AuthInterceptor } from './service/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,6 +20,11 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
     provideAnimationsAsync(),
-    provideHttpClient(),
+    provideHttpClient(withInterceptorsFromDi()),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true,
+    },
   ],
 };
