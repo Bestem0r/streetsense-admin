@@ -30,12 +30,8 @@ public class AuthService {
     @Autowired
     private JwtTokenProvider tokenProvider;
 
-    /**
-     * Register a new user
-     */
+  
     public AuthResponse register(RegisterRequest request) throws Exception {
-        
-
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new Exception("Passwords do not match");
         }
@@ -70,12 +66,9 @@ public class AuthService {
         return createAuthResponse(token, refreshToken, savedUser);
     }
 
-    /**
-     * Login user
-     */
+
     public AuthResponse login(LoginRequest request) throws Exception {
         try {
-            // Authenticate user
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getUsername(),
@@ -83,10 +76,7 @@ public class AuthService {
                     )
             );
 
-            // Set the authentication in SecurityContext
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // Get user details
             User user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new Exception("User not found"));
 
@@ -94,13 +84,20 @@ public class AuthService {
                 throw new Exception("User account is disabled");
             }
 
-            // Update last login
             user.setLastLogin(LocalDateTime.now());
             userRepository.save(user);
-
-            // Generate tokens
-            String token = tokenProvider.generateToken(user.getUsername());
-            String refreshToken = tokenProvider.generateRefreshToken(user.getUsername());
+            String token;
+            String refreshToken;
+            
+            if (request.isRememberMe()) {
+                
+                token = tokenProvider.generateTokenWithExpiration(user.getUsername(), 30L * 24 * 60 * 60 * 1000);
+                refreshToken = tokenProvider.generateRefreshTokenWithExpiration(user.getUsername(), 30L * 24 * 60 * 60 * 1000);
+            } else {
+                
+                token = tokenProvider.generateToken(user.getUsername());
+                refreshToken = tokenProvider.generateRefreshToken(user.getUsername());
+            }
 
             return createAuthResponse(token, refreshToken, user);
 
@@ -116,10 +113,7 @@ public class AuthService {
                 .orElseThrow(() -> new Exception("User not found"));
     }
 
-   
     public void changePassword(ChangePasswordRequest request) throws Exception {
-        
-
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new Exception("New passwords do not match");
         }
@@ -137,6 +131,31 @@ public class AuthService {
 
     public void logout() {
         SecurityContextHolder.clearContext();
+    }
+
+    /**
+     * Refresh access token using refresh token
+     * @param refreshToken The refresh token provided by the client
+     * @return AuthResponse with new access token
+     * @throws Exception if refresh token is invalid or expired
+     */
+    public AuthResponse refreshToken(String refreshToken) throws Exception {
+        if (!tokenProvider.validateToken(refreshToken)) {
+            throw new Exception("Invalid or expired refresh token");
+        }
+
+        String username = tokenProvider.getUsernameFromToken(refreshToken);
+        if (username == null) {
+            throw new Exception("Could not extract username from refresh token");
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new Exception("User not found"));
+
+        String newToken = tokenProvider.generateToken(user.getUsername());
+        String newRefreshToken = tokenProvider.generateRefreshToken(user.getUsername());
+
+        return createAuthResponse(newToken, newRefreshToken, user);
     }
 
     /**
@@ -169,7 +188,7 @@ public class AuthService {
     }
 
     /**
-     * Helper method to create AuthResponse from user and tokens
+     * Helper method to create AuthResponse from user and tokens. 
      * @param token JWT access token
      * @param refreshToken JWT refresh token
      * @param user User object to extract user details
