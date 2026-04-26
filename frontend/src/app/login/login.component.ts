@@ -31,6 +31,12 @@ export class LoginComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
+  showForgotPasswordModal = false;
+  forgotPasswordForm!: FormGroup;
+  forgotPasswordLoading = false;
+  forgotPasswordMessage = '';
+  forgotPasswordSuccess = false;
+
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
@@ -114,5 +120,56 @@ export class LoginComponent implements OnInit {
       return 'Password must be at least 6 characters';
     }
     return '';
+  }
+
+  openForgotPasswordModal(): void {
+    this.errorMessage = '';
+    this.showForgotPasswordModal = true;
+    // Clear login form error message
+    this.forgotPasswordMessage = '';
+    this.forgotPasswordSuccess = false;
+    this.forgotPasswordForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+    });
+  }
+
+  closeForgotPasswordModal(): void {
+    this.showForgotPasswordModal = false;
+    this.forgotPasswordMessage = '';
+    this.forgotPasswordSuccess = false;
+  }
+
+  submitForgotPassword(): void {
+    this.forgotPasswordMessage = '';
+
+    if (this.forgotPasswordForm.invalid) {
+      this.forgotPasswordForm.get('email')?.markAsTouched();
+      this.forgotPasswordMessage = 'Please enter a valid email address';
+      return;
+    }
+
+    this.forgotPasswordLoading = true;
+    const email = this.forgotPasswordForm.get('email')?.value;
+
+    this.authService.forgotPassword(email).subscribe({
+      next: (response) => {
+        console.log('Forgot password response:', response);
+        this.forgotPasswordLoading = false;
+        this.forgotPasswordSuccess = true;
+        this.forgotPasswordMessage =
+          response.message ||
+          'Password reset link has been sent to your email. Please check your inbox.';
+      },
+      error: (error) => {
+        this.forgotPasswordLoading = false;
+        if (error.error?.message) {
+          this.forgotPasswordMessage = error.error.message;
+        } else {
+          this.forgotPasswordMessage =
+            error.error?.error?.message ||
+            'Failed to send password reset email. Please try again.';
+        }
+      },
+    });
   }
 }

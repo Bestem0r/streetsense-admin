@@ -89,7 +89,13 @@
           <input type="checkbox" formControlName="rememberMe" />
           Keep me signed in
         </label>
-        <span class="underline cursor-pointer">Reset password</span>
+        <button
+          type="button"
+          class="underline cursor-pointer hover:text-blue-600 transition-colors"
+          (click)="openForgotPasswordModal()"
+        >
+          Forgot password?
+        </button>
       </div>
 
       <div class="relative border-t pt-5">
@@ -108,3 +114,97 @@
     </form>
   </div>
 </div>
+
+@if (showForgotPasswordModal) {
+  <div
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+  >
+    <div
+      class="bg-white w-full max-w-sm rounded-lg border border-gray-300 flex flex-col shadow-xl px-6 py-8"
+    >
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold text-gray-900">Reset Password</h2>
+        <button
+          type="button"
+          (click)="closeForgotPasswordModal()"
+          class="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+        >
+          ×
+        </button>
+      </div>
+
+      @if (!forgotPasswordSuccess) {
+        <form
+          [formGroup]="forgotPasswordForm"
+          (ngSubmit)="submitForgotPassword()"
+        >
+          <p class="text-xs text-gray-600 mb-4">
+            Enter your email address and we'll send you a link to reset your
+            password.
+          </p>
+          <div class="mb-4">
+            <label for="forgot-email" class="text-xs text-gray-600 block mb-1">
+              Email Address
+            </label>
+            <div class="flex border rounded px-3 py-2 text-sm bg-gray-50 h-10">
+              <input
+                id="forgot-email"
+                formControlName="email"
+                type="email"
+                class="flex-1 bg-transparent px-2 text-sm outline-none placeholder-gray-300"
+                placeholder="Enter your email"
+              />
+            </div>
+            @if (
+              forgotPasswordForm.get("email")?.invalid &&
+              forgotPasswordForm.get("email")?.touched
+            ) {
+              <p class="text-xs text-red-600 mt-1">
+                Please enter a valid email address
+              </p>
+            }
+          </div>
+
+          <div class="flex gap-3">
+            <button
+              type="button"
+              (click)="closeForgotPasswordModal()"
+              class="flex-1 h-10 text-sm border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              [disabled]="forgotPasswordLoading"
+              class="flex-1 h-10 text-sm border border-gray-800 bg-gray-800 text-white rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              @if (forgotPasswordLoading) {
+                <span>Sending...</span>
+              } @else {
+                <span>Send Reset Link</span>
+              }
+            </button>
+          </div>
+        </form>
+      } @else {
+        <div class="text-center mb-4">
+          <p class="text-xs text-gray-600 mb-4">
+            If an account with that email exists, you will receive an email with
+            a link to reset your password. You have 15 minutes to reset your
+            password
+          </p>
+        </div>
+
+        <div class="flex gap-3">
+          <button
+            type="button"
+            (click)="closeForgotPasswordModal()"
+            class="w-full h-10 text-sm border border-gray-800 bg-gray-800 text-white rounded hover:bg-gray-700"
+          >
+            Close
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}
