@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
+import 'leaflet-draw';
 
 import { PoleInterface } from '../interfaces/pole-interface';
 
@@ -23,28 +24,30 @@ export class LeafletMapComponent
 {
   @Input() poles: PoleInterface[] = [];
   @Input() focusedPole: string | null = null;
-  private markerLayer = L.layerGroup();
 
   private map: any;
+  private markerLayer = L.layerGroup();
+  private markers = new Map<string, L.Marker>();
+  private activeToolbar: L.Marker | null = null;
+
+  selectedPoles = new Set<string>();
   markerCoordinates: number[][] = [];
   cdate!: string;
+
+  private router = inject(Router);
+  private activateRouter = inject(ActivatedRoute);
 
   markerIcon = L.icon({
     iconUrl: 'assets/marker_pink.png',
     iconSize: [20, 20],
     iconAnchor: [13, 20],
-    popupAnchor: [0, -20],
   });
 
   markerGreenIcon = L.icon({
     iconUrl: 'assets/marker.png',
     iconSize: [20, 20],
     iconAnchor: [13, 20],
-    popupAnchor: [0, -20],
   });
-
-  private router = inject(Router);
-  private activateRouter = inject(ActivatedRoute);
 
   ngAfterViewInit(): void {
     this.initMap();
@@ -85,7 +88,7 @@ export class LeafletMapComponent
       },
     );
 
-    const osmSatelliteTiles = L.tileLayer(
+    const satelliteTiles = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
         attribution: 'Tiles © Esri',
@@ -94,14 +97,63 @@ export class LeafletMapComponent
 
     kartverketTiles.addTo(this.map);
 
-    const baseMaps = {
-      Kartverket: kartverketTiles,
-      OpenStreetMap: osmTiles,
-      Satellite: osmSatelliteTiles,
-    };
+    L.control
+      .layers({
+        Kartverket: kartverketTiles,
+        OpenStreetMap: osmTiles,
+        Satellite: satelliteTiles,
+      })
+      .setPosition('topleft')
+      .addTo(this.map);
 
-    L.control.layers(baseMaps).setPosition('topleft').addTo(this.map);
     L.control.scale().setPosition('bottomright').addTo(this.map);
+
+    const drawnItems = new L.FeatureGroup();
+    this.map.addLayer(drawnItems);
+
+    const drawControl = new L.Control.Draw({
+      draw: {
+        rectangle: {
+          showArea: false,
+          shapeOptions: {
+            color: '#ff7800',
+            weight: 1,
+          },
+          metric: false,
+        },
+        polygon: false,
+        polyline: false,
+        circle: false,
+        marker: false,
+        circlemarker: false,
+      },
+      edit: {
+        featureGroup: drawnItems,
+        edit: false,
+        remove: true,
+      },
+    });
+
+    this.map.addControl(drawControl);
+
+    this.map.on(L.Draw.Event.CREATED, (event: any) => {
+      const layer = event.layer;
+      drawnItems.clearLayers();
+      drawnItems.addLayer(layer);
+
+      const bounds = layer.getBounds();
+      this.handleBoxSelection(bounds);
+    });
+
+    drawnItems.on('layerremove', () => {
+      this.selectedPoles.clear();
+      this.addMarkers(this.poles);
+      this.removeToolbar();
+    });
+
+    this.map.on('click', () => {
+      this.removeToolbar();
+    });
 
     this.cdate = this.activateRouter.snapshot.paramMap.get('cdate') || '';
 
@@ -110,103 +162,129 @@ export class LeafletMapComponent
     }
   }
 
-  private addMarkers(poles: PoleInterface[]) {
-    this.markerCoordinates = [];
-    this.markerLayer.clearLayers();
+  handleBoxSelection(bounds: L.LatLngBounds) {
+    this.selectedPoles.clear();
 
-    let focusedCoords: number[] | null = null;
+    this.poles.forEach((pole) => {
+      if (pole.location?.coordinates) {
+        const lat = pole.location.coordinates[1];
+        const lng = pole.location.coordinates[0];
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let focusedMarker: L.Marker | null = null;
-
-    poles.forEach((pole: PoleInterface) => {
-      if (pole.location?.coordinates && pole.location.coordinates.length > 1) {
-        const latitude = parseFloat(pole.location.coordinates[1].toFixed(5));
-        const longitude = parseFloat(pole.location.coordinates[0].toFixed(5));
-
-        this.markerCoordinates.push([latitude, longitude]);
-
-        const latestImage =
-          pole.images && pole.images.length > 0
-            ? pole.images.reduce((latest, current) => {
-                return new Date(current.capturedDate) >
-                  new Date(latest.capturedDate)
-                  ? current
-                  : latest;
-              })
-            : undefined;
-
-        const isFocused = pole.id === this.focusedPole;
-
-        const marker = L.marker([latitude, longitude], {
-          icon: isFocused ? this.markerGreenIcon : this.markerIcon,
-        });
-
-        (marker as any).id = pole.id;
-
-        const imgUrl = latestImage?.imageId
-          ? `http://dt14.idi.ntnu.no/RoadPolesImages/2026/${latestImage.imageId}.jpg`
-          : '';
-
-        const popupMsg = `
-        <div class="popup-card">
-          <div class="imgBlock">
-            ${
-              imgUrl
-                ? `<img src="${imgUrl}" />`
-                : `<div>No image available</div>`
-            }
-          </div>
-
-          <div class="info">
-            <p><b>ID:</b> ${pole.id}</p>
-            <p><b>Latest Inspection:</b> ${
-              latestImage?.capturedDate || 'N/A'
-            }</p>
-            <p><b>Lat:</b> ${latitude}</p>
-            <p><b>Long:</b> ${longitude}</p>
-            <p><b>Speed:</b> ${pole.speed ?? 'N/A'}</p>
-            <p><b>Altitude:</b> ${pole.altitude ?? 'N/A'}</p>
-            <p><b>Fix:</b> ${pole.fixType ?? 'N/A'}</p>
-            <p><b>HDOP:</b> ${pole.hdop ?? 'N/A'}</p>
-
-            <button class="viewImgBtn w-full bg-gray-500 hover:bg-gray-700 font-bold text-white py-2 px-4 rounded">
-              View Inspection History
-            </button>
-          </div>
-        </div>
-      `;
-
-        marker.bindPopup(popupMsg).on('popupopen', (event) => {
-          const popup = event.target.getPopup();
-
-          popup
-            .getElement()
-            .querySelector('.viewImgBtn')
-            ?.addEventListener('click', () => {
-              this.viewImage((event.target as any).id);
-            });
-        });
-
-        marker.addTo(this.markerLayer);
-        if (isFocused) {
-          focusedCoords = [latitude, longitude];
-          focusedMarker = marker;
+        if (bounds.contains(L.latLng(lat, lng))) {
+          this.selectedPoles.add(pole.id);
         }
       }
     });
 
+    this.removeToolbar();
+    this.addMarkers(this.poles);
+  }
+
+  private addMarkers(poles: PoleInterface[]) {
+    this.markerLayer.clearLayers();
+    this.markerCoordinates = [];
+
+    let focusedCoords: number[] | null = null;
+
+    poles.forEach((pole) => {
+      if (!pole.location?.coordinates) return;
+
+      const lat = pole.location.coordinates[1];
+      const lng = pole.location.coordinates[0];
+
+      const isSelected = this.selectedPoles.has(pole.id);
+      const isFocused = pole.id === this.focusedPole;
+
+      const marker = L.marker([lat, lng], {
+        icon: isSelected || isFocused ? this.markerGreenIcon : this.markerIcon,
+      });
+
+      marker.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        this.showToolbar(marker, pole);
+      });
+
+      marker.addTo(this.markerLayer);
+
+      if (isFocused) {
+        focusedCoords = [lat, lng];
+      }
+
+      this.markerCoordinates.push([lat, lng]);
+    });
+
     if (focusedCoords) {
       this.map.flyTo(focusedCoords, 16);
-
-      //7open popup automatically
-      /* setTimeout(() => {
-        focusedMarker?.openPopup();
-      }, 300); */
     } else if (this.markerCoordinates.length > 0) {
       this.map.flyTo(this.markerCoordinates[0], 13);
     }
   }
+
+  private showToolbar(marker: L.Marker, pole: PoleInterface) {
+    this.removeToolbar();
+
+    const latLng = marker.getLatLng();
+
+    const html = `
+      <div class="marker-toolbar" id="toolbar-${pole.id}">
+        <button class="btn-view">Details</button>
+        <button class="btn-select">
+          ${this.selectedPoles.has(pole.id) ? 'Unselect' : 'Select'}
+        </button>
+        <button class="btn-close">✕</button>
+      </div>
+    `;
+
+    const icon = L.divIcon({
+      html,
+      className: '',
+      iconSize: [160, 40],
+      iconAnchor: [80, 50],
+    });
+
+    const toolbar = L.marker(latLng, {
+      icon,
+      interactive: true,
+    });
+
+    toolbar.addTo(this.map);
+    this.activeToolbar = toolbar;
+
+    setTimeout(() => {
+      const el = document.getElementById(`toolbar-${pole.id}`);
+      if (!el) return;
+
+      el.querySelector('.btn-view')?.addEventListener('click', () => {
+        this.viewImage(pole.id);
+      });
+
+      el.querySelector('.btn-select')?.addEventListener('click', () => {
+        this.toggleSelection(pole.id);
+      });
+
+      el.querySelector('.btn-close')?.addEventListener('click', () => {
+        this.removeToolbar();
+      });
+    });
+  }
+
+  private removeToolbar() {
+    if (this.activeToolbar) {
+      this.map.removeLayer(this.activeToolbar);
+      this.activeToolbar = null;
+    }
+  }
+
+  private toggleSelection(id: string) {
+    if (this.selectedPoles.has(id)) {
+      this.selectedPoles.delete(id);
+    } else {
+      this.selectedPoles.add(id);
+    }
+
+    this.addMarkers(this.poles);
+  }
+
   viewImage(id: string) {
     this.router.navigate(['/pole-details', id]);
   }
