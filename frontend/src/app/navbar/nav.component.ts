@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Notification } from '../interfaces/notification-interface';
 import { NotificationService } from '../service/notification.service';
 import { AuthService, UserData } from '../service/auth.service';
@@ -10,7 +10,7 @@ import { AuthService, UserData } from '../service/auth.service';
   selector: 'app-nav',
   templateUrl: './nav.component.html',
   styleUrl: './nav.component.scss',
-  imports: [MatIconModule, CommonModule],
+  imports: [MatIconModule, CommonModule, RouterModule],
 })
 export class NavComponent implements OnInit {
   isNotificationsOpen = false;

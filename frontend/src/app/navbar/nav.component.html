@@ -1,32 +1,46 @@
-<nav class="h-full bg-gray-800 flex items-center justify-between px-4">
+<nav class="h-full bg-gray-700 flex items-center justify-between px-4">
   <div class="text-[16px] font-bold text-white">🗺 PoleInspect</div>
-  <div class="flex gap-2">
+  <div class="flex items-center justify-between gap-5 h-full p-0">
     <button
-      class="border border-blue-500 rounded px-3 py-1 text-xs bg-blue-600 text-white hover:bg-blue-700"
+      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-gray-300 hover:border-b-2 hover:border-white"
       (click)="navigateTo('/')"
+      routerLink="/"
+      routerLinkActive=" text-blue-400 border-b-2 border-white"
+      [routerLinkActiveOptions]="{ exact: true }"
     >
       Home
     </button>
-
     <button
-      class="border border-slate-600 rounded px-3 py-1 text-xs text-slate-300 hover:bg-slate-700 hover:text-white"
+      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-gray-300 hover:border-b-2 hover:border-white"
       (click)="navigateTo('calendar')"
+      routerLink="/calendar"
+      routerLinkActive=" text-blue-400 border-b-2 border-white"
+      [routerLinkActiveOptions]="{ exact: false }"
     >
       Calendar
     </button>
 
     <button
-      class="border border-slate-600 rounded px-3 py-1 text-xs text-slate-300 hover:bg-slate-700 hover:text-white"
+      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-gray-300 hover:border-b-2 hover:border-white"
       (click)="navigateTo('inspectors')"
+      routerLink="/inspectors"
+      routerLinkActive=" text-blue-400 border-b-2 border-white"
+      [routerLinkActiveOptions]="{ exact: false }"
     >
       Inspectors
     </button>
     <button
-      class="border border-slate-600 rounded px-3 py-1 text-xs text-slate-300 hover:bg-slate-700 hover:text-white"
+      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-gray-300 hover:border-b-2 hover:border-white"
       (click)="navigateTo('plan')"
+      routerLink="/plan"
+      routerLinkActive=" text-blue-400 border-b-2 border-white"
+      [routerLinkActiveOptions]="{ exact: false }"
     >
       Plan Capture
     </button>
+  </div>
+
+  <div class="flex items-end justify-between gap-5">
     <div class="relative">
       <button
         type="button"
