@@ -1,5 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 @use "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+@import "leaflet-draw/dist/leaflet.draw.css";
 :root {
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
@@ -45,4 +47,41 @@ mat-expansion-panel-header:hover {
   display: flex;
   flex-direction: column;
   border-radius: 0;
+}
+
+@theme {
+  --color-white: #fff;
+  --color-purple: #3f3cbb;
+  --color-midnight: #121063;
+  --color-tahiti: #3ab7bf;
+  --color-bermuda: #78dcca;
+  --color-success: #d8ffed;
+  --color-border-default: #a8bad1;
+  --color-border-hover: #1447e6;
+  --color-button-submit: #1739b6;
+  --color-button-submit-hover: #1447e6;
+}
+
+/* styles.scss */
+.marker-toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  background: oklch(0.985 0.002 247.839);
+  padding: 6px;
+  border: 1px solid oklch(0.704 0.04 256.788);
+  border-radius: 6px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+.marker-toolbar button {
+  background: oklch(0.932 0.032 255.585);
+  color: black;
+  border: 1px solid oklch(0.704 0.04 256.788);
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.marker-toolbar button:hover {
+  background: oklch(0.872 0.01 258.338);
+  border: 1px solid oklch(0.424 0.199 265.638);
 }
