@@ -50,6 +50,7 @@ private String collectionName;
 
   @Autowired private PolesRepository polesRepository;
   @Autowired private GeoService geoService;
+  @Autowired private NvdbService nvdbService;
   @Autowired private BatchNotificationCollector batchCollector;
  @Autowired private BatchNotificationService notificationService;
 
@@ -59,15 +60,17 @@ private String collectionName;
 
 
 
+  /**
+   * Initialize batch notification settings after the bean is constructed. 
+   * Configures the batch collector to trigger a notification when at least 3 poles are collected or after a 50 second timeout,
+   */
+
+  //TODO: this needs to be optimized. 
   @PostConstruct
  private void initializeBatchNotifications() {
- // Configure batch settings: min 3 poles per batch, 5 second timeout
     batchCollector.configure(3, 50000);
-
-    // Set the callback for when batch is ready
     batchCollector.setOnBatchReady(batch -> {
     LOGGER.info("Batch ready with {} poles", batch.size());
-    // Create batch notification from the collected poles
     notificationService.createBatchCaptureNotification(batch);
  });
  }
@@ -102,12 +105,11 @@ private String collectionName;
 
       String county = geoService.findCounty(lat, lng);
       String municipality = geoService.findMunicipality(lat, lng);
-
-
+      NvdbService.VeiSystem veiInfo = nvdbService.getVeiInfo(lat, lng);
       if (nearestPole != null && data.getImageBytes() != null && !data.getImageBytes().isEmpty()) {
         String imageId = UUID.randomUUID().toString();
         Long capturedDate = data.getCapturedDate();
-        nearestPole.getImages().add(new ImageInfo(imageId, capturedDate));
+        nearestPole.getImages().add(new ImageInfo(imageId, capturedDate, null, "not inspected", " ", " ", " "));
         Pole savedPole = polesRepository.save(nearestPole);
         Path filePath = Paths.get(imgDir + imageId + ".jpg");
         Files.createDirectories(filePath.getParent());
@@ -125,11 +127,12 @@ private String collectionName;
         pole.setLocation(location);
         pole.setCounty(county);
         pole.setMunicipality(municipality);
+        applyVeiInfo(pole, veiInfo);
         pole.setFieldOfView(data.getCameraInfo().getFieldOfView());
         pole.setSatellitesUsed(data.getNmeaInfo().getSatellitesUsed());
         if (data.getImageBytes() != null && !data.getImageBytes().isEmpty()) {
           String imageId = UUID.randomUUID().toString();
-          pole.getImages().add(new ImageInfo(imageId, data.getCapturedDate()));
+          pole.getImages().add(new ImageInfo(imageId, data.getCapturedDate(), null, "not inspected", " ", " ", " "));
           Path filePath = Paths.get(imgDir + imageId + ".jpg");
           Files.createDirectories(filePath.getParent());
           Files.write(filePath, data.getImageBytes().get(0));
@@ -147,5 +150,15 @@ private String collectionName;
     } catch (Exception e) {
       LOGGER.error("Error while consuming message", e);
     }
+  }
+
+  private void applyVeiInfo(Pole pole, NvdbService.VeiSystem veiInfo) {
+    if (pole == null || veiInfo == null) {
+      return;
+    }
+
+    pole.setVegkategori(veiInfo.vegkategori());
+    pole.setNummer(veiInfo.nummer());
+    pole.setAvstand(veiInfo.avstand());
   }
 }
