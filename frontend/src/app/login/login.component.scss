@@ -1,57 +1,114 @@
-// Forgot password modal animations
-::ng-deep {
-  .fixed[class*="z-50"] {
-    animation: fadeIn 0.3s ease-in;
-  }
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap");
 
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
+:host {
+  display: block;
+  height: 100%;
+  --f-brand: "Barlow Condensed", sans-serif;
+  --f-body: "DM Sans", sans-serif;
+}
 
-  // Modal styling
-  .bg-white {
-    animation: slideUp 0.3s ease-out;
-  }
+.lp-brand-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 38px 38px;
+}
 
-  @keyframes slideUp {
-    from {
-      transform: translateY(10px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
+.lp-brand-glow {
+  top: 45%;
+  left: 50%;
+  width: 360px;
+  height: 360px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 70%
+  );
+  animation: glow-pulse 4s ease-in-out infinite;
+}
 
-  // Close button styling
-  button:has(+ *) {
-    transition: color 0.2s ease;
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
   }
-
-  // Input focus styling
-  input:focus {
-    outline: none;
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
   }
+}
 
-  // Success message styling
-  .bg-green-100 {
-    animation: slideDown 0.3s ease-out;
+.lp-pole {
+  filter: drop-shadow(0 0 18px rgba(241, 245, 249, 0.2));
+  animation: pole-float 4s ease-in-out infinite;
+}
+
+@keyframes pole-float {
+  0%,
+  100% {
+    transform: translateY(0);
   }
+  50% {
+    transform: translateY(-7px);
+  }
+}
 
-  @keyframes slideDown {
-    from {
-      transform: translateY(-5px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
+.lp-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: lp-spin 0.6s linear infinite;
+}
+
+@keyframes lp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.lp-alert-anim {
+  animation: alert-slide 0.2s ease;
+}
+
+@keyframes alert-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lp-overlay-anim {
+  animation: fade-in 0.2s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lp-dialog-anim {
+  animation: dialog-in 0.22s ease;
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

@@ -1,135 +1,202 @@
-<div
-  class="fixed inset-0 bg-gray-100/80 flex items-center justify-center z-50 px-4"
->
-  <div
-    class="bg-white w-full max-w-sm rounded-lg border border-gray-300 flex flex-col shadow-xl px-6 py-8"
+<div class="flex min-h-screen">
+  <aside
+    class="relative hidden md:flex md:flex-[0_0_42%] flex-col bg-slate-800 overflow-hidden"
   >
-    <div class="flex items-center justify-center gap-2 mb-2">
+    <div class="lp-brand-grid absolute inset-0"></div>
+    <div class="lp-brand-glow absolute pointer-events-none"></div>
+
+    <div
+      class="relative z-10 flex-1 flex flex-col items-center justify-center px-9 py-12 text-center"
+    >
       <div
-        class="w-11 h-11 bg-gray-300 border-2 border-slate-600 flex items-center justify-center text-[10px]"
+        class="text-[2.9rem] font-extrabold tracking-[.1em] leading-none text-white mb-3"
+        style="font-family: var(--f-brand)"
       >
-        LOGO
+        POLE<span class="text-slate-300">INSPECT</span>
       </div>
-      <span class="text-xl font-bold">PoleInspect</span>
-    </div>
-
-    <div class="flex flex-col flex mt-5 mb-6 relative border-b gap-5 pb-2">
-      <div class="flex-1 text-center text-xs font-bold text-black py-2">
-        Sign In
-      </div>
-      <p class="text-xs text-gray-500">Enter your credentials below</p>
-    </div>
-
-    @if (errorMessage) {
+      <p class="text-sm font-medium text-slate-400 leading-relaxed mb-6">
+        Field Inspection<br />Management System
+      </p>
       <div
-        class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 text-xs rounded"
-      >
-        {{ errorMessage }}
-      </div>
-    }
+        class="w-11 h-px bg-gradient-to-r from-transparent via-slate-400 to-transparent mb-5"
+      ></div>
+      <p class="text-xs text-slate-500 leading-loose">
+        Streamline utility pole inspections<br />from capture to report.
+      </p>
+    </div>
+  </aside>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <div class="mb-4 relative">
-        <label for="username-input" class="text-xs text-gray-600 block mb-1"
-          >Username</label
+  <main class="flex-1 flex items-center justify-center bg-white px-6 py-10">
+    <div class="w-full max-w-[370px]">
+      <div class="flex md:hidden items-center gap-2 mb-8">
+        <span
+          class="text-xl font-bold tracking-[.04em] text-slate-800"
+          style="font-family: var(--f-brand)"
+          >PoleInspect</span
         >
+      </div>
 
-        <div class="flex border rounded px-3 py-2 text-sm bg-gray-50 h-10">
-          <input
-            id="username-input"
-            formControlName="username"
-            class="flex-1 bg-transparent px-2 text-sm outline-none placeholder-gray-300"
-            type="text"
-            placeholder="Enter your username"
-          />
+      <div class="mb-7">
+        <h1
+          class="text-[2rem] font-bold tracking-[.03em] text-slate-900 m-0 mb-1.5"
+          style="font-family: var(--f-brand)"
+        >
+          Welcome back
+        </h1>
+        <p class="text-sm text-slate-500 m-0">
+          Sign in to access your inspection dashboard
+        </p>
+      </div>
+
+      @if (errorMessage) {
+        <div
+          class="lp-alert-anim flex items-center gap-2 px-3 py-2.5 rounded-md text-[.82rem] mb-5 bg-red-50 border border-red-200 text-red-600"
+        >
+          <span class="shrink-0">&#9888;</span>
+          {{ errorMessage }}
         </div>
-        @if (
-          loginForm.get("username")?.invalid &&
-          loginForm.get("username")?.touched
-        ) {
-          <p class="text-xs text-red-600 mt-1">{{ getUsernameError() }}</p>
-        }
-      </div>
+      }
 
-      <div class="mb-4 relative">
-        <label for="password-input" class="text-xs text-gray-600 block mb-1"
-          >Password</label
-        >
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="mb-5">
+          <label
+            class="block text-[.73rem] font-semibold tracking-[.09em] uppercase text-slate-500 mb-1.5"
+            for="username-input"
+            >Username</label
+          >
+          <div
+            class="flex items-center bg-white border border-slate-300 rounded-lg transition-all duration-200 focus-within:border-slate-600 focus-within:shadow-[0_0_0_3px_rgba(71,85,105,.1)]"
+          >
+            <input
+              id="username-input"
+              formControlName="username"
+              type="text"
+              class="flex-1 bg-transparent border-none outline-none px-3.5 py-2.5 text-[.9rem] text-slate-900 placeholder-slate-400"
+              style="font-family: var(--f-body)"
+              placeholder="Enter your username"
+            />
+          </div>
+          @if (
+            loginForm.get("username")?.invalid &&
+            loginForm.get("username")?.touched
+          ) {
+            <span class="block text-[.75rem] text-red-500 mt-1">{{
+              getUsernameError()
+            }}</span>
+          }
+        </div>
 
-        <div class="flex border rounded px-3 py-2 text-sm bg-gray-50 h-10">
-          <input
-            id="password-input"
-            formControlName="password"
-            class="flex-1 bg-transparent px-2 text-sm outline-none placeholder-gray-300"
-            [type]="isPasswordVisible ? 'text' : 'password'"
-            placeholder="Enter your password"
-          />
+        <div class="mb-5">
+          <label
+            class="block text-[.73rem] font-semibold tracking-[.09em] uppercase text-slate-500 mb-1.5"
+            for="password-input"
+            >Password</label
+          >
+          <div
+            class="flex items-center bg-white border border-slate-300 rounded-lg transition-all duration-200 focus-within:border-slate-600 focus-within:shadow-[0_0_0_3px_rgba(71,85,105,.1)]"
+          >
+            <input
+              id="password-input"
+              formControlName="password"
+              [type]="isPasswordVisible ? 'text' : 'password'"
+              class="flex-1 bg-transparent border-none outline-none px-3.5 py-2.5 text-[.9rem] text-slate-900 placeholder-slate-400"
+              style="font-family: var(--f-body)"
+              placeholder="Enter your password"
+            />
+            <button
+              type="button"
+              class="flex items-center justify-center h-[42px] px-3 bg-transparent border-none cursor-pointer text-slate-400 hover:text-slate-600 transition-colors"
+              (click)="togglePasswordVisibility()"
+            >
+              @if (isPasswordVisible) {
+                <fa-icon [icon]="faEye"></fa-icon>
+              } @else {
+                <fa-icon [icon]="faEyeSlash"></fa-icon>
+              }
+            </button>
+          </div>
+          @if (
+            loginForm.get("password")?.invalid &&
+            loginForm.get("password")?.touched
+          ) {
+            <span class="block text-[.75rem] text-red-500 mt-1">{{
+              getPasswordError()
+            }}</span>
+          }
+        </div>
+
+        <div class="flex justify-between items-center mb-6">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              formControlName="rememberMe"
+              class="peer sr-only"
+            />
+            <span
+              class="flex shrink-0 items-center justify-center w-4 h-4 rounded-[3px] border border-slate-300 bg-white text-transparent text-[10px] font-bold transition-all duration-150 peer-checked:bg-slate-800 peer-checked:border-slate-800 peer-checked:text-white"
+            >
+              &#10003;
+            </span>
+            <span class="text-[.82rem] text-slate-600">Keep me signed in</span>
+          </label>
           <button
             type="button"
-            (click)="togglePasswordVisibility()"
-            class="w-9 flex items-center justify-center text-xs text-gray-500 cursor-pointer hover:text-gray-700"
+            class="bg-transparent border-none cursor-pointer text-[.82rem] text-slate-600 p-0 transition-colors hover:text-slate-900 hover:underline"
+            style="font-family: var(--f-body)"
+            (click)="openForgotPasswordModal()"
           >
-            @if (isPasswordVisible) {
-              <fa-icon [icon]="faEye"></fa-icon>
-            } @else {
-              <fa-icon [icon]="faEyeSlash"></fa-icon>
-            }
+            Forgot password?
           </button>
         </div>
-        @if (
-          loginForm.get("password")?.invalid &&
-          loginForm.get("password")?.touched
-        ) {
-          <p class="text-xs text-red-600 mt-1">{{ getPasswordError() }}</p>
-        }
-      </div>
 
-      <div class="flex justify-between items-center text-xs text-gray-500 mb-5">
-        <label class="flex items-center gap-1">
-          <input type="checkbox" formControlName="rememberMe" />
-          Keep me signed in
-        </label>
-        <button
-          type="button"
-          class="underline cursor-pointer hover:text-blue-600 transition-colors"
-          (click)="openForgotPasswordModal()"
-        >
-          Forgot password?
-        </button>
-      </div>
-
-      <div class="relative border-t pt-5">
         <button
           type="submit"
           [disabled]="isLoading"
-          class="w-full h-10 text-sm border border-gray-800 bg-gray-800 text-white rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full h-[46px] bg-slate-800 border-none rounded-lg cursor-pointer text-base font-bold tracking-[.07em] text-white flex items-center justify-center gap-2 transition-all duration-200 hover:bg-slate-700 hover:shadow-[0_4px_22px_rgba(15,23,42,.2)] active:scale-[.985] disabled:opacity-50 disabled:cursor-not-allowed"
+          style="font-family: var(--f-brand)"
         >
           @if (isLoading) {
+            <span class="lp-spinner"></span>
             <span>Signing in...</span>
           } @else {
-            <span>Sign In to PoleInspect</span>
+            <span>Sign In</span>
+            <span class="text-lg leading-none">&#8594;</span>
           }
         </button>
-      </div>
-    </form>
-  </div>
+      </form>
+    </div>
+  </main>
 </div>
 
 @if (showForgotPasswordModal) {
   <div
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+    class="lp-overlay-anim fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4"
+    role="button"
+    tabindex="0"
+    (click)="closeForgotPasswordModal()"
+    (keydown.escape)="closeForgotPasswordModal()"
   >
     <div
-      class="bg-white w-full max-w-sm rounded-lg border border-gray-300 flex flex-col shadow-xl px-6 py-8"
+      class="lp-dialog-anim bg-white border border-slate-200 rounded-xl w-full max-w-[400px] p-7 shadow-[0_24px_56px_rgba(15,23,42,.15)]"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
     >
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold text-gray-900">Reset Password</h2>
+        <h2
+          class="text-[1.4rem] font-bold text-slate-900 m-0"
+          style="font-family: var(--f-brand)"
+        >
+          Reset Password
+        </h2>
         <button
           type="button"
+          class="bg-transparent border-none cursor-pointer px-1.5 py-1 rounded text-slate-400 text-base transition-all hover:text-slate-700 hover:bg-slate-100"
           (click)="closeForgotPasswordModal()"
-          class="text-gray-500 hover:text-gray-700 text-2xl leading-none"
         >
-          ×
+          &#10005;
         </button>
       </div>
 
@@ -138,72 +205,91 @@
           [formGroup]="forgotPasswordForm"
           (ngSubmit)="submitForgotPassword()"
         >
-          <p class="text-xs text-gray-600 mb-4">
-            Enter your email address and we'll send you a link to reset your
-            password.
+          <p class="text-[.84rem] text-slate-500 leading-snug mb-5">
+            Enter your email and we'll send you a link to reset your password.
           </p>
-          <div class="mb-4">
-            <label for="forgot-email" class="text-xs text-gray-600 block mb-1">
-              Email Address
-            </label>
-            <div class="flex border rounded px-3 py-2 text-sm bg-gray-50 h-10">
+
+          <div>
+            <label
+              class="block text-[.73rem] font-semibold tracking-[.09em] uppercase text-slate-500 mb-1.5"
+              for="forgot-email"
+              >Email Address</label
+            >
+            <div
+              class="flex items-center bg-white border border-slate-300 rounded-lg transition-all duration-200 focus-within:border-slate-600 focus-within:shadow-[0_0_0_3px_rgba(71,85,105,.1)]"
+            >
               <input
                 id="forgot-email"
                 formControlName="email"
                 type="email"
-                class="flex-1 bg-transparent px-2 text-sm outline-none placeholder-gray-300"
-                placeholder="Enter your email"
+                class="flex-1 bg-transparent border-none outline-none px-3.5 py-2.5 text-[.9rem] text-slate-900 placeholder-slate-400"
+                style="font-family: var(--f-body)"
+                placeholder="your@email.com"
               />
             </div>
             @if (
               forgotPasswordForm.get("email")?.invalid &&
               forgotPasswordForm.get("email")?.touched
             ) {
-              <p class="text-xs text-red-600 mt-1">
-                Please enter a valid email address
-              </p>
+              <span class="block text-[.75rem] text-red-500 mt-1"
+                >Please enter a valid email address</span
+              >
             }
           </div>
 
-          <div class="flex gap-3">
+          @if (forgotPasswordMessage && forgotPasswordForm.valid) {
+            <div
+              class="lp-alert-anim flex items-center gap-2 px-3 py-2 rounded text-[.82rem] mt-3 bg-red-50 border border-red-200 text-red-600"
+            >
+              {{ forgotPasswordMessage }}
+            </div>
+          }
+
+          <div class="flex gap-2.5 mt-5">
             <button
               type="button"
+              class="flex-1 h-10 bg-white border border-slate-300 rounded-md cursor-pointer text-[.85rem] text-slate-600 transition-all hover:border-slate-400 hover:text-slate-800"
+              style="font-family: var(--f-body)"
               (click)="closeForgotPasswordModal()"
-              class="flex-1 h-10 text-sm border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               [disabled]="forgotPasswordLoading"
-              class="flex-1 h-10 text-sm border border-gray-800 bg-gray-800 text-white rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex-1 h-10 bg-slate-800 border-none rounded-md cursor-pointer text-[.95rem] font-bold tracking-[.04em] text-white transition-colors hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              style="font-family: var(--f-brand)"
             >
               @if (forgotPasswordLoading) {
-                <span>Sending...</span>
+                Sending...
               } @else {
-                <span>Send Reset Link</span>
+                Send Reset Link
               }
             </button>
           </div>
         </form>
       } @else {
-        <div class="text-center mb-4">
-          <p class="text-xs text-gray-600 mb-4">
-            If an account with that email exists, you will receive an email with
-            a link to reset your password. You have 15 minutes to reset your
-            password
+        <div class="text-center py-2 pb-5">
+          <div
+            class="w-[50px] h-[50px] mx-auto mb-3.5 rounded-full bg-green-50 border-2 border-green-200 flex items-center justify-center text-[1.35rem] text-green-600"
+          >
+            &#10003;
+          </div>
+          <p class="text-[.84rem] text-slate-600 leading-snug mb-1.5">
+            {{ forgotPasswordMessage }}
+          </p>
+          <p class="text-[.75rem] text-slate-400">
+            You have 15 minutes to reset your password.
           </p>
         </div>
-
-        <div class="flex gap-3">
-          <button
-            type="button"
-            (click)="closeForgotPasswordModal()"
-            class="w-full h-10 text-sm border border-gray-800 bg-gray-800 text-white rounded hover:bg-gray-700"
-          >
-            Close
-          </button>
-        </div>
+        <button
+          type="button"
+          class="w-full h-10 bg-slate-800 border-none rounded-md cursor-pointer text-[.95rem] font-bold tracking-[.04em] text-white transition-colors hover:bg-slate-700"
+          style="font-family: var(--f-brand)"
+          (click)="closeForgotPasswordModal()"
+        >
+          Close
+        </button>
       }
     </div>
   </div>
