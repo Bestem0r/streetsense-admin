@@ -8,6 +8,7 @@ import com.vegobject.springboot_mongodb.dto.RegisterRequest;
 import com.vegobject.springboot_mongodb.repository.UserRepository;
 import com.vegobject.springboot_mongodb.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,7 +35,9 @@ public class AuthService {
     @Autowired
     private JwtTokenProvider tokenProvider;
 
-  
+    @Value("${app.frontendUrl:http://localhost:4200}")
+    private String frontendUrl;
+
     public AuthResponse register(RegisterRequest request) throws Exception {
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new Exception("Passwords do not match");
@@ -84,10 +87,6 @@ public class AuthService {
             User user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new Exception("User not found"));
 
-            if (!user.isEnabled()) {
-                throw new Exception("User account is disabled");
-            }
-
             user.setLastLogin(LocalDateTime.now());
             userRepository.save(user);
             String token;
@@ -136,7 +135,8 @@ public class AuthService {
     public void forgotPassword(String email) throws Exception {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
-            throw new Exception("User with this email not found");
+            // Don't reveal whether the email is registered
+            return;
         }
 
         try {
@@ -145,7 +145,8 @@ public class AuthService {
             user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(15));
             userRepository.save(user);
 
-            String resetLink = "http://localhost:4200/reset-password?token=" + resetToken;
+            String baseUrl = (frontendUrl != null) ? frontendUrl : "http://localhost:4200";
+            String resetLink = baseUrl + "/reset-password?token=" + resetToken;
 
             emailService.sendEmail(
                 user.getEmail(),
