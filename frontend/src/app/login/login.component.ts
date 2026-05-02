@@ -76,7 +76,11 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           if (rememberMe) {
+            localStorage.setItem('rememberMe', 'true');
             localStorage.setItem('savedUsername', username);
+          } else {
+            localStorage.removeItem('rememberMe');
+            localStorage.removeItem('savedUsername');
           }
           this.router.navigate(['/']);
         }

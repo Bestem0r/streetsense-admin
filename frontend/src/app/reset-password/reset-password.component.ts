@@ -104,7 +104,6 @@ export class ResetPasswordComponent implements OnInit {
       .resetPassword(this.resetToken, newPassword, confirmPassword)
       .subscribe({
         next: (response) => {
-          console.log('Reset password response:', response);
           this.isLoading = false;
           this.successMessage =
             response.message ||

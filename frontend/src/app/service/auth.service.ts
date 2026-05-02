@@ -51,62 +51,55 @@ export interface UserData {
 export class AuthService {
   private baseUrl = environment.apiUrl + '/auth';
   private currentUserSubject = new BehaviorSubject<UserData | null>(null);
+  private accessToken: string | null = null;
+  private authReadySubject = new BehaviorSubject<boolean>(false);
+
+  public currentUser$ = this.currentUserSubject.asObservable();
+  public authReady$ = this.authReadySubject.asObservable();
+  private http = inject(HttpClient);
 
   initUser(): void {
-    const token = this.getToken();
-    const storedUser = this.getUserFromStorage();
-
-    // If we have a stored user and valid token, use the cached user
-    if (storedUser && token) {
-      this.currentUserSubject.next(storedUser);
-
-      // Fetch fresh user data in the background
-      this.getCurrentUser().subscribe({
-        next: (response: any) => {
-          // Response is wrapped in ApiResponse with data field
-          const userData = response.data || response;
-          if (userData && userData.id) {
-            this.setCurrentUser(userData);
-            this.currentUserSubject.next(userData);
-          }
-        },
-        error: (error) => {
-          // If 401, interceptor will handle token refresh
-          // Keep using cached user if other error
-          if (error.status === 404 || error.status === 400) {
-            this.clearAll();
-          }
-        },
-      });
-    } else if (token && !storedUser) {
-      // We have a token but no cached user, fetch it
-      this.getCurrentUser().subscribe({
-        next: (response: any) => {
-          const userData = response.data || response;
-          if (userData && userData.id) {
-            this.setCurrentUser(userData);
-            this.currentUserSubject.next(userData);
-          }
-        },
-        error: (error) => {
-          // Only clear on certain errors
-          if (error.status === 401 || error.status === 404) {
-            this.clearAll();
-          }
-        },
-      });
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      this.authReadySubject.next(true);
+      return;
     }
+
+    this.refreshTokenRequest(refreshToken).subscribe({
+      next: (response) => {
+        if (response.success && response.data?.token) {
+          this.accessToken = response.data.token;
+          this.setRefreshToken(response.data.refreshToken);
+          this.getCurrentUser().subscribe({
+            next: (res: any) => {
+              const userData = res.data || res;
+              if (userData?.id) {
+                this.currentUserSubject.next(userData);
+              }
+              this.authReadySubject.next(true);
+            },
+            error: () => {
+              this.clearAll();
+              this.authReadySubject.next(true);
+            },
+          });
+        } else {
+          this.authReadySubject.next(true);
+        }
+      },
+      error: () => {
+        this.clearAll();
+        this.authReadySubject.next(true);
+      },
+    });
   }
-  public currentUser$ = this.currentUserSubject.asObservable();
-  private http = inject(HttpClient);
 
   register(data: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/register`, data).pipe(
       tap((response) => {
         if (response.success && response.data.token) {
-          this.setToken(response.data.token);
+          this.accessToken = response.data.token;
           this.setRefreshToken(response.data.refreshToken);
-          this.setCurrentUser(response.data.user);
           this.currentUserSubject.next(response.data.user);
         }
       }),
@@ -117,9 +110,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.baseUrl}/login`, data).pipe(
       tap((response) => {
         if (response.success && response.data.token) {
-          this.setToken(response.data.token);
+          this.accessToken = response.data.token;
           this.setRefreshToken(response.data.refreshToken);
-          this.setCurrentUser(response.data.user);
           this.currentUserSubject.next(response.data.user);
         }
       }),
@@ -174,15 +166,15 @@ export class AuthService {
   }
 
   setToken(token: string): void {
-    localStorage.setItem('auth_token', token);
+    this.accessToken = token;
   }
 
   getToken(): string | null {
-    return localStorage.getItem('auth_token');
+    return this.accessToken;
   }
 
   removeToken(): void {
-    localStorage.removeItem('auth_token');
+    this.accessToken = null;
   }
 
   setRefreshToken(token: string): void {
@@ -198,35 +190,20 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    const token = this.getToken();
-    if (!token) {
-      return false;
-    }
+    if (!this.accessToken) return false;
     try {
-      const decoded: any = jwtDecode(token);
-      const exp = decoded.exp;
-      const now = Math.floor(Date.now() / 1000);
-      return exp > now;
+      const decoded: any = jwtDecode(this.accessToken);
+      return decoded.exp > Math.floor(Date.now() / 1000);
     } catch {
       return false;
     }
   }
 
   clearAll(): void {
-    this.removeToken();
+    this.accessToken = null;
     this.removeRefreshToken();
-    localStorage.removeItem('current_user');
     localStorage.removeItem('rememberMe');
     localStorage.removeItem('savedUsername');
     this.currentUserSubject.next(null);
-  }
-
-  private setCurrentUser(user: UserData): void {
-    localStorage.setItem('current_user', JSON.stringify(user));
-  }
-
-  private getUserFromStorage(): UserData | null {
-    const userStr = localStorage.getItem('current_user');
-    return userStr ? JSON.parse(userStr) : null;
   }
 }
