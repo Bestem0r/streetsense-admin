@@ -2,6 +2,7 @@ import { Component, inject, OnChanges, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
+
 import { NavComponent } from '../navbar/nav.component';
 import { MapViewComponent } from '../map-view/map-view.component';
 import { PolesService } from '../service/poles.service';
@@ -41,15 +42,35 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
   groupedPoles: GroupedPoles = {};
   hierarchicalGroupedPoles: HierarchicalGroupedPoles = {};
   groupBy: GroupBy = 'county';
-  selectedParentGroup: string | null = null; // For county_road or municipality_road
+  selectedParentGroup: string | null = null;
   expandedGroups = new Set<string>();
   expandedSubGroups = new Set<string>();
-  expandedPolesList = new Set<string>(); // Track which road's full pole list is expanded
+  expandedPolesList = new Set<string>();
   loadingRoads = false;
   startDate: string = new Date().toISOString().split('T')[0];
   endDate: string = new Date().toISOString().split('T')[0];
 
-  activeTab: 0 | 1 = 0; // Track which tab is active
+  activeTab: 0 | 1 = 0;
+
+  readonly groupByOptions: {
+    value: GroupBy;
+    label: string;
+    tooltip?: string;
+  }[] = [
+    { value: 'county', label: 'County' },
+    { value: 'municipality', label: 'Municipality' },
+    { value: 'road', label: 'Road Route' },
+    {
+      value: 'county_road',
+      label: 'County → Road',
+      tooltip: 'Plan for specific road in a county',
+    },
+    {
+      value: 'municipality_road',
+      label: 'Municipality → Road',
+      tooltip: 'Plan for specific road in a municipality',
+    },
+  ];
 
   private polesService = inject(PolesService);
   private nvdbService = inject(NVDBService);

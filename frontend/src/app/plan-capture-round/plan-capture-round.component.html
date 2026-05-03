@@ -2,6 +2,7 @@
   class="grid grid-cols-10 grid-rows-10 bg-slate-50 text-slate-700 text-[13px] font-sans w-full h-screen"
 >
   <div class="col-span-10 row-span-1 h-full"><app-nav></app-nav></div>
+
   <div
     class="col-span-7 row-span-9 row-start-2 inset-0 bg-gray-200 flex flex-col items-center justify-center text-gray-400 gap-2"
   >
@@ -11,173 +12,178 @@
       [focusedPole]="focusedPole"
     ></app-map-view>
   </div>
+
+  <!-- Sidebar -->
   <div
-    class="col-span-3 row-span-9 row-start-2 col-start-8 overflow-hidden w-full h-full flex flex-col gap-2 bg-white"
+    class="col-span-3 row-span-9 row-start-2 col-start-8 overflow-hidden w-full h-full flex flex-col bg-white border-l border-slate-200"
   >
-    <div class="flex flex-col gap-4 bg-slate-700 text-white p-3 border-b">
-      <div class="text-sm font-bold">📅 Capture Rounds</div>
-      <div class="flex text-xs">
+    <!-- Sidebar header + tabs -->
+    <div class="bg-slate-900 text-white px-4 py-3 shrink-0">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <mat-icon class="!text-blue-400 !text-[18px]">event_note</mat-icon>
+          <span class="font-semibold text-sm tracking-wide"
+            >Capture Rounds</span
+          >
+        </div>
+        <span class="text-[11px] text-slate-400 font-mono"
+          >{{ getTotalPoles() }} poles</span
+        >
+      </div>
+
+      <!-- Pill tabs -->
+      <div class="flex bg-slate-800 rounded-lg p-0.5 gap-0.5">
         <button
-          class="flex-1 text-center pb-1"
+          class="flex-1 text-center py-1.5 text-xs rounded-md font-medium transition-all"
           [ngClass]="
             activeTab === 0
-              ? 'border-b-2 border-white text-white'
-              : 'text-gray-300'
+              ? 'bg-blue-700 text-white shadow-sm'
+              : 'text-slate-400 hover:text-white'
           "
           (click)="switchTab(0)"
         >
           Plan New
         </button>
-
         <button
-          class="flex-1 text-center pb-1"
+          class="flex-1 flex items-center justify-center gap-1 text-center py-1.5 text-xs rounded-md font-medium transition-all"
           [ngClass]="
             activeTab === 1
-              ? 'border-b-2 border-white text-white'
-              : 'text-gray-300'
+              ? 'bg-blue-700 text-white shadow-sm'
+              : 'text-slate-400 hover:text-white'
           "
           (click)="switchTab(1)"
         >
           Planned
+          @if (plannedCaptures.length > 0) {
+            <span
+              class="bg-blue-700 text-white text-[9px] px-1.5 py-0.5 rounded-full leading-none"
+            >
+              {{ plannedCaptures.length }}
+            </span>
+          }
         </button>
       </div>
     </div>
 
     @if (activeTab === 0) {
-      <div class="flex flex-col gap-1 p-3 border-b text-xs">
-        <div class="text-gray-400">Date Range</div>
-        <div class="flex gap-2">
-          <input
-            type="date"
-            [(ngModel)]="startDate"
-            class="flex-1 border rounded px-2 py-1 bg-gray-50"
-          />
-
-          <input
-            type="date"
-            [(ngModel)]="endDate"
-            class="flex-1 border rounded px-2 py-1 bg-gray-50"
-          />
+      <div
+        class="px-4 py-3 border-b border-slate-100 bg-slate-50 shrink-0 space-y-3"
+      >
+        <div class="flex flex-col gap-2">
+          <label
+            for="date-range"
+            class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+          >
+            Date Range
+          </label>
+          <div id="date-range" class="flex items-center gap-2">
+            <input
+              type="date"
+              [(ngModel)]="startDate"
+              class="flex-1 border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-colors"
+            />
+            <mat-icon class="!text-[14px] text-slate-400 shrink-0 mt-2 ml-2"
+              >arrow_forward</mat-icon
+            >
+            <input
+              type="date"
+              [(ngModel)]="endDate"
+              class="flex-1 border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 transition-colors"
+            />
+          </div>
         </div>
 
-        <div class="text-gray-400">Group By</div>
-        <div class="flex gap-1 flex-wrap">
-          <button
-            class="px-2 py-1 rounded text-xs"
-            [ngClass]="
-              groupBy === 'county' ? 'bg-slate-700 text-white' : 'border'
-            "
-            (click)="onGroupByChange('county')"
+        <div>
+          <label
+            for="group-by-options"
+            class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
           >
-            County
-          </button>
-
-          <button
-            class="px-2 py-1 rounded text-xs"
-            [ngClass]="
-              groupBy === 'municipality' ? 'bg-slate-700 text-white' : 'border'
-            "
-            (click)="onGroupByChange('municipality')"
-          >
-            Municipality
-          </button>
-
-          <button
-            class="px-2 py-1 rounded text-xs"
-            [ngClass]="
-              groupBy === 'road' ? 'bg-slate-700 text-white' : 'border'
-            "
-            (click)="onGroupByChange('road')"
-          >
-            Road Route
-          </button>
-
-          <button
-            class="px-2 py-1 rounded text-xs"
-            [ngClass]="
-              groupBy === 'county_road' ? 'bg-slate-700 text-white' : 'border'
-            "
-            (click)="onGroupByChange('county_road')"
-            title="Plan for specific road in a county"
-          >
-            County → Road
-          </button>
-
-          <button
-            class="px-2 py-1 rounded text-xs"
-            [ngClass]="
-              groupBy === 'municipality_road'
-                ? 'bg-slate-700 text-white'
-                : 'border'
-            "
-            (click)="onGroupByChange('municipality_road')"
-            title="Plan for specific road in a municipality"
-          >
-            Municipality → Road
-          </button>
+            Group By
+          </label>
+          <div id="group-by-options" class="flex flex-wrap gap-1.5 mt-1.5">
+            @for (opt of groupByOptions; track opt.value) {
+              <button
+                class="px-2.5 py-1 rounded-full text-xs font-medium border transition-all"
+                [ngClass]="
+                  groupBy === opt.value
+                    ? 'border-blue-400 bg-blue-100 text-blue-700'
+                    : 'border-slate-300 bg-slate-100 text-slate-600 hover:bg-slate-200 hover:border-border-hover'
+                "
+                [title]="opt.tooltip ?? ''"
+                (click)="onGroupByChange(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            }
+          </div>
         </div>
+
+        @if (loadingRoads) {
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <mat-icon class="!text-[14px]">sync</mat-icon>
+            Fetching road data…
+          </div>
+        }
       </div>
 
-      <div class="flex-1 overflow-y-auto p-2 text-xs">
+      <div class="flex-1 overflow-y-auto px-3 py-2 space-y-1.5">
         @if (!isHierarchical()) {
           @for (groupKey of groupKeys; track groupKey) {
-            <div class="border border-slate-300 rounded overflow-hidden">
+            <div
+              class="rounded-lg overflow-hidden border border-slate-200 shadow-sm"
+            >
               <button
-                class="w-full flex justify-between items-center bg-slate-700 text-white px-2 py-2 cursor-pointer"
+                class="w-full flex justify-between items-center bg-slate-900 hover:bg-slate-800 text-white px-3 py-2 cursor-pointer transition-colors"
                 (click)="toggleGroup(groupKey)"
               >
                 <div class="flex items-center gap-2">
-                  <mat-icon class="text-white">
+                  <mat-icon class="!text-[16px] text-slate-400">
                     {{
                       isGroupExpanded(groupKey)
                         ? "expand_more"
                         : "chevron_right"
                     }}
                   </mat-icon>
-
-                  <span class="font-bold">
-                    {{ groupKey }}
-                  </span>
-
+                  <span class="font-semibold text-sm">{{ groupKey }}</span>
                   <span
-                    class="bg-blue-500 text-white rounded-full px-2 text-[11px]"
+                    class="bg-blue-700 text-white rounded-full px-2 py-0.5 text-[10px] font-medium"
                   >
                     {{ groupedPoles[groupKey].length }}
                   </span>
                 </div>
-
-                <div class="flex gap-1">
-                  <button
-                    class="border border-green-400 text-green-400 px-2 rounded text-xs"
-                    (click)="
-                      createCaptureRound(groupKey); $event.stopPropagation()
-                    "
-                  >
-                    ＋ Create Round
-                  </button>
-                </div>
+                <button
+                  class="bg-blue-700 hover:bg-blue-800 text-white px-2.5 py-0.5 rounded-md text-[11px] font-medium transition-colors"
+                  (click)="
+                    createCaptureRound(groupKey); $event.stopPropagation()
+                  "
+                >
+                  + Create
+                </button>
               </button>
 
               @if (isGroupExpanded(groupKey)) {
-                <div class="bg-gray-50 p-2">
+                <div
+                  class="border border-border-default rounded bg-slate-50 divide-y divide-slate-200"
+                >
                   @for (
                     pole of groupedPoles[groupKey];
                     track pole.id;
                     let index = $index
                   ) {
                     @if (isPolesListExpanded(groupKey) || index < 5) {
-                      <div class="flex justify-between border-b py-1">
-                        <span class="text-gray-400">
-                          #{{ pole.id.slice(-7) }}
-                        </span>
-
-                        <span>
-                          {{ pole.municipality || pole.county || "Unknown" }}
-                        </span>
-
-                        <span class="text-gray-400 text-xs">
-                          Not Inspected
-                        </span>
+                      <div
+                        class="flex items-center justify-between px-3 py-1.5 text-[11px]"
+                      >
+                        <span class="text-slate-400 font-mono"
+                          >#{{ pole.id.slice(-6) }}</span
+                        >
+                        <span class="text-slate-600">{{
+                          pole.municipality || pole.county || "Unknown"
+                        }}</span>
+                        <span
+                          class="w-2 h-2 rounded-full bg-amber-400 shrink-0"
+                          title="Not Inspected"
+                        ></span>
                       </div>
                     }
                   }
@@ -187,10 +193,10 @@
                     groupedPoles[groupKey].length > 5
                   ) {
                     <button
-                      class="w-full text-center text-[10px] text-blue-500 hover:text-blue-700 mt-1 cursor-pointer font-semibold"
+                      class="w-full text-center text-[11px] text-blue-500 hover:text-blue-700 py-1.5 font-medium"
                       (click)="togglePolesList(groupKey)"
                     >
-                      … {{ groupedPoles[groupKey].length - 5 }} more poles
+                      + {{ groupedPoles[groupKey].length - 5 }} more poles
                     </button>
                   }
 
@@ -199,7 +205,7 @@
                     groupedPoles[groupKey].length > 5
                   ) {
                     <button
-                      class="w-full text-center text-[10px] text-blue-500 hover:text-blue-700 mt-1 cursor-pointer font-semibold"
+                      class="w-full text-center text-[11px] text-blue-500 hover:text-blue-700 py-1.5 font-medium"
                       (click)="togglePolesList(groupKey)"
                     >
                       Show less
@@ -209,28 +215,28 @@
               }
             </div>
           }
-        } @else {
+        }
+
+        @if (isHierarchical()) {
           @for (parentKey of getParentGroupKeys(); track parentKey) {
-            <div class="border border-slate-300 rounded overflow-hidden">
+            <div
+              class="rounded-lg overflow-hidden border border-slate-200 shadow-sm"
+            >
               <button
-                class="w-full flex justify-between items-center bg-slate-700 text-white px-2 py-2 cursor-pointer"
+                class="w-full flex justify-between items-center bg-slate-900 hover:bg-slate-800 text-white px-3 py-2 cursor-pointer transition-colors"
                 (click)="selectParentGroup(parentKey)"
               >
                 <div class="flex items-center gap-2">
-                  <mat-icon class="text-white">
+                  <mat-icon class="!text-[16px] text-slate-400">
                     {{
                       selectedParentGroup === parentKey
                         ? "expand_more"
                         : "chevron_right"
                     }}
                   </mat-icon>
-
-                  <span class="font-bold">
-                    {{ parentKey }}
-                  </span>
-
+                  <span class="font-semibold text-sm">{{ parentKey }}</span>
                   <span
-                    class="bg-blue-500 text-white rounded-full px-2 text-[11px]"
+                    class="bg-blue-700 text-white rounded-full px-2 py-0.5 text-[10px] font-medium"
                   >
                     {{ getParentGroupPoleCount(parentKey) }}
                   </span>
@@ -238,33 +244,29 @@
               </button>
 
               @if (selectedParentGroup === parentKey) {
-                <div class="bg-gray-100 p-2">
+                <div class="bg-slate-50 p-2 space-y-1">
                   @for (
                     roadKey of getRoadsForParent(parentKey);
                     track roadKey
                   ) {
                     <div
-                      class="border border-slate-200 rounded bg-white overflow-hidden"
+                      class="rounded-md overflow-hidden border border-slate-200 bg-white"
                     >
                       <button
-                        class="w-full flex justify-between items-center bg-slate-600 text-white px-2 py-1 cursor-pointer text-xs"
+                        class="w-full flex justify-between items-center bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1.5 text-xs transition-colors cursor-pointer"
                         (click)="toggleSubGroup(parentKey + ':' + roadKey)"
                       >
                         <div class="flex items-center gap-2">
-                          <mat-icon class="text-white text-sm">
+                          <mat-icon class="!text-[14px] text-slate-300">
                             {{
                               isSubGroupExpanded(parentKey + ":" + roadKey)
                                 ? "expand_more"
                                 : "chevron_right"
                             }}
                           </mat-icon>
-
-                          <span class="font-semibold">
-                            {{ roadKey }}
-                          </span>
-
+                          <span class="font-medium">{{ roadKey }}</span>
                           <span
-                            class="bg-green-500 text-white rounded-full px-1 text-[10px]"
+                            class="bg-blue-400 text-white rounded-full px-1.5 py-0.5 text-[10px]"
                           >
                             {{
                               hierarchicalGroupedPoles[parentKey][roadKey]
@@ -272,20 +274,19 @@
                             }}
                           </span>
                         </div>
-
                         <button
-                          class="border border-green-400 text-green-400 px-2 rounded text-[11px]"
+                          class="bg-blue-700 hover:bg-blue-800 text-white px-2 py-0.5 rounded text-[11px] font-medium transition-colors"
                           (click)="
                             createCaptureRound(parentKey, roadKey);
                             $event.stopPropagation()
                           "
                         >
-                          ＋ Create Round
+                          + Create
                         </button>
                       </button>
 
                       @if (isSubGroupExpanded(parentKey + ":" + roadKey)) {
-                        <div class="bg-gray-50 p-1">
+                        <div class="divide-y divide-slate-100">
                           @for (
                             pole of hierarchicalGroupedPoles[parentKey][
                               roadKey
@@ -298,23 +299,18 @@
                               index < 3
                             ) {
                               <div
-                                class="flex justify-between border-b py-0.5 text-[11px]"
+                                class="flex items-center justify-between px-2.5 py-1 text-[11px]"
                               >
-                                <span class="text-gray-400">
-                                  #{{ pole.id.slice(-7) }}
-                                </span>
-
-                                <span>
-                                  {{
-                                    pole.municipality ||
-                                      pole.county ||
-                                      "Unknown"
-                                  }}
-                                </span>
-
-                                <span class="text-gray-400 text-[10px]">
-                                  Not Inspected
-                                </span>
+                                <span class="text-slate-400 font-mono"
+                                  >#{{ pole.id.slice(-6) }}</span
+                                >
+                                <span class="text-slate-600">{{
+                                  pole.municipality || pole.county || "Unknown"
+                                }}</span>
+                                <span
+                                  class="w-2 h-2 rounded-full bg-amber-400 shrink-0"
+                                  title="Not Inspected"
+                                ></span>
                               </div>
                             }
                           }
@@ -325,12 +321,12 @@
                               .length > 3
                           ) {
                             <button
-                              class="w-full text-center text-[9px] text-blue-500 hover:text-blue-700 mt-0.5 cursor-pointer font-semibold"
+                              class="w-full text-center text-[11px] text-blue-500 hover:text-blue-700 py-1.5 font-medium"
                               (click)="
                                 togglePolesList(parentKey + ':' + roadKey)
                               "
                             >
-                              …
+                              +
                               {{
                                 hierarchicalGroupedPoles[parentKey][roadKey]
                                   .length - 3
@@ -345,7 +341,7 @@
                               .length > 3
                           ) {
                             <button
-                              class="w-full text-center text-[9px] text-blue-500 hover:text-blue-700 mt-0.5 cursor-pointer font-semibold"
+                              class="w-full text-center text-[11px] text-blue-500 hover:text-blue-700 py-1.5 font-medium"
                               (click)="
                                 togglePolesList(parentKey + ':' + roadKey)
                               "
@@ -366,64 +362,78 @@
     }
 
     @if (activeTab === 1) {
-      <!-- <div class="flex px-6 text-xs items-center justify-center h-full">
-        No planned capture rounds yet. Once you create a round, it will appear
-        here with details and options to manage it.
-      </div> -->
+      <div class="flex-1 overflow-y-auto p-3 space-y-2">
+        @if (plannedCaptures.length === 0) {
+          <div
+            class="flex flex-col items-center justify-center h-full gap-3 text-slate-400 pb-10"
+          >
+            <mat-icon class="!text-[42px] text-slate-300">event_busy</mat-icon>
+            <p class="text-sm font-medium">No planned capture rounds yet</p>
+            <button
+              class="text-xs text-blue-500 hover:text-blue-700 font-semibold underline underline-offset-2"
+              (click)="switchTab(0)"
+            >
+              Create one now →
+            </button>
+          </div>
+        }
 
-      @if (activeTab === 1) {
-        <div class="flex-1 overflow-y-auto p-2 text-xs space-y-2">
-          @if (plannedCaptures.length === 0) {
-            <div class="text-center text-gray-400 py-10">
-              No planned capture rounds yet.
-            </div>
-          }
-
-          @for (capture of plannedCaptures; track capture.id) {
-            <div class="border border-slate-300 rounded p-2 bg-slate-50">
-              <div class="flex justify-between items-center mb-1">
-                <div class="font-bold text-slate-700">
-                  {{ capture.groupBy }}
+        @for (capture of plannedCaptures; track capture.id) {
+          <div
+            class="rounded-lg border border-border-default bg-slate-50 overflow-hidden hover:border-border-hover transition-colors cursor-pointer"
+          >
+            <div class="border-blue-500 px-3 py-2.5">
+              <div class="flex items-start justify-between mb-2">
+                <div>
+                  <span
+                    class="text-[10px] font-semibold uppercase tracking-wide text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100"
+                  >
+                    {{ capture.groupBy.replace("_", " → ") }}
+                  </span>
+                  <div class="font-semibold text-slate-800 text-xs mt-1.5">
+                    {{ capture.groupByValue }}
+                    @if (capture.subGroupValue) {
+                      <span class="text-slate-400"> → </span
+                      >{{ capture.subGroupValue }}
+                    }
+                  </div>
                 </div>
-
-                <div class="text-[10px] text-gray-400">
+                <span
+                  class="text-[10px] text-white bg-slate-700 rounded-full px-2 py-0.5 shrink-0 font-medium"
+                >
                   {{ capture.poles.length }} poles
-                </div>
+                </span>
               </div>
 
-              <div class="text-[11px] text-gray-600 mb-1">
-                {{ capture.groupByValue }}
-                @if (capture.subGroupValue) {
-                  → {{ capture.subGroupValue }}
-                }
-              </div>
-
-              <div class="text-[10px] text-gray-500 mb-1">
-                {{ capture.startDate | date: "dd MMM yyyy" }} →
+              <div class="flex items-center text-[10px] text-slate-500 mb-1">
+                <mat-icon class="!text-[12px]">calendar_today</mat-icon>
+                {{ capture.startDate | date: "dd MMM yyyy" }}
+                <mat-icon class="!text-[11px] mt-3 ml-3"
+                  >arrow_forward</mat-icon
+                >
                 {{ capture.endDate | date: "dd MMM yyyy" }}
               </div>
 
-              <div class="text-[10px] text-gray-400">
-                Created: {{ capture.createdDate | date: "dd MMM yyyy, HH:mm" }}
+              <div class="text-[10px] text-slate-400 mb-2.5">
+                Created {{ capture.createdDate | date: "dd MMM yyyy, HH:mm" }}
               </div>
 
-              <div class="flex gap-1 mt-2">
+              <div class="flex gap-1.5">
                 <button
-                  class="border border-blue-300 px-2 py-1 rounded text-[10px] text-blue-600"
+                  class="flex-1 border border-blue-200 text-blue-600 hover:bg-blue-50 py-1 rounded-md text-[10px] font-semibold transition-colors"
                 >
                   View
                 </button>
-
                 <button
-                  class="border border-red-300 px-2 py-1 rounded text-[10px] text-red-600"
+                  class="flex-1 border border-red-200 text-red-500 hover:bg-red-50 py-1 rounded-md text-[10px] font-semibold transition-colors"
                 >
                   Delete
                 </button>
               </div>
             </div>
-          }
-        </div>
-      }
+          </div>
+        }
+      </div>
     }
   </div>
 </div>
