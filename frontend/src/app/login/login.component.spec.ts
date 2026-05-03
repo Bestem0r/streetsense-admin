@@ -43,15 +43,15 @@ describe('LoginComponent', () => {
   });
 
   describe('initializeForm()', () => {
-    it('initializes with empty username when localStorage has no savedUsername', () => {
+    it('initializes with empty userName when localStorage has no saveduserName', () => {
       component.initializeForm();
-      expect(component.loginForm.get('username')?.value).toBe('');
+      expect(component.loginForm.get('userName')?.value).toBe('');
     });
 
-    it('pre-fills username from savedUsername in localStorage', () => {
+    it('pre-fills userName from saveduserName in localStorage', () => {
       localStorage.setItem('savedUsername', 'johndoe');
       component.initializeForm();
-      expect(component.loginForm.get('username')?.value).toBe('johndoe');
+      expect(component.loginForm.get('userName')?.value).toBe('johndoe');
     });
 
     it('pre-checks rememberMe when localStorage has rememberMe=true', () => {
@@ -80,14 +80,14 @@ describe('LoginComponent', () => {
     });
   });
 
-  describe('getUsernameError()', () => {
+  describe('getuserNameError()', () => {
     it('returns required message', () => {
-      component.loginForm.controls['username'].setErrors({ required: true });
+      component.loginForm.controls['userName'].setErrors({ required: true });
       expect(component.getUsernameError()).toBe('Username is required');
     });
 
     it('returns minlength message', () => {
-      component.loginForm.controls['username'].setErrors({
+      component.loginForm.controls['userName'].setErrors({
         minlength: { requiredLength: 3 },
       });
       expect(component.getUsernameError()).toBe(
@@ -96,7 +96,7 @@ describe('LoginComponent', () => {
     });
 
     it('returns empty string when valid', () => {
-      component.loginForm.controls['username'].setErrors(null);
+      component.loginForm.controls['userName'].setErrors(null);
       expect(component.getUsernameError()).toBe('');
     });
   });
@@ -125,12 +125,12 @@ describe('LoginComponent', () => {
   describe('onSubmit() with invalid form', () => {
     it('marks all controls touched when form is invalid', () => {
       component.loginForm.setValue({
-        username: 'ab',
+        userName: 'ab',
         password: '123',
         rememberMe: false,
       });
       component.onSubmit();
-      expect(component.loginForm.controls['username'].touched).toBe(true);
+      expect(component.loginForm.controls['userName'].touched).toBe(true);
       expect(component.loginForm.controls['password'].touched).toBe(true);
     });
   });
@@ -150,7 +150,7 @@ describe('LoginComponent', () => {
 
     beforeEach(() => {
       component.loginForm.setValue({
-        username: 'testuser',
+        userName: 'testuser',
         password: 'password123',
         rememberMe: false,
       });
@@ -160,7 +160,7 @@ describe('LoginComponent', () => {
       mockAuthService.login.mockReturnValue(of(successResponse));
       component.onSubmit();
       expect(mockAuthService.login).toHaveBeenCalledWith({
-        username: 'testuser',
+        userName: 'testuser',
         password: 'password123',
         rememberMe: false,
       });
@@ -172,9 +172,9 @@ describe('LoginComponent', () => {
       expect(router.navigate).toHaveBeenCalledWith(['/']);
     });
 
-    it('saves rememberMe and savedUsername to localStorage when rememberMe is checked', () => {
+    it('saves rememberMe and saveduserName to localStorage when rememberMe is checked', () => {
       component.loginForm.setValue({
-        username: 'testuser',
+        userName: 'testuser',
         password: 'password123',
         rememberMe: true,
       });
@@ -184,7 +184,7 @@ describe('LoginComponent', () => {
       expect(localStorage.getItem('savedUsername')).toBe('testuser');
     });
 
-    it('clears rememberMe and savedUsername from localStorage when rememberMe is unchecked', () => {
+    it('clears rememberMe and saveduserName from localStorage when rememberMe is unchecked', () => {
       localStorage.setItem('rememberMe', 'true');
       localStorage.setItem('savedUsername', 'testuser');
       mockAuthService.login.mockReturnValue(of(successResponse));
@@ -197,7 +197,7 @@ describe('LoginComponent', () => {
   describe('onSubmit() — login error', () => {
     beforeEach(() => {
       component.loginForm.setValue({
-        username: 'testuser',
+        userName: 'testuser',
         password: 'password123',
         rememberMe: false,
       });

@@ -232,11 +232,6 @@ export class ListViewComponent implements OnInit {
     return isNaN(d.getTime()) ? '' : days[d.getDay()];
   }
 
-  navigateTo(pole: PoleInterface) {
-    if (!pole.location?.coordinates) return;
-    this.router.navigate([`pole-details/${pole.id}`]);
-  }
-
   setFocusedPole(id: string) {
     this.focusedPole = this.focusedPole === id ? null : id;
     sessionStorage.setItem('focusedPole', this.focusedPole || '');

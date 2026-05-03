@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 import { ListViewComponent } from './list-view.component';
 vi.mock('leaflet', () => {
@@ -55,7 +55,6 @@ vi.mock('leaflet-draw', () => ({ default: {} }));
 describe('ListViewComponent', () => {
   let component: ListViewComponent;
   let fixture: ComponentFixture<ListViewComponent>;
-  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -65,42 +64,11 @@ describe('ListViewComponent', () => {
 
     fixture = TestBed.createComponent(ListViewComponent);
     component = fixture.componentInstance;
-    router = TestBed.inject(Router);
+
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  // needs more work
-  /* describe('navigateTo', () => {
-    it('should call router.navigate with the given page', () => {
-      const spy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-      component.navigateTo('/home');
-
-      expect(spy).toHaveBeenCalledWith(['/home']);
-    });
-
-    it('should navigate to different pages correctly', () => {
-      const spy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-      component.navigateTo('/inspectors');
-      expect(spy).toHaveBeenCalledWith(['/inspectors']);
-
-      component.navigateTo('/calendar');
-      expect(spy).toHaveBeenCalledWith(['/calendar']);
-
-      expect(spy).toHaveBeenCalledTimes(2);
-    });
-
-    it('should navigate to root path', () => {
-      const spy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-      component.navigateTo('/');
-
-      expect(spy).toHaveBeenCalledWith(['/']);
-    });
-  }); */
 });

@@ -26,8 +26,4 @@ export class MapViewComponent implements OnInit {
     localStorage.removeItem('poleData');
     this.cdate = this.activateRouter.snapshot.paramMap.get('cdate') || '';
   }
-
-  navigateTo(page: string) {
-    this.router.navigate([page]);
-  }
 }

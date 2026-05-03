@@ -16,7 +16,7 @@ const validFormValue = {
   lastName: 'Nordmann',
   email: 'kari@example.com',
   phone: '+47 123 45 678',
-  username: 'karinordmann',
+  userName: 'karinordmann',
   password: 'secret123',
   confirmPassword: 'secret123',
   county: 'Viken',
@@ -112,7 +112,7 @@ describe('AddInspectorComponent', () => {
       mockAuthService.register.mockReturnValue(of(successResponse));
       component.onSubmit();
       expect(mockAuthService.register).toHaveBeenCalledWith({
-        username: 'karinordmann',
+        userName: 'karinordmann',
         email: 'kari@example.com',
         firstName: 'Kari',
         lastName: 'Nordmann',
@@ -181,10 +181,10 @@ describe('AddInspectorComponent', () => {
 
   describe('onCancel()', () => {
     it('resets all form controls to null', () => {
-      component.form.patchValue({ firstName: 'Kari', username: 'kari' });
+      component.form.patchValue({ firstName: 'Kari', userName: 'kari' });
       component.onCancel();
       expect(component.form.get('firstName')?.value).toBeNull();
-      expect(component.form.get('username')?.value).toBeNull();
+      expect(component.form.get('userName')?.value).toBeNull();
     });
 
     it('resets submitted to false', () => {

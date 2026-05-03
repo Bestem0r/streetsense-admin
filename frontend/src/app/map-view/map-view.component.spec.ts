@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 import { MapViewComponent } from './map-view.component';
 
@@ -57,7 +57,6 @@ vi.mock('leaflet-draw', () => ({ default: {} }));
 describe('MapViewComponent', () => {
   let component: MapViewComponent;
   let fixture: ComponentFixture<MapViewComponent>;
-  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -67,41 +66,11 @@ describe('MapViewComponent', () => {
 
     fixture = TestBed.createComponent(MapViewComponent);
     component = fixture.componentInstance;
-    router = TestBed.inject(Router);
+
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
-  });
-
-  describe('navigateTo', () => {
-    it('should call router.navigate with the given page', () => {
-      const spy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-      component.navigateTo('/home');
-
-      expect(spy).toHaveBeenCalledWith(['/home']);
-    });
-
-    it('should navigate to different pages correctly', () => {
-      const spy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-      component.navigateTo('/inspectors');
-      expect(spy).toHaveBeenCalledWith(['/inspectors']);
-
-      component.navigateTo('/calendar');
-      expect(spy).toHaveBeenCalledWith(['/calendar']);
-
-      expect(spy).toHaveBeenCalledTimes(2);
-    });
-
-    it('should navigate to root path', () => {
-      const spy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-
-      component.navigateTo('/');
-
-      expect(spy).toHaveBeenCalledWith(['/']);
-    });
   });
 });

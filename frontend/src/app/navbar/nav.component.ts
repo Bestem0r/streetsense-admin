@@ -41,10 +41,6 @@ export class NavComponent implements OnInit {
     });
   }
 
-  navigateTo(link: string) {
-    this.router.navigate([link]);
-  }
-
   setNotificationsOpen(value: boolean) {
     this.isAvatarMenuOpen = false;
     this.isNotificationsOpen = value;

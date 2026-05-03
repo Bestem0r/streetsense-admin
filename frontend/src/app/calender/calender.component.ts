@@ -86,10 +86,6 @@ export class CalenderComponent implements OnInit {
     this.router.navigate(['/map', eventTimestamp]);
   }
 
-  navigateTo(route: string) {
-    this.router.navigate([`/${route}`]);
-  }
-
   // midlertidig funksjon til jeg har en bedre løsning.
   getColorFromId(id: string) {
     const colors = [

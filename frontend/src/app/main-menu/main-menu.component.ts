@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-main-menu',
@@ -8,10 +7,4 @@ import { Router } from '@angular/router';
   templateUrl: './main-menu.component.html',
   styleUrl: './main-menu.component.scss',
 })
-export class MainMenuComponent {
-  private router = inject(Router);
-
-  navigateTo(page: string) {
-    this.router.navigate([page]);
-  }
-}
+export class MainMenuComponent {}

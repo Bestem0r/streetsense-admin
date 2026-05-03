@@ -71,10 +71,6 @@ export class ImageViewComponent implements OnInit {
       : ({} as PoleInterface);
   }
 
-  navigateTo(link: string) {
-    this.router.navigate([link]);
-  }
-
   sortImagesByDate() {
     if (this.poleData?.images) {
       this.Images = [...this.poleData.images].sort(

@@ -401,9 +401,8 @@
                           >
                             Edit Inspection
                           </button>
-
                           <button
-                            (click)="navigateTo(pole)"
+                            routerLink="/pole-details/{{ pole.id }}"
                             class="border border-blue-200 rounded px-2 py-1 text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-400"
                           >
                             View Details
