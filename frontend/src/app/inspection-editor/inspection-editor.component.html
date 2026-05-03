@@ -1,444 +1,534 @@
 <div
-  class="grid grid-cols-10 grid-rows-10 bg-slate-50 text-slate-700 text-[13px] font-sans w-full h-screen"
+  class="grid grid-cols-10 grid-rows-10 bg-slate-50 text-slate-700 text-sm font-sans w-full h-screen"
 >
   <div class="col-span-10 row-span-1 h-full"><app-nav></app-nav></div>
-  <div class="col-span-4 row-span-9 row-start-2 col-start-1 h-full">
-    <div
-      class="flex flex-col h-full bg-gray-50 border-r-2 border-gray-300 overflow-hidden"
-    >
-      <div class="px-3.5 py-3 border-b border-gray-300 bg-white">
-        <div class="text-[15px] font-bold">Pole Information</div>
+
+  <div class="col-span-10 row-span-9 row-start-2 flex flex-col">
+    @if (isLoading) {
+      <div class="flex flex-1 items-center justify-center">
+        <div class="flex flex-col items-center gap-3 text-slate-400">
+          <div
+            class="w-8 h-8 rounded-full border-2 border-slate-200 border-t-slate-600 animate-spin"
+          ></div>
+          <span class="text-sm">Loading pole data…</span>
+        </div>
       </div>
-
-      <div class="flex-1 overflow-y-auto p-3 flex flex-col gap-2.5">
+    } @else if (!selectedPole) {
+      <div class="flex flex-1 items-center justify-center">
         <div
-          class="relative h-[200px] flex flex-col items-center justify-center text-sm text-gray-500 bg-gray-200 border border-gray-400 rounded"
+          class="flex flex-col items-center gap-3 text-center max-w-sm px-6 py-10"
         >
-          <app-leaflet-map
-            class="h-full w-full"
-            [poles]="selectedPole ? [selectedPole] : []"
-          ></app-leaflet-map>
-
           <div
-            class="absolute bottom-3 left-1/2 -translate-x-1/2 text-sm bg-white border border-gray-400 rounded-full whitespace-nowrap px-2 py-0.5 z-9999"
+            class="w-10 h-10 rounded-full bg-red-50 border border-red-100 flex items-center justify-center"
           >
-            📍 {{ selectedPole?.location?.coordinates?.[1]?.toFixed(5) }},
-            {{ selectedPole?.location?.coordinates?.[0]?.toFixed(5) }}
+            <mat-icon class="text-red-500 !text-[20px]">error_outline</mat-icon>
           </div>
-        </div>
-        <div class="bg-white border border-gray-300 rounded p-2.5">
-          <div
-            class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1.5"
-          >
-            Pole Information
+          <div class="text-base font-semibold text-slate-900">
+            Failed to load pole
           </div>
-
-          <div
-            class="flex justify-between text-[11px] py-1 border-b border-gray-100"
-          >
-            <span class="text-gray-500">Pole ID</span>
-            <span class="font-bold font-mono text-[10px] text-gray-800">{{
-              selectedPole?.id
-            }}</span>
-          </div>
-
-          <div
-            class="flex justify-between text-[11px] py-1 border-b border-gray-100"
-          >
-            <span class="text-gray-500">Captured</span>
-            <span class="font-bold font-mono text-[10px] text-gray-800">{{
-              formatDateForInput(
-                selectedPole?.images?.[imageNumber]?.capturedDate
-              )
-            }}</span>
-          </div>
-
-          <div
-            class="flex justify-between text-[11px] py-1 border-b border-gray-100"
-          >
-            <span class="text-gray-500">County</span>
-            <span class="font-bold font-mono text-[10px] text-gray-800">{{
-              selectedPole?.county
-            }}</span>
-          </div>
-          <div
-            class="flex justify-between text-[11px] py-1 border-b border-gray-100"
-          >
-            <span class="text-gray-500">Municipality</span>
-            <span class="font-bold font-mono text-[10px] text-gray-800">{{
-              selectedPole?.municipality
-            }}</span>
-          </div>
-
-          <div
-            class="flex justify-between text-[11px] py-1 border-b border-gray-100"
-          >
-            <span class="text-gray-500">Vei Kategori</span>
-            <span class="font-bold font-mono text-[10px] text-gray-800">{{
-              vegkategori || "-"
-            }}</span>
-          </div>
-
-          <div class="flex justify-between text-[11px] py-1">
-            <span class="text-gray-500">Avstand</span>
-            <span class="font-bold font-mono text-[10px] text-gray-800">{{
-              avstand > 0 ? avstand + " m" : "-"
-            }}</span>
-          </div>
-        </div>
-        <div>
-          <div
-            class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1.5"
-          >
-            Attached Photo
-          </div>
-          <div class="w-full h-60 flex items-center justify-center">
-            @if ((selectedPole?.images?.length ?? 0) > 0) {
-              <img
-                [src]="
-                  'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
-                  getCurrentImage()?.imageId +
-                  '.jpg'
-                "
-                (error)="onImageError($event)"
-                alt="Pole Image"
-                class="rounded border border-gray-300 object-cover max-h-full max-w-full"
-              />
-            } @else {
-              <div
-                class="flex flex-col items-center justify-center text-sm text-gray-500 bg-gray-200 border border-gray-400 rounded h-[150px]"
-              >
-                No photos available
-              </div>
-            }
-          </div>
-        </div>
-        <div class="flex justify-center">
+          <div class="text-sm text-slate-500">{{ errorMessage }}</div>
           <button
-            class="w-full flex items-center justify-center border border-gray-400 rounded px-3 py-2 bg-gray-100 hover:bg-gray-200 text-[11px] cursor-pointer"
+            class="border border-slate-300 text-slate-700 rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-slate-50 cursor-pointer"
             [routerLink]="['/']"
           >
             Back to List
           </button>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="col-span-6 row-span-9 row-start-2 col-start-5">
-    <form
-      [formGroup]="form"
-      class="flex flex-col h-full bg-white overflow-hidden"
-      (ngSubmit)="onSubmit()"
-    >
-      <div
-        class="flex items-center justify-between px-4 py-2.5 border-b-2 border-gray-300"
-      >
-        <div class="text-[16px] font-bold">
-          Edit Inspection Record for Pole #{{ selectedPole?.id }}
-        </div>
-
+    } @else {
+      <div class="grid grid-cols-10 flex-1 min-h-0">
         <div
-          class="border border-dashed border-gray-400 rounded px-2.5 py-1 text-[10px] text-gray-500"
-          [ngClass]="
-            isModified
-              ? 'border-red-400 text-red-600'
-              : 'border-gray-400 text-gray-500'
-          "
+          class="col-span-4 h-full flex flex-col border-r border-slate-200 bg-white overflow-hidden"
         >
-          @if (isModified) {
-            Unsaved Changes
-          } @else {
-            No Changes Made
-          }
-        </div>
-      </div>
-
-      <div class="flex-1 overflow-y-auto px-4 py-3">
-        <div
-          class="text-[11px] font-bold text-gray-600 uppercase tracking-wide border-b border-gray-300 pb-1 mb-3"
-        >
-          Inspection Details
-        </div>
-        <div class="mb-5">
-          <label
-            for="inspectionDate"
-            class="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1"
+          <div
+            class="shrink-0 px-4 py-3.5 border-b border-slate-200 flex items-center justify-between"
           >
-            <span class="text-red-600">*</span> Inspection Date
-          </label>
-
-          <input
-            type="date"
-            [(ngModel)]="defaultDate"
-            id="inspectionDate"
-            formControlName="inspectionDate"
-            class="w-full px-3 py-2 border border-slate-300 rounded bg-white text-xs focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 hover:border-slate-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
-            [ngClass]="{
-              'border-red-500 border-2': hasError('inspectionDate', 'required'),
-            }"
-            (change)="isModified = true"
-            placeholder="Select date..."
-          />
-
-          @if (hasError("inspectionDate", "required")) {
-            <p class="text-xs text-red-600 mt-1">Inspection Date is required</p>
-          }
-        </div>
-        <!-- Status -->
-        <div class="mb-3">
-          <div class="text-[11px] font-bold text-gray-600 mb-1">
-            <span class="text-red-600">*</span> Status
-          </div>
-
-          <div class="grid grid-cols-2 gap-1.5">
+            <div class="text-sm font-semibold text-slate-800">
+              Pole Reference
+            </div>
             <button
-              type="button"
-              (click)="
-                form.get('status')?.setValue('Inspected'); isModified = true
-              "
-              [ngClass]="{
-                'border-gray-800 bg-gray-100 font-bold':
-                  form.get('status')?.value === 'Inspected',
-                'border-gray-300': form.get('status')?.value !== 'Inspected',
-              }"
-              class="border rounded px-2 py-1 text-[11px] cursor-pointer hover:bg-gray-50"
+              class="text-xs text-slate-500 border border-slate-200 rounded-md px-2.5 py-1 hover:bg-slate-50 cursor-pointer"
+              [routerLink]="['/']"
             >
-              Inspected
-            </button>
-
-            <button
-              type="button"
-              (click)="
-                form.get('status')?.setValue('Not Inspected'); isModified = true
-              "
-              [ngClass]="{
-                'border-gray-800 bg-gray-100 font-bold':
-                  form.get('status')?.value === 'Not Inspected',
-                'border-gray-300':
-                  form.get('status')?.value !== 'Not Inspected',
-              }"
-              class="border rounded px-2 py-1 text-[11px] cursor-pointer hover:bg-gray-50"
-            >
-              Not Inspected
+              ← Back to List
             </button>
           </div>
 
-          @if (hasError("status", "required")) {
-            <p class="text-xs text-red-600 mt-1">⚠ Status is required</p>
-          }
-        </div>
-
-        <!-- Action -->
-        <div class="mb-3">
-          <div class="text-[11px] font-bold text-gray-600 mb-1">
-            <span class="text-red-600">*</span> Action
-          </div>
-
-          <div class="grid grid-cols-2 gap-1.5">
-            <button
-              type="button"
-              (click)="
-                form.get('action')?.setValue('No Action needed');
-                isModified = true
-              "
-              [ngClass]="{
-                'border-gray-800 bg-gray-100 font-bold':
-                  form.get('action')?.value === 'No Action needed',
-                'border-gray-300':
-                  form.get('action')?.value !== 'No Action needed',
-              }"
-              class="border rounded px-2 py-1 text-[11px]"
+          <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-5">
+            <div
+              class="relative h-[180px] rounded-lg overflow-hidden border border-slate-200 bg-slate-100"
             >
-              No Action needed
-            </button>
-
-            <button
-              type="button"
-              (click)="
-                form.get('action')?.setValue('Need New Poles');
-                isModified = true
-              "
-              [ngClass]="{
-                'border-gray-800 bg-gray-100 font-bold':
-                  form.get('action')?.value === 'Need New Poles',
-                'border-gray-300':
-                  form.get('action')?.value !== 'Need New Poles',
-              }"
-              class="border rounded px-2 py-1 text-[11px]"
-            >
-              Need New Poles
-            </button>
-
-            <button
-              type="button"
-              (click)="
-                form.get('action')?.setValue('Need Replacement');
-                isModified = true
-              "
-              [ngClass]="{
-                'border-gray-800 bg-gray-100 font-bold':
-                  form.get('action')?.value === 'Need Replacement',
-                'border-gray-300':
-                  form.get('action')?.value !== 'Need Replacement',
-              }"
-              class="border rounded px-2 py-1 text-[11px]"
-            >
-              Need Replacement
-            </button>
-          </div>
-        </div>
-
-        <div class="mb-5">
-          <div class="text-[11px] font-bold text-gray-600 mb-1">
-            <span class="text-red-600">*</span> Inspector
-          </div>
-
-          <div class="relative">
-            <input
-              type="text"
-              id="inspector"
-              placeholder="Search inspector…"
-              class="w-full border border-gray-400 rounded px-2.5 py-1.5 text-[12px] bg-gray-50"
-              (focus)="showDropdown()"
-              (blur)="hideDropdown()"
-              (input)="filterInspectors($event)"
-              [value]="selectedInspector?.name || ''"
-            />
-
-            @if (showInspectorDropdown && filteredInspectors.length > 0) {
+              <app-leaflet-map
+                class="h-full w-full"
+                [poles]="[selectedPole]"
+              ></app-leaflet-map>
               <div
-                class="absolute flex flex-col top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-50"
+                class="absolute bottom-2.5 left-1/2 -translate-x-1/2 text-xs bg-white border border-slate-200 rounded-full whitespace-nowrap px-2.5 py-0.5 z-[9999] shadow-sm font-mono text-slate-600"
               >
-                @for (inspector of filteredInspectors; track inspector.id) {
-                  <button
-                    type="button"
-                    class="flex items-start w-full px-2.5 py-1.5 text-[11px] hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                    (click)="selectInspector(inspector)"
-                  >
-                    {{ inspector.name }}
-                    <span class="text-gray-400">· {{ inspector.email }}</span>
-                  </button>
+                {{ selectedPole.location?.coordinates?.[1]?.toFixed(5) }},
+                {{ selectedPole.location?.coordinates?.[0]?.toFixed(5) }}
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center gap-3 mb-3">
+                <span
+                  class="text-[.73rem] font-semibold tracking-[.06em] uppercase text-slate-400 shrink-0"
+                  >Pole Details</span
+                >
+                <div class="flex-1 h-px bg-slate-100"></div>
+              </div>
+              <dl>
+                <div
+                  class="flex justify-between items-center py-2 border-b border-slate-100"
+                >
+                  <dt class="text-xs text-slate-500">Pole ID</dt>
+                  <dd class="font-mono text-xs font-semibold text-slate-800">
+                    {{ selectedPole.id }}
+                  </dd>
+                </div>
+                <div
+                  class="flex justify-between items-center py-2 border-b border-slate-100"
+                >
+                  <dt class="text-xs text-slate-500">Captured</dt>
+                  <dd class="font-mono text-xs font-semibold text-slate-800">
+                    {{
+                      formatDateForInput(
+                        selectedPole.images?.[imageNumber]?.capturedDate
+                      )
+                    }}
+                  </dd>
+                </div>
+                <div
+                  class="flex justify-between items-center py-2 border-b border-slate-100"
+                >
+                  <dt class="text-xs text-slate-500">County</dt>
+                  <dd class="font-mono text-xs font-semibold text-slate-800">
+                    {{ selectedPole.county }}
+                  </dd>
+                </div>
+                <div
+                  class="flex justify-between items-center py-2 border-b border-slate-100"
+                >
+                  <dt class="text-xs text-slate-500">Municipality</dt>
+                  <dd class="font-mono text-xs font-semibold text-slate-800">
+                    {{ selectedPole.municipality }}
+                  </dd>
+                </div>
+                <div
+                  class="flex justify-between items-center py-2 border-b border-slate-100"
+                >
+                  <dt class="text-xs text-slate-500">Road Category</dt>
+                  <dd class="font-mono text-xs font-semibold text-slate-800">
+                    {{ vegkategori || "–" }}
+                  </dd>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                  <dt class="text-xs text-slate-500">Distance</dt>
+                  <dd class="font-mono text-xs font-semibold text-slate-800">
+                    {{ avstand > 0 ? avstand + " m" : "–" }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+            <div>
+              <div class="flex items-center gap-3 mb-3">
+                <span
+                  class="text-[.73rem] font-semibold tracking-[.06em] uppercase text-slate-400 shrink-0"
+                  >Attached Photo</span
+                >
+                <div class="flex-1 h-px bg-slate-100"></div>
+              </div>
+              <div
+                class="w-full aspect-[4/3] rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center"
+              >
+                @if ((selectedPole.images?.length ?? 0) > 0) {
+                  <img
+                    [src]="
+                      'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
+                      getCurrentImage()?.imageId +
+                      '.jpg'
+                    "
+                    (error)="onImageError($event)"
+                    alt="Pole Image"
+                    class="w-full h-full object-cover"
+                  />
+                } @else {
+                  <div class="flex flex-col items-center gap-2 text-slate-400">
+                    <mat-icon class="!text-[32px] !text-slate-300"
+                      >image_not_supported</mat-icon
+                    >
+                    <span class="text-xs">No photo available</span>
+                  </div>
                 }
               </div>
-            }
-
-            @if (showInspectorDropdown && filteredInspectors.length === 0) {
-              <div
-                class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg p-2.5 text-center text-[11px] text-gray-500"
-              >
-                No inspectors found
-              </div>
-            }
-          </div>
-
-          @if (selectedInspector) {
-            <div
-              class="mt-1.5 flex items-center gap-2 border border-gray-300 rounded px-2.5 py-1.5 bg-gray-50"
-            >
-              <div
-                class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-300 text-[10px] text-gray-600 font-bold"
-              >
-                {{ getInitials(selectedInspector.name) }}
-              </div>
-
-              <div>
-                <div class="text-[12px] font-bold">
-                  {{ selectedInspector.name }}
-                </div>
-                <div class="text-[10px] text-gray-400">
-                  {{ selectedInspector.email }}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                class="ml-auto border border-gray-400 rounded px-2 py-[2px] text-[10px] bg-white hover:bg-gray-100"
-                (click)="
-                  selectedInspector = null;
-                  isModified = true;
-                  showInspectorDropdown = true
-                "
-              >
-                Change
-              </button>
             </div>
-          }
+          </div>
         </div>
 
-        <div>
+        <form
+          [formGroup]="form"
+          class="col-span-6 flex flex-col h-full"
+          (ngSubmit)="onSubmit()"
+        >
           <div
-            class="flex justify-between items-center text-[11px] font-bold text-gray-600 mb-1"
+            class="shrink-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between"
           >
-            <span>
-              Notes <span class="font-normal text-gray-400">(Optional)</span>
-            </span>
-            <span
-              class="text-xs font-mono"
-              [ngClass]="{
-                'text-gray-400': notesLength < 400,
-                'text-yellow-500': notesLength >= 400 && notesLength < 500,
-                'text-red-600': notesLength >= 500,
-              }"
+            <div>
+              <div class="text-base font-semibold text-slate-900">
+                Inspection Record
+              </div>
+              <div class="text-xs text-slate-400 mt-0.5">
+                Pole #{{ selectedPole.id }}
+              </div>
+            </div>
+            <div
+              class="text-xs px-2.5 py-1 rounded-md font-medium border"
+              [ngClass]="
+                isModified
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-slate-50 text-slate-400 border-slate-200'
+              "
             >
-              {{ notesLength }} / 500
-            </span>
+              {{ isModified ? "Unsaved changes" : "No changes" }}
+            </div>
           </div>
 
-          <textarea
-            formControlName="notes"
-            class="w-full h-[80px] border border-gray-400 rounded px-2.5 py-1.5 text-sm bg-gray-50 resize-none"
-            [ngClass]="{
-              'border-red-500 border-2': hasError('notes', 'maxlength'),
-            }"
-            placeholder="Record observations, issues…"
-            (input)="isModified = true"
-          ></textarea>
-        </div>
+          <div
+            class="flex-1 overflow-y-auto bg-slate-50 px-6 py-5 flex flex-col gap-6"
+          >
+            <section>
+              <div class="flex items-center gap-3 mb-4">
+                <span
+                  class="text-[.73rem] font-semibold tracking-[.06em] uppercase text-slate-400 shrink-0"
+                  >Inspection Details</span
+                >
+                <div class="flex-1 h-px bg-slate-200"></div>
+              </div>
+
+              <div class="mb-4">
+                <label
+                  for="inspectionDate"
+                  class="text-[.73rem] font-semibold tracking-[.06em] uppercase text-slate-500 mb-1.5 flex items-center gap-1"
+                >
+                  <span class="text-red-500">*</span> Date
+                </label>
+                <input
+                  type="date"
+                  [(ngModel)]="defaultDate"
+                  id="inspectionDate"
+                  formControlName="inspectionDate"
+                  class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:border-slate-600 focus:shadow-[0_0_0_3px_rgba(71,85,105,.1)] hover:border-slate-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                  [ngClass]="{
+                    'border-red-400 focus:border-red-400 focus:shadow-[0_0_0_3px_rgba(239,68,68,.12)]':
+                      hasError('inspectionDate', 'required'),
+                  }"
+                  (change)="isModified = true"
+                />
+                @if (hasError("inspectionDate", "required")) {
+                  <p class="text-xs text-red-500 mt-1.5">
+                    Inspection date is required
+                  </p>
+                }
+              </div>
+
+              <div class="mb-4">
+                <div
+                  class="text-[.73rem] font-semibold tracking-[.06em] uppercase text-slate-500 mb-1.5 flex items-center gap-1"
+                >
+                  <span class="text-red-500">*</span> Status
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    (click)="
+                      form.get('status')?.setValue('Inspected');
+                      isModified = true
+                    "
+                    [ngClass]="
+                      form.get('status')?.value === 'Inspected'
+                        ? 'bg-slate-800 border-slate-800 text-white font-medium'
+                        : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                    "
+                    class="border rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors"
+                  >
+                    Inspected
+                  </button>
+                  <button
+                    type="button"
+                    (click)="
+                      form.get('status')?.setValue('Not Inspected');
+                      isModified = true
+                    "
+                    [ngClass]="
+                      form.get('status')?.value === 'Not Inspected'
+                        ? 'bg-slate-800 border-slate-800 text-white font-medium'
+                        : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                    "
+                    class="border rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors"
+                  >
+                    Not Inspected
+                  </button>
+                </div>
+                @if (hasError("status", "required")) {
+                  <p class="text-xs text-red-500 mt-1.5">Status is required</p>
+                }
+              </div>
+
+              <div class="mb-2">
+                <div
+                  class="text-[.73rem] font-semibold tracking-[.06em] uppercase text-slate-500 mb-1.5 flex items-center gap-1"
+                >
+                  <span class="text-red-500">*</span> Required Action
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    (click)="
+                      form.get('action')?.setValue('No Action needed');
+                      isModified = true
+                    "
+                    [ngClass]="
+                      form.get('action')?.value === 'No Action needed'
+                        ? 'bg-slate-800 border-slate-800 text-white font-medium'
+                        : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                    "
+                    class="border rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors"
+                  >
+                    No Action needed
+                  </button>
+                  <button
+                    type="button"
+                    (click)="
+                      form.get('action')?.setValue('Need New Poles');
+                      isModified = true
+                    "
+                    [ngClass]="
+                      form.get('action')?.value === 'Need New Poles'
+                        ? 'bg-slate-800 border-slate-800 text-white font-medium'
+                        : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                    "
+                    class="border rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors"
+                  >
+                    Need New Poles
+                  </button>
+                  <button
+                    type="button"
+                    (click)="
+                      form.get('action')?.setValue('Need Replacement');
+                      isModified = true
+                    "
+                    [ngClass]="
+                      form.get('action')?.value === 'Need Replacement'
+                        ? 'bg-slate-800 border-slate-800 text-white font-medium'
+                        : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                    "
+                    class="border rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors"
+                  >
+                    Need Replacement
+                  </button>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="flex items-center gap-3 mb-4">
+                <span
+                  class="text-[.73rem] font-semibold tracking-[.06em] uppercase text-slate-400 shrink-0"
+                  >Inspector</span
+                >
+                <div class="flex-1 h-px bg-slate-200"></div>
+              </div>
+
+              @if (selectedInspector) {
+                <div
+                  class="flex items-center gap-3 border border-slate-200 rounded-lg px-3.5 py-3 bg-white"
+                >
+                  <div
+                    class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-xs text-slate-700 font-semibold shrink-0"
+                  >
+                    {{ getInitials(selectedInspector.name) }}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-slate-900 truncate">
+                      {{ selectedInspector.name }}
+                    </div>
+                    <div class="text-xs text-slate-400 truncate">
+                      {{ selectedInspector.email }}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="shrink-0 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 cursor-pointer"
+                    (click)="
+                      selectedInspector = null;
+                      isModified = true;
+                      showInspectorDropdown = true
+                    "
+                  >
+                    Change
+                  </button>
+                </div>
+              } @else {
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="inspector"
+                    placeholder="Search by name or email…"
+                    class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:border-slate-600 focus:shadow-[0_0_0_3px_rgba(71,85,105,.1)] hover:border-slate-400"
+                    [ngClass]="{
+                      'border-red-400': hasError('inspector', 'required'),
+                    }"
+                    (focus)="showDropdown()"
+                    (blur)="hideDropdown()"
+                    (input)="filterInspectors($event)"
+                    [value]="selectedInspector?.name || ''"
+                  />
+
+                  @if (showInspectorDropdown && filteredInspectors.length > 0) {
+                    <div
+                      class="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden"
+                    >
+                      @for (
+                        inspector of filteredInspectors;
+                        track inspector.id
+                      ) {
+                        <button
+                          type="button"
+                          class="flex items-center gap-2 w-full px-3.5 py-2.5 text-sm hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-b-0 text-left"
+                          (mousedown)="selectInspector(inspector)"
+                        >
+                          <span class="font-medium text-slate-800">{{
+                            inspector.name
+                          }}</span>
+                          <span class="text-slate-400 text-xs">{{
+                            inspector.email
+                          }}</span>
+                        </button>
+                      }
+                    </div>
+                  }
+
+                  @if (
+                    showInspectorDropdown && filteredInspectors.length === 0
+                  ) {
+                    <div
+                      class="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg p-4 text-center text-sm text-slate-400"
+                    >
+                      No inspectors found
+                    </div>
+                  }
+                </div>
+                @if (hasError("inspector", "required")) {
+                  <p class="text-xs text-red-500 mt-1.5">
+                    Inspector is required
+                  </p>
+                }
+              }
+            </section>
+
+            <section>
+              <div class="flex items-center gap-3 mb-4">
+                <span
+                  class="text-[.73rem] font-semibold tracking-[.06em] uppercase text-slate-400 shrink-0"
+                  >Notes</span
+                >
+                <div class="flex-1 h-px bg-slate-200"></div>
+                <span
+                  class="text-[.73rem] font-semibold tracking-[.06em] uppercase text-slate-400 shrink-0"
+                  >Optional</span
+                >
+              </div>
+              <div>
+                <div class="flex justify-end mb-1.5">
+                  <span
+                    class="text-xs font-mono"
+                    [ngClass]="{
+                      'text-slate-400': notesLength < 400,
+                      'text-amber-500': notesLength >= 400 && notesLength < 500,
+                      'text-red-500': notesLength >= 500,
+                    }"
+                    >{{ notesLength }} / 500</span
+                  >
+                </div>
+                <textarea
+                  formControlName="notes"
+                  class="w-full h-24 border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:border-slate-600 focus:shadow-[0_0_0_3px_rgba(71,85,105,.1)] hover:border-slate-400 resize-none"
+                  [ngClass]="{
+                    'border-red-400': hasError('notes', 'maxlength'),
+                  }"
+                  placeholder="Record observations, damage, or anomalies…"
+                  (input)="isModified = true"
+                ></textarea>
+                @if (hasError("notes", "maxlength")) {
+                  <p class="text-xs text-red-500 mt-1.5">
+                    Notes must be 500 characters or fewer
+                  </p>
+                }
+              </div>
+            </section>
+          </div>
+
+          <div
+            class="shrink-0 bg-white border-t border-slate-200 px-6 py-4 flex items-center gap-3"
+          >
+            <button
+              type="button"
+              class="border border-slate-300 text-slate-700 rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-slate-50 cursor-pointer"
+              (click)="cancelChanges()"
+            >
+              Cancel
+            </button>
+            <div class="flex-1"></div>
+            <button
+              type="submit"
+              class="bg-slate-800 text-white rounded-lg px-5 py-2.5 text-sm font-medium hover:bg-slate-900 disabled:bg-slate-300 disabled:cursor-not-allowed cursor-pointer transition-colors flex items-center gap-2"
+              [disabled]="form.invalid || !isModified"
+            >
+              @if (isSubmitting) {
+                <span
+                  class="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin"
+                ></span>
+                Saving…
+              } @else {
+                Save Changes
+              }
+            </button>
+          </div>
+        </form>
       </div>
-
-      <div
-        class="flex items-center gap-2 px-4 py-2.5 border-t-2 border-gray-300 bg-gray-50"
-      >
-        <button
-          class="border border-gray-400 rounded px-3 py-1 text-[11px] bg-gray-100 hover:bg-gray-200 cursor-pointer"
-          type="button"
-          (click)="cancelChanges()"
-        >
-          Cancel
-        </button>
-
-        <div class="flex-1"></div>
-
-        <button
-          class="border border-gray-800 bg-gray-800 text-white rounded px-3 py-1 text-[11px] hover:bg-black disabled:bg-slate-400 disabled:border-slate-400 disabled:cursor-not-allowed"
-          type="submit"
-          [disabled]="form.invalid || !isModified"
-        >
-          Save Changes
-        </button>
-      </div>
-    </form>
+    }
   </div>
 </div>
-
 <div
-  class="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-9999 h-screen w-screen"
-  [ngClass]="isCancelModalOpen ? 'block' : 'hidden'"
+  class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm items-center justify-center z-[9999]"
+  [ngClass]="isCancelModalOpen ? 'flex' : 'hidden'"
+  role="button"
+  tabindex="0"
+  (click)="isCancelModalOpen = false"
+  (keydown.escape)="isCancelModalOpen = false"
 >
-  <div class="bg-white rounded p-6 w-[300px]">
-    <div class="text-[14px] font-bold mb-4">Discard Changes?</div>
-    <div class="text-[12px] text-gray-600 mb-6">
-      Are you sure you want to discard your unsaved changes?
+  <div
+    class="bg-white rounded-xl border border-slate-200 shadow-[0_24px_56px_rgba(15,23,42,.15)] w-[360px] p-6"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
+    (click)="$event.stopPropagation()"
+    (keydown)="$event.stopPropagation()"
+  >
+    <div class="text-base font-semibold text-slate-900 mb-1.5">
+      Discard Changes?
     </div>
-    <div class="flex justify-end gap-2">
+    <div class="text-sm text-slate-500 mb-6">
+      Unsaved changes will be lost. This action cannot be undone.
+    </div>
+    <div class="flex justify-end gap-2.5">
       <button
-        class="border border-gray-400 rounded px-3 py-1 text-[11px] bg-gray-100 hover:bg-gray-200"
+        class="border border-slate-300 text-slate-700 rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-slate-50 cursor-pointer"
         (click)="isCancelModalOpen = false"
       >
-        Cancel
+        Keep Editing
       </button>
       <button
-        class="border border-red-600 bg-red-600 text-white rounded px-3 py-1 text-[11px] hover:bg-red-700"
+        class="bg-red-600 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-red-700 cursor-pointer"
         (click)="discardChanges()"
       >
         Discard

@@ -42,6 +42,8 @@ export class InspectionEditorComponent implements OnInit {
   showInspectorDropdown = false;
   filteredInspectors: any[] = [];
   selectedInspector: any = null;
+  private savedFormValue: Record<string, unknown> = {};
+  private savedInspector: any = null;
   defaultDate = new Date().toISOString().split('T')[0];
   today: string = (() => {
     const now = new Date();
@@ -68,6 +70,8 @@ export class InspectionEditorComponent implements OnInit {
   private fb = inject(FormBuilder);
   imageId = '';
   imageNumber = 0; // this should be reconsidered.
+
+  //TODO: This is hardcoded for now, but should be fetched from the backend.
 
   inspectors = [
     { id: 1, name: 'John Anderson', email: 'john.anderson@example.com' },
@@ -171,6 +175,9 @@ export class InspectionEditorComponent implements OnInit {
         this.selectedInspector = inspector;
       }
     }
+
+    this.savedFormValue = { ...this.form.value };
+    this.savedInspector = this.selectedInspector;
   }
 
   isFieldInvalid(fieldName: string): boolean {
@@ -297,10 +304,10 @@ export class InspectionEditorComponent implements OnInit {
   }
 
   discardChanges() {
-    this.form.reset();
+    this.form.patchValue(this.savedFormValue);
+    this.selectedInspector = this.savedInspector;
     this.isModified = false;
     this.isCancelModalOpen = false;
-    this.selectInspector(null);
   }
 
   onImageError(event: Event) {

@@ -1,14 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+
+:host {
+  --f-brand: 'Barlow Condensed', sans-serif;
+  --f-body: 'DM Sans', sans-serif;
+}
+
 ::ng-deep .success-snackbar {
-  background-color: #4caf50 !important; // Green
+  background-color: #16a34a !important;
   color: white;
 }
 
 ::ng-deep .error-snackbar {
-  background-color: #f44336 !important; // Red
+  background-color: #dc2626 !important;
   color: white;
 }
 
 ::ng-deep .info-snackbar {
-  background-color: #2196f3 !important; // Blue
+  background-color: #2563eb !important;
   color: white;
 }
