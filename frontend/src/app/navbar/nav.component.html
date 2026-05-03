@@ -1,42 +1,51 @@
-<nav class="h-full bg-gray-700 flex items-center justify-between px-4">
+<nav class="h-full bg-slate-900 flex items-center justify-between px-4">
   <div class="text-[16px] font-bold text-white">🗺 PoleInspect</div>
   <div class="flex items-center justify-between gap-5 h-full p-0">
     <button
-      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-gray-300 hover:border-b-2 hover:border-white"
+      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-blue-600 hover:border-b-2 hover:border-blue-600"
       (click)="navigateTo('/')"
       routerLink="/"
-      routerLinkActive=" text-blue-400 border-b-2 border-white"
+      routerLinkActive=" !text-blue-600 border-b-2 border-blue-600"
       [routerLinkActiveOptions]="{ exact: true }"
     >
       Home
     </button>
     <button
-      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-gray-300 hover:border-b-2 hover:border-white"
+      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-blue-600 hover:border-b-2 hover:border-blue-600"
       (click)="navigateTo('calendar')"
       routerLink="/calendar"
-      routerLinkActive=" text-blue-400 border-b-2 border-white"
+      routerLinkActive=" !text-blue-600 border-b-2 border-blue-600"
       [routerLinkActiveOptions]="{ exact: false }"
     >
       Calendar
     </button>
 
     <button
-      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-gray-300 hover:border-b-2 hover:border-white"
+      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-blue-600 hover:border-b-2 hover:border-blue-600"
       (click)="navigateTo('inspectors')"
       routerLink="/inspectors"
-      routerLinkActive=" text-blue-400 border-b-2 border-white"
+      routerLinkActive=" !text-blue-600 border-b-2 border-blue-600"
       [routerLinkActiveOptions]="{ exact: false }"
     >
       Inspectors
     </button>
     <button
-      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-gray-300 hover:border-b-2 hover:border-white"
+      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-blue-600 hover:border-b-2 hover:border-blue-600"
       (click)="navigateTo('plan')"
       routerLink="/plan"
-      routerLinkActive=" text-blue-400 border-b-2 border-white"
+      routerLinkActive=" !text-blue-600 border-b-2 border-blue-600"
       [routerLinkActiveOptions]="{ exact: false }"
     >
       Plan Capture
+    </button>
+    <button
+      class="h-10 px-3 py-1 text-lg font-sans font-medium text-white hover:cursor-pointer hover:text-blue-600 hover:border-b-2 hover:border-blue-600"
+      (click)="navigateTo('analytics')"
+      routerLink="/analytics"
+      routerLinkActive=" !text-blue-600 border-b-2 border-blue-600"
+      [routerLinkActiveOptions]="{ exact: false }"
+    >
+      Analytics
     </button>
   </div>
 
@@ -48,12 +57,10 @@
         class="relative p-2 flex items-center justify-center"
         (click)="setNotificationsOpen(!isNotificationsOpen)"
       >
-        <mat-icon class="!text-slate-300 hover:!text-white cursor-pointer">
-          notifications
-        </mat-icon>
+        <i class="fa-solid fa-bell text-gray-300 text-xl"></i>
         @if (unreadCount > 0) {
           <div
-            class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-700 border-1 rounded-full -top-2 -end-2"
+            class="absolute inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-700 border-1 rounded-full -top-2 -end-2"
           >
             {{ unreadCount }}
           </div>
@@ -66,10 +73,10 @@
           hidden: !isNotificationsOpen,
           block: isNotificationsOpen,
         }"
-        class="absolute right-0 mt-2 w-80 bg-gray-700 border border-gray-600 rounded-lg shadow-xl z-999 max-h-96 overflow-y-auto"
+        class="absolute right-0 mt-2 w-80 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-999 max-h-96 overflow-y-auto"
       >
         <div
-          class="sticky top-0 px-4 py-3 border-b border-gray-600 bg-gray-800 flex flex-col justify-between items-center gap-2"
+          class="sticky top-0 px-4 py-3 border-b border-slate-700 bg-slate-900 flex flex-col justify-between items-center gap-2"
         >
           <div class="flex justify-between items-center w-full">
             <div class="font-semibold text-white">Notifications</div>
@@ -94,7 +101,8 @@
             <button
               (click)="tab = 0"
               [ngClass]="{
-                'text-white font-semibold border-b-2 border-white': tab === 0,
+                'text-blue-400 font-semibold border-b-2 border-blue-400':
+                  tab === 0,
                 'hover:text-white': tab !== 0,
               }"
               class="p-2"
@@ -104,7 +112,8 @@
             <button
               (click)="tab = 1"
               [ngClass]="{
-                'text-white font-semibold border-b-2 border-white': tab === 1,
+                'text-blue-400 font-semibold border-b-2 border-blue-400':
+                  tab === 1,
                 'hover:text-white': tab !== 1,
               }"
               class="p-2"
@@ -114,7 +123,8 @@
             <button
               (click)="tab = 2"
               [ngClass]="{
-                'text-white font-semibold border-b-2 border-white': tab === 2,
+                'text-blue-400 font-semibold border-b-2 border-blue-400':
+                  tab === 2,
                 'hover:text-white': tab !== 2,
               }"
               class="p-2"
@@ -124,7 +134,8 @@
             <button
               (click)="tab = 3"
               [ngClass]="{
-                'text-white font-semibold border-b-2 border-white': tab === 3,
+                'text-blue-400 font-semibold border-b-2 border-blue-400':
+                  tab === 3,
                 'hover:text-white': tab !== 3,
               }"
               class="p-2"
@@ -134,7 +145,8 @@
             <button
               (click)="tab = 4"
               [ngClass]="{
-                'text-white font-semibold border-b-2 border-white': tab === 4,
+                'text-blue-400 font-semibold border-b-2 border-blue-400':
+                  tab === 4,
                 'hover:text-white': tab !== 4,
               }"
               class="p-2"
@@ -154,9 +166,9 @@
           <div
             [ngClass]="[
               getSeverityClass(notif.severity),
-              notif.read ? 'opacity-50' : 'ring-2 bg-gray-700',
+              notif.read ? 'opacity-50' : 'ring-2 bg-slate-800',
             ]"
-            class="border-l-4 p-3 m-2 rounded cursor-pointer hover:bg-gray-600/50 transition-all"
+            class="border-l-4 p-3 m-2 rounded cursor-pointer hover:bg-slate-700/50 transition-all"
           >
             <div class="flex justify-between items-start gap-2">
               <div class="flex-1">
@@ -236,7 +248,7 @@
         id="avatarButton"
         type="button"
         (click)="setAvatarMenuOpen(!isAvatarMenuOpen)"
-        class="w-11 h-11 bg-gray-300 rounded-full cursor-pointer border-2 border-slate-500 hover:border-blue-400 shadow-md transition-all duration-200"
+        class="w-11 h-11 bg-gray-300 rounded-full cursor-pointer border-2 border-slate-600 hover:border-blue-400 shadow-md transition-all duration-200"
       >
         {{
           (
@@ -252,9 +264,9 @@
           hidden: !isAvatarMenuOpen,
           block: isAvatarMenuOpen,
         }"
-        class="absolute right-0 mt-2 w-48 bg-gray-700 border border-gray-600 rounded-lg shadow-xl z-999 group-hover:block"
+        class="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-lg shadow-xl z-999 group-hover:block"
       >
-        <div class="px-4 py-3 border-b border-gray-600">
+        <div class="px-4 py-3 border-b border-slate-700">
           <div class="font-semibold text-white">
             {{ currentUser?.firstName }} {{ currentUser?.lastName }}
           </div>

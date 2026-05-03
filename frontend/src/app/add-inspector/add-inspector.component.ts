@@ -34,7 +34,7 @@ export class AddInspectorComponent {
       lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phone: [''],
-      username: ['', [Validators.required, Validators.minLength(3)]],
+      userName: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required, Validators.minLength(6)]],
       county: ['All Counties'],
@@ -76,14 +76,14 @@ export class AddInspectorComponent {
       lastName,
       email,
       phone,
-      username,
+      userName,
       password,
       confirmPassword,
     } = this.form.value;
 
     this.authService
       .register({
-        username,
+        userName,
         email,
         firstName,
         lastName,

@@ -30,6 +30,15 @@ yarn-error.log
 
 # Kombai
 .kombai/
+
+#claude
+.claude/
+.claude-flow/
+.mcp.json
+CLAUDE.md
+frontend/.swarm/
+
+
 # Miscellaneous
 /.angular/cache
 .sass-cache/
@@ -42,3 +51,7 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+#temporary ignore
+*.md
+*.rest
