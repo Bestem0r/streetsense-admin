@@ -1,17 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { PlanCaptureRoundComponent } from './plan-capture-round.component';
 
-import { PlanCaptureRound1Component } from './plan-capture-round.component';
-
-describe('PlanCaptureRound1Component', () => {
-  let component: PlanCaptureRound1Component;
-  let fixture: ComponentFixture<PlanCaptureRound1Component>;
+describe('PlanCaptureRoundComponent', () => {
+  let component: PlanCaptureRoundComponent;
+  let fixture: ComponentFixture<PlanCaptureRoundComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PlanCaptureRound1Component],
+      imports: [PlanCaptureRoundComponent],
+      providers: [provideHttpClient(), provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PlanCaptureRound1Component);
+    fixture = TestBed.createComponent(PlanCaptureRoundComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

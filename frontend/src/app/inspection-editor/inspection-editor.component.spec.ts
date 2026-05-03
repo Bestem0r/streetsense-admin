@@ -1,19 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { ImageViewComponent } from './image-view.component';
 
-describe('ImageViewComponent', () => {
-  let component: ImageViewComponent;
-  let fixture: ComponentFixture<ImageViewComponent>;
+import { InspectionEditorComponent } from './inspection-editor.component';
+
+describe('InspectionEditorComponent', () => {
+  let component: InspectionEditorComponent;
+  let fixture: ComponentFixture<InspectionEditorComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ImageViewComponent],
+      imports: [InspectionEditorComponent],
       providers: [provideHttpClient(), provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ImageViewComponent);
+    fixture = TestBed.createComponent(InspectionEditorComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
