@@ -1,11 +1,11 @@
 export interface UserData {
   id: string;
-  username: string;
+  userName: string;
   email: string;
   firstName: string;
   lastName: string;
   phoneNumber: string;
+  county: string;
   role: string;
-  profileImage: string;
   createdAt: string;
 }

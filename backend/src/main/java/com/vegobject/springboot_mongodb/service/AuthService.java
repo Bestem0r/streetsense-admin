@@ -48,12 +48,12 @@ public class AuthService {
         }
 
  
-        if (userRepository.existsByUsername(request.getUsername())) {
+        if (userRepository.existsByUserName(request.getUserName())) {
             throw new Exception("Username is already taken");
         }
 
         User user = new User();
-        user.setUsername(request.getUsername().trim());
+        user.setUserName(request.getUserName().trim());
         user.setEmail(request.getEmail().trim());
         user.setPassword(passwordEncoder.encode(request.getPassword().trim()));
         user.setFirstName(request.getFirstName().trim());
@@ -67,8 +67,8 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        String token = tokenProvider.generateToken(savedUser.getUsername());
-        String refreshToken = tokenProvider.generateRefreshToken(savedUser.getUsername());
+        String token = tokenProvider.generateToken(savedUser.getUserName());
+        String refreshToken = tokenProvider.generateRefreshToken(savedUser.getUserName());
 
         return createAuthResponse(token, refreshToken, savedUser);
     }
@@ -78,13 +78,13 @@ public class AuthService {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
+                            request.getUserName(),
                             request.getPassword()
                     )
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            User user = userRepository.findByUsername(request.getUsername())
+            User user = userRepository.findByUserName(request.getUserName())
                     .orElseThrow(() -> new Exception("User not found"));
 
             user.setLastLogin(LocalDateTime.now());
@@ -94,12 +94,12 @@ public class AuthService {
             
             if (request.isRememberMe()) {
                 
-                token = tokenProvider.generateTokenWithExpiration(user.getUsername(), 30L * 24 * 60 * 60 * 1000);
-                refreshToken = tokenProvider.generateRefreshTokenWithExpiration(user.getUsername(), 30L * 24 * 60 * 60 * 1000);
+                token = tokenProvider.generateTokenWithExpiration(user.getUserName(), 30L * 24 * 60 * 60 * 1000);
+                refreshToken = tokenProvider.generateRefreshTokenWithExpiration(user.getUserName(), 30L * 24 * 60 * 60 * 1000);
             } else {
                 
-                token = tokenProvider.generateToken(user.getUsername());
-                refreshToken = tokenProvider.generateRefreshToken(user.getUsername());
+                token = tokenProvider.generateToken(user.getUserName());
+                refreshToken = tokenProvider.generateRefreshToken(user.getUserName());
             }
 
             return createAuthResponse(token, refreshToken, user);
@@ -112,7 +112,7 @@ public class AuthService {
    
     public User getCurrentUser() throws Exception {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByUsername(username)
+        return userRepository.findByUserName(username)
                 .orElseThrow(() -> new Exception("User not found"));
     }
 
@@ -201,11 +201,11 @@ public class AuthService {
             throw new Exception("Could not extract username from refresh token");
         }
 
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByUserName(username)
                 .orElseThrow(() -> new Exception("User not found"));
 
-        String newToken = tokenProvider.generateToken(user.getUsername());
-        String newRefreshToken = tokenProvider.generateRefreshToken(user.getUsername());
+        String newToken = tokenProvider.generateToken(user.getUserName());
+        String newRefreshToken = tokenProvider.generateRefreshToken(user.getUserName());
 
         return createAuthResponse(newToken, newRefreshToken, user);
     }
@@ -255,7 +255,7 @@ public class AuthService {
 
         AuthResponse.UserDTO userDTO = new AuthResponse.UserDTO();
         userDTO.setId(user.getId());
-        userDTO.setUsername(user.getUsername());
+        userDTO.setUserName(user.getUserName());
         userDTO.setEmail(user.getEmail());
         userDTO.setFirstName(user.getFirstName());
         userDTO.setLastName(user.getLastName());

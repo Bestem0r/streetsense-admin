@@ -61,24 +61,24 @@
         <div class="mb-5">
           <label
             class="block text-[.73rem] font-semibold tracking-[.09em] uppercase text-slate-500 mb-1.5"
-            for="username-input"
+            for="userName-input"
             >Username</label
           >
           <div
             class="flex items-center bg-white border border-slate-300 rounded-lg transition-all duration-200 focus-within:border-slate-600 focus-within:shadow-[0_0_0_3px_rgba(71,85,105,.1)]"
           >
             <input
-              id="username-input"
-              formControlName="username"
+              id="userName-input"
+              formControlName="userName"
               type="text"
               class="flex-1 bg-transparent border-none outline-none px-3.5 py-2.5 text-[.9rem] text-slate-900 placeholder-slate-400"
               style="font-family: var(--f-body)"
-              placeholder="Enter your username"
+              placeholder="Enter your userName"
             />
           </div>
           @if (
-            loginForm.get("username")?.invalid &&
-            loginForm.get("username")?.touched
+            loginForm.get("userName")?.invalid &&
+            loginForm.get("userName")?.touched
           ) {
             <span class="block text-[.75rem] text-red-500 mt-1">{{
               getUsernameError()

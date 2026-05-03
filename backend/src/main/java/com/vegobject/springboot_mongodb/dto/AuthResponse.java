@@ -20,7 +20,7 @@ public class AuthResponse {
     @AllArgsConstructor
     public static class UserDTO {
         private String id;
-        private String username;
+        private String userName;
         private String email;
         private String firstName;
         private String lastName;

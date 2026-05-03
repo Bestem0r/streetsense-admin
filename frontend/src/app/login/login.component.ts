@@ -50,7 +50,7 @@ export class LoginComponent implements OnInit {
     const savedUsername = localStorage.getItem('savedUsername') || '';
 
     this.loginForm = this.fb.group({
-      username: [savedUsername, [Validators.required, Validators.minLength(3)]],
+      userName: [savedUsername, [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       rememberMe: [rememberMe],
     });
@@ -70,14 +70,14 @@ export class LoginComponent implements OnInit {
     }
 
     this.isLoading = true;
-    const { username, password, rememberMe } = this.loginForm.value;
+    const { userName, password, rememberMe } = this.loginForm.value;
 
-    this.authService.login({ username, password, rememberMe }).subscribe({
+    this.authService.login({ userName, password, rememberMe }).subscribe({
       next: (response) => {
         if (response.success) {
           if (rememberMe) {
             localStorage.setItem('rememberMe', 'true');
-            localStorage.setItem('savedUsername', username);
+            localStorage.setItem('savedUsername', userName);
           } else {
             localStorage.removeItem('rememberMe');
             localStorage.removeItem('savedUsername');
@@ -105,7 +105,7 @@ export class LoginComponent implements OnInit {
   }
 
   getUsernameError(): string {
-    const control = this.loginForm.get('username');
+    const control = this.loginForm.get('userName');
     if (control?.hasError('required')) {
       return 'Username is required';
     }
@@ -157,7 +157,6 @@ export class LoginComponent implements OnInit {
 
     this.authService.forgotPassword(email).subscribe({
       next: (response) => {
-        console.log('Forgot password response:', response);
         this.forgotPasswordLoading = false;
         this.forgotPasswordSuccess = true;
         this.forgotPasswordMessage =

@@ -6,13 +6,13 @@ import { tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface LoginRequest {
-  username: string;
+  userName: string;
   password: string;
   rememberMe?: boolean;
 }
 
 export interface RegisterRequest {
-  username: string;
+  userName: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -35,7 +35,7 @@ export interface AuthResponse {
 
 export interface UserData {
   id: string;
-  username: string;
+  userName: string;
   email: string;
   firstName: string;
   lastName: string;
