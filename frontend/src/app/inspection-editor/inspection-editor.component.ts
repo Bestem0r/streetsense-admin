@@ -17,7 +17,6 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PoleInterface } from '../interfaces/pole-interface';
 import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
 import { NavComponent } from '../navbar/nav.component';
-import { NVDBService } from '../service/nvdb.service';
 import { PolesService } from '../service/poles.service';
 
 @Component({
@@ -66,7 +65,6 @@ export class InspectionEditorComponent implements OnInit {
   private toast = inject(Toast);
   private route = inject(ActivatedRoute);
   private polesService = inject(PolesService);
-  private nvdbService = inject(NVDBService);
   private fb = inject(FormBuilder);
   imageId = '';
   imageNumber = 0; // this should be reconsidered.
@@ -88,7 +86,7 @@ export class InspectionEditorComponent implements OnInit {
 
   initializeForm(): void {
     this.form = this.fb.group({
-      inspectionDate: ['', [Validators.required]],
+      inspectionDate: [this.defaultDate, [Validators.required]],
       status: ['', [Validators.required]],
       action: ['', [Validators.required]],
       inspector: ['', [Validators.required]],
@@ -108,16 +106,6 @@ export class InspectionEditorComponent implements OnInit {
     this.polesService.getPoleById(poleId).subscribe({
       next: async (pole: PoleInterface) => {
         this.selectedPole = pole;
-
-        const veiInfo = await this.nvdbService.getVeiInfo(
-          pole.location?.coordinates?.[1] ?? 0,
-          pole.location?.coordinates?.[0] ?? 0,
-        );
-        if (veiInfo) {
-          this.vegkategori = veiInfo.vegkategori;
-          this.avstand = veiInfo.avstand ?? 0;
-        }
-
         this.prepopulateForm(pole);
         this.isLoading = false;
       },
@@ -157,7 +145,7 @@ export class InspectionEditorComponent implements OnInit {
 
     const inspectionDateStr = currentImage.inspectionDate
       ? this.formatDateForInput(currentImage.inspectionDate)
-      : '';
+      : this.defaultDate;
 
     this.form.patchValue({
       inspectionDate: inspectionDateStr,

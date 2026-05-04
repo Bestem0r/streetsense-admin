@@ -57,7 +57,7 @@ public class NvdbService {
   }
 }
 
-  public record VeiSystem(String vegkategori, Integer nummer, Double avstand) {}
+  public record VeiSystem(String roadCategory, Integer roadNumber, Double distanceFromRoad) {}
 
   private record NvdbPosition(Vegsystemreferanse vegsystemreferanse, Double avstand) {}
 

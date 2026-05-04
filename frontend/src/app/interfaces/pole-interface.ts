@@ -12,6 +12,11 @@ export interface PoleInterface {
   };
   county?: string;
   municipality?: string;
+  roadCategory?: string;
+  roadNumber?: number;
+  distanceFromRoad?: number;
+  fieldOfView?: number;
+  satellitesUsed?: number;
   images?: {
     imageId: string;
     capturedDate: number;

@@ -157,8 +157,8 @@ private String collectionName;
       return;
     }
 
-    pole.setVegkategori(veiInfo.vegkategori());
-    pole.setNummer(veiInfo.nummer());
-    pole.setAvstand(veiInfo.avstand());
+    pole.setRoadCategory(veiInfo.roadCategory());
+    pole.setRoadNumber(veiInfo.roadNumber());
+    pole.setDistanceFromRoad(veiInfo.distanceFromRoad());
   }
 }

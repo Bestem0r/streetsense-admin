@@ -27,6 +27,9 @@ public class Pole {
   private double hdop;
   private String county;
   private String municipality;
+  private String roadCategory;
+  private Integer roadNumber;
+  private Double distanceFromRoad;
   private Long capturedDate;
   private Geometry gps;
   @Field("location")

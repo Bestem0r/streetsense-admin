@@ -3,13 +3,11 @@ import { Component, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PoleInterface } from '../interfaces/pole-interface';
 import { veiSystem } from '../interfaces/vei-system';
 import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
 import { NavComponent } from '../navbar/nav.component';
-import { NVDBService } from '../service/nvdb.service';
 import { PolesService } from '../service/poles.service';
 
 @Component({
@@ -35,8 +33,7 @@ export class ImageViewComponent implements OnInit {
   selectedIndex: number | null = null;
   veiInfo: veiSystem | null = null;
   private polesService = inject(PolesService);
-  private veiService = inject(NVDBService);
-  private router = inject(Router);
+
   private activateRouter = inject(ActivatedRoute);
 
   async ngOnInit() {
@@ -46,16 +43,6 @@ export class ImageViewComponent implements OnInit {
 
     this.polesService.getPoleById(this.id).subscribe(async (pole) => {
       this.poleData = pole;
-
-      const lat = pole?.location?.coordinates?.[1];
-      const lon = pole?.location?.coordinates?.[0];
-
-      if (lat !== undefined && lon !== undefined) {
-        this.veiInfo = await this.veiService.getVeiInfo(lat, lon);
-      } else {
-        this.veiInfo = null;
-      }
-
       this.poles = [pole];
       this.sortImagesByDate();
 

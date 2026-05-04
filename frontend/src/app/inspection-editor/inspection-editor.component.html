@@ -119,13 +119,17 @@
                 >
                   <dt class="text-xs text-slate-500">Road Category</dt>
                   <dd class="font-mono text-xs font-semibold text-slate-800">
-                    {{ vegkategori || "–" }}
+                    {{ selectedPole.roadCategory || "–" }}
                   </dd>
                 </div>
                 <div class="flex justify-between items-center py-2">
                   <dt class="text-xs text-slate-500">Distance</dt>
                   <dd class="font-mono text-xs font-semibold text-slate-800">
-                    {{ avstand > 0 ? avstand + " m" : "–" }}
+                    {{
+                      (selectedPole.distanceFromRoad ?? 0) > 0
+                        ? selectedPole!.distanceFromRoad + " m"
+                        : "–"
+                    }}
                   </dd>
                 </div>
               </dl>
@@ -214,7 +218,6 @@
                 </label>
                 <input
                   type="date"
-                  [(ngModel)]="defaultDate"
                   id="inspectionDate"
                   formControlName="inspectionDate"
                   class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:border-slate-600 focus:shadow-[0_0_0_3px_rgba(71,85,105,.1)] hover:border-slate-400 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"

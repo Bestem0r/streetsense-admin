@@ -27,9 +27,9 @@ public class Pole {
   private GeoJsonPoint location;
   private String county;
   private String municipality;
-  private String vegkategori;
-  private Integer nummer;
-  private Double avstand;
+  private String roadCategory;
+  private Integer roadNumber;
+  private Double distanceFromRoad;
   private double fieldOfView;
   private int satellitesUsed;
   private List<ImageInfo> images = new ArrayList<>();

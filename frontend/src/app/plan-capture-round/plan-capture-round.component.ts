@@ -6,7 +6,6 @@ import { MatIcon } from '@angular/material/icon';
 import { NavComponent } from '../navbar/nav.component';
 import { MapViewComponent } from '../map-view/map-view.component';
 import { PolesService } from '../service/poles.service';
-import { NVDBService } from '../service/nvdb.service';
 import { PoleInterface } from '../interfaces/pole-interface';
 import { CaptureInterface } from '../interfaces/Capture-interface';
 import { PlanCaptureService } from '../service/plan-capture.service';
@@ -23,10 +22,6 @@ type GroupedPoles = Record<string, PoleInterface[]>;
 
 type HierarchicalGroupedPoles = Record<string, Record<string, PoleInterface[]>>;
 
-interface PoleWithRoad extends PoleInterface {
-  roadNumber?: string;
-}
-
 @Component({
   selector: 'app-plan-capture-round-1',
   standalone: true,
@@ -36,7 +31,7 @@ interface PoleWithRoad extends PoleInterface {
   providers: [],
 })
 export class PlanCaptureRoundComponent implements OnInit, OnChanges {
-  poles: PoleWithRoad[] = [];
+  poles: PoleInterface[] = [];
   focusedPole: string | null = null;
   plannedCaptures: CaptureInterface[] = [];
   groupedPoles: GroupedPoles = {};
@@ -46,7 +41,6 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
   expandedGroups = new Set<string>();
   expandedSubGroups = new Set<string>();
   expandedPolesList = new Set<string>();
-  loadingRoads = false;
   startDate: string = new Date().toISOString().split('T')[0];
   endDate: string = new Date().toISOString().split('T')[0];
 
@@ -73,7 +67,6 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
   ];
 
   private polesService = inject(PolesService);
-  private nvdbService = inject(NVDBService);
   private planCaptureService = inject(PlanCaptureService);
   private toast = inject(Toast);
   ngOnInit(): void {
@@ -87,7 +80,7 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
 
   loadPoles(): void {
     this.polesService.getPoles().subscribe((data) => {
-      this.poles = data as PoleWithRoad[];
+      this.poles = data as PoleInterface[];
       this.groupPoles();
     });
   }
@@ -98,45 +91,12 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
     });
   }
 
-  // midlertidig funksjon, for treig. vei info bør lagres i databasen.
-  async fetchRoadNumbers(): Promise<void> {
-    this.loadingRoads = true;
-
-    const polesToFetch = this.poles.filter(
-      (p) => p.location?.coordinates && !p.roadNumber,
-    );
-
-    const concurrency = 5;
-    const delayMs = 300;
-
-    for (let i = 0; i < polesToFetch.length; i += concurrency) {
-      const chunk = polesToFetch.slice(i, i + concurrency);
-
-      await Promise.all(
-        chunk.map(async (pole) => {
-          try {
-            const veiInfo = await this.nvdbService.getVeiInfo(
-              pole.location!.coordinates[1],
-              pole.location!.coordinates[0],
-            );
-
-            pole.roadNumber = veiInfo?.nummer
-              ? `${veiInfo.vegkategori} ${veiInfo.nummer}`
-              : 'Unknown';
-          } catch (_error) {
-            console.error('Error fetching road info for pole:', _error);
-            pole.roadNumber = 'Unknown';
-          }
-        }),
-      );
-
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
+  private getRoadKey(pole: PoleInterface): string {
+    if (pole.roadCategory && pole.roadNumber != null) {
+      return `${pole.roadCategory} ${pole.roadNumber}`;
     }
-
-    this.loadingRoads = false;
-    this.groupPoles();
+    return 'Unknown Road';
   }
-
   groupPoles(): void {
     this.groupedPoles = {};
     this.hierarchicalGroupedPoles = {};
@@ -157,7 +117,7 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
               groupKey = pole.municipality || 'Unknown';
               break;
             case 'road':
-              groupKey = pole.roadNumber || 'Unknown Road';
+              groupKey = this.getRoadKey(pole);
               break;
           }
 
@@ -171,7 +131,7 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
       case 'county_road':
         this.poles.forEach((pole) => {
           const parentKey = pole.county || 'Unknown';
-          const roadKey = pole.roadNumber || 'Unknown Road';
+          const roadKey = this.getRoadKey(pole);
 
           if (!this.hierarchicalGroupedPoles[parentKey]) {
             this.hierarchicalGroupedPoles[parentKey] = {};
@@ -186,7 +146,7 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
       case 'municipality_road':
         this.poles.forEach((pole) => {
           const parentKey = pole.municipality || 'Unknown';
-          const roadKey = pole.roadNumber || 'Unknown Road';
+          const roadKey = this.getRoadKey(pole);
 
           if (!this.hierarchicalGroupedPoles[parentKey]) {
             this.hierarchicalGroupedPoles[parentKey] = {};
@@ -206,14 +166,7 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
     this.expandedGroups.clear();
     this.expandedSubGroups.clear();
 
-    const needsRoads = ['road', 'county_road', 'municipality_road'].includes(
-      newGroupBy,
-    );
-    if (needsRoads && this.poles.some((p) => !p.roadNumber)) {
-      this.fetchRoadNumbers();
-    } else {
-      this.groupPoles();
-    }
+    this.groupPoles();
   }
 
   selectParentGroup(parentKey: string): void {
