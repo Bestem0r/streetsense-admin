@@ -35,15 +35,59 @@ public class PolesServiceImpl implements PolesService {
     return polesRepository.findAll().toArray(Pole[]::new);
   }
 
-  public Pole[] getPolesByDate(long cdate) {
-    LocalDate date = Instant.ofEpochSecond(cdate)
-            .atZone(ZoneOffset.UTC)
-            .toLocalDate();
-    long startOfDay = date.atStartOfDay(ZoneOffset.UTC).toEpochSecond();
-    long endOfDay = date.plusDays(1).atStartOfDay(ZoneOffset.UTC).toEpochSecond();
-    return polesRepository
-            .findAllByCapturedDateBetween(startOfDay, endOfDay)
-            .toArray(Pole[]::new);
+  
+
+  
+
+  @Override
+  public PoleSummaryResponse getSummary() {
+    Aggregation dateAggregation =
+        Aggregation.newAggregation(
+            Aggregation.group("capturedDate").count().as("count"),
+            Aggregation.project("count").and("_id").as("capturedDate"),
+            Aggregation.sort(Sort.Direction.DESC, "capturedDate"));
+
+    AggregationResults<Document> dateResults =
+        mongoTemplate.aggregate(dateAggregation, "kafkaMsg", Document.class);
+
+    List<DateCount> dates =
+        dateResults.getMappedResults().stream()
+            .map(doc -> new DateCount(doc.getLong("capturedDate"), doc.getInteger("count")))
+            .toList();
+
+    Aggregation countyAggregation =
+        Aggregation.newAggregation(
+            Aggregation.match(
+                Criteria.where("county").ne(null).ne("").and("municipality").ne(null).ne("")),
+            Aggregation.group("county").addToSet("municipality").as("municipalities"),
+            Aggregation.project("municipalities").and("_id").as("county"),
+            Aggregation.sort(Sort.Direction.ASC, "county"));
+
+    AggregationResults<Document> countyResults =
+        mongoTemplate.aggregate(countyAggregation, "kafkaMsg", Document.class);
+
+    List<CountyData> countyData =
+        countyResults.getMappedResults().stream()
+            .map(
+                doc ->
+                    new CountyData(
+                        doc.getString("county"),
+                        sanitizeStringList(doc.getList("municipalities", String.class))))
+            .toList();
+
+    List<String> availableCounties =
+        countyData.stream().map(CountyData::county).filter(value -> value != null && !value.isBlank()).toList();
+
+    List<String> availableMunicipalities =
+        countyData.stream()
+            .map(CountyData::municipalities)
+            .flatMap(Collection::stream)
+            .filter(value -> value != null && !value.isBlank())
+            .distinct()
+            .sorted()
+            .toList();
+
+    return new PoleSummaryResponse(dates, countyData, availableCounties, availableMunicipalities);
 }
 
   public CapturedDates getCapturedDateStrings() {

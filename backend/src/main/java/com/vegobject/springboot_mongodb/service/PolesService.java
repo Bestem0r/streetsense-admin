@@ -9,7 +9,9 @@ public interface PolesService {
 
   Pole getPoleById(String id);
 
-  Pole[] getPolesByDate(long cdate);
+  
+
+  PoleSummaryResponse getSummary();
 
   CapturedDates getCapturedDateStrings();
 

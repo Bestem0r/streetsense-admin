@@ -1,9 +1,10 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs/internal/Observable';
+import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { PoleInterface } from '../interfaces/pole-interface';
+import { PoleSummaryResponse } from '../interfaces/pole-summary-response';
 
 @Injectable({
   providedIn: 'root',
@@ -17,9 +18,8 @@ export class PolesService {
     return this.httpClient.get<PoleInterface[]>(this.baseUrl);
   }
 
-  getPolesByDate(cdate: number) {
-    const url = this.baseUrl + '/' + cdate;
-    return this.httpClient.get<PoleInterface[]>(url);
+  getSummary() {
+    return this.httpClient.get<PoleSummaryResponse>(this.baseUrl + '/summary');
   }
 
   getCapturedDates() {

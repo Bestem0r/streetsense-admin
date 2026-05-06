@@ -32,8 +32,15 @@ public class PolesController {
     return polesService.getPoles();
   }
 
-  @GetMapping("/{cdate}")
-  @RequestMapping(value = "/{cdate}", method = RequestMethod.GET)
+ 
+
+
+  @GetMapping("/summary")
+  public PoleSummaryResponse getSummary() {
+    return polesService.getSummary();
+  }
+
+  /* @GetMapping("/{cdate:\\d+}")
   public Pole[] getPolesByDate(@PathVariable long cdate) {
     return polesService.getPolesByDate(cdate);
   }
