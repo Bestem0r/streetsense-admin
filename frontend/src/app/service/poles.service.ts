@@ -50,8 +50,11 @@ export class PolesService {
     });
   }
 
-  getSummary() {
-    return this.httpClient.get<PoleSummaryResponse>(this.baseUrl + '/summary');
+  getSummary(counties: string[] = [], municipalities: string[] = []) {
+    let params = new HttpParams();
+    if (counties.length) params = params.set('counties', counties.join(','));
+    if (municipalities.length) params = params.set('municipalities', municipalities.join(','));
+    return this.httpClient.get<PoleSummaryResponse>(this.baseUrl + '/summary', { params });
   }
 
   getCapturedDates() {

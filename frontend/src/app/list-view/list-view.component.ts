@@ -70,33 +70,7 @@ export class ListViewComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.polesService.getSummary().subscribe((summary) => {
-      this.summaryData = summary;
-
-      this.allDates = summary.dates
-        .map((dateCount) => this.toIsoDate(dateCount.capturedDate))
-        .sort(
-          (left, right) => this.parseIsoDate(right) - this.parseIsoDate(left),
-        );
-
-      this.dateCounts.clear();
-      summary.dates.forEach((dateCount) => {
-        this.dateCounts.set(
-          this.toIsoDate(dateCount.capturedDate),
-          dateCount.count,
-        );
-      });
-
-      if (this.openDate && !this.allDates.includes(this.openDate)) {
-        this.openDate = null;
-      }
-      if (this.selectedDate && !this.allDates.includes(this.selectedDate)) {
-        this.selectedDate = null;
-      }
-      if (!this.selectedDate && this.openDate) {
-        this.selectedDate = this.openDate;
-      }
-
+    this.fetchSummary(() => {
       if (this.openDate) {
         this.loadPolesForDate(this.openDate);
       } else {
@@ -104,6 +78,42 @@ export class ListViewComponent implements OnInit {
         this.polesData = [];
       }
     });
+  }
+
+  private fetchSummary(onComplete?: () => void) {
+    this.polesService
+      .getSummary(this.selectedCounties, this.selectedMunicipalities)
+      .subscribe((summary) => {
+        this.summaryData = summary;
+
+        this.allDates = summary.dates
+          .map((dateCount) => this.toIsoDate(dateCount.capturedDate))
+          .sort(
+            (left, right) => this.parseIsoDate(right) - this.parseIsoDate(left),
+          );
+
+        this.dateCounts.clear();
+        summary.dates.forEach((dateCount) => {
+          this.dateCounts.set(
+            this.toIsoDate(dateCount.capturedDate),
+            dateCount.count,
+          );
+        });
+
+        if (this.openDate && !this.allDates.includes(this.openDate)) {
+          this.openDate = null;
+          sessionStorage.removeItem('openDate');
+        }
+        if (this.selectedDate && !this.allDates.includes(this.selectedDate)) {
+          this.selectedDate = null;
+          sessionStorage.removeItem('selectedDate');
+        }
+        if (!this.selectedDate && this.openDate) {
+          this.selectedDate = this.openDate;
+        }
+
+        onComplete?.();
+      });
   }
 
   get availableCounties(): string[] {
@@ -345,9 +355,9 @@ export class ListViewComponent implements OnInit {
 
   applyFilters() {
     this.isFilterOpen = false;
-    if (this.openDate) {
-      this.loadPolesForDate(this.openDate);
-    }
+    this.fetchSummary(() => {
+      if (this.openDate) this.loadPolesForDate(this.openDate);
+    });
   }
 
   resetFilters() {
@@ -356,11 +366,10 @@ export class ListViewComponent implements OnInit {
     this.selectedStatuses = [];
     this.countySearch = '';
     this.municipalitySearch = '';
-    if (this.openDate) {
-      this.loadPolesForDate(this.openDate);
-    } else {
-      this.filteredData = [];
-    }
+    this.fetchSummary(() => {
+      if (this.openDate) this.loadPolesForDate(this.openDate);
+      else this.filteredData = [];
+    });
   }
 
   onImageError(event: Event) {

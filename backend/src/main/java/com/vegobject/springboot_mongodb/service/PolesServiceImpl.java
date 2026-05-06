@@ -79,12 +79,29 @@ public class PolesServiceImpl implements PolesService {
   
 
   @Override
-  public PoleSummaryResponse getSummary() {
-    Aggregation dateAggregation =
-        Aggregation.newAggregation(
-            Aggregation.group("capturedDate").count().as("count"),
-            Aggregation.project("count").and("_id").as("capturedDate"),
-            Aggregation.sort(Sort.Direction.DESC, "capturedDate"));
+  public PoleSummaryResponse getSummary(String counties, String municipalities) {
+    List<String> countyList = parseCsv(counties);
+    List<String> municipalityList = parseCsv(municipalities);
+
+    List<org.springframework.data.mongodb.core.aggregation.AggregationOperation> dateOps = new ArrayList<>();
+    if (!countyList.isEmpty() || !municipalityList.isEmpty()) {
+      Criteria filter = new Criteria();
+      if (!countyList.isEmpty() && !municipalityList.isEmpty()) {
+        filter = new Criteria().andOperator(
+            Criteria.where("county").in(countyList),
+            Criteria.where("municipality").in(municipalityList));
+      } else if (!countyList.isEmpty()) {
+        filter = Criteria.where("county").in(countyList);
+      } else {
+        filter = Criteria.where("municipality").in(municipalityList);
+      }
+      dateOps.add(Aggregation.match(filter));
+    }
+    dateOps.add(Aggregation.group("capturedDate").count().as("count"));
+    dateOps.add(Aggregation.project("count").and("_id").as("capturedDate"));
+    dateOps.add(Aggregation.sort(Sort.Direction.DESC, "capturedDate"));
+
+    Aggregation dateAggregation = Aggregation.newAggregation(dateOps);
 
     AggregationResults<Document> dateResults =
         mongoTemplate.aggregate(dateAggregation, "kafkaMsg", Document.class);

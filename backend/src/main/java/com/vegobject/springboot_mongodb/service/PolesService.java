@@ -13,7 +13,7 @@ public interface PolesService {
 
   PagedPolesResponse getPolesByDate(String date, int page, int size, String counties, String municipalities);
 
-  PoleSummaryResponse getSummary();
+  PoleSummaryResponse getSummary(String counties, String municipalities);
 
   CapturedDates getCapturedDateStrings();
 

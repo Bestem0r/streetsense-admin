@@ -47,8 +47,10 @@ public class PolesController {
 
 
   @GetMapping("/summary")
-  public PoleSummaryResponse getSummary() {
-    return polesService.getSummary();
+  public PoleSummaryResponse getSummary(
+      @RequestParam(required = false) String counties,
+      @RequestParam(required = false) String municipalities) {
+    return polesService.getSummary(counties, municipalities);
   }
 
   /* @GetMapping("/{cdate:\\d+}")
