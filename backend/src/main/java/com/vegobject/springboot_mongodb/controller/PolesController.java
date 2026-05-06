@@ -3,11 +3,14 @@ package com.vegobject.springboot_mongodb.controller;
 import com.vegobject.springboot_mongodb.collection.CapturedDates;
 import com.vegobject.springboot_mongodb.collection.LocationRequest;
 import com.vegobject.springboot_mongodb.collection.Pole;
+import com.vegobject.springboot_mongodb.dto.PagedPolesResponse;
+import com.vegobject.springboot_mongodb.dto.PoleSummaryResponse;
 import com.vegobject.springboot_mongodb.service.PolesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,7 +35,15 @@ public class PolesController {
     return polesService.getPoles();
   }
 
- 
+  @GetMapping("/date")
+  public PagedPolesResponse getPolesByDate(
+      @RequestParam String date,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(required = false) String counties,
+      @RequestParam(required = false) String municipalities) {
+    return polesService.getPolesByDate(date, page, size, counties, municipalities);
+  }
 
 
   @GetMapping("/summary")
@@ -43,7 +54,7 @@ public class PolesController {
   /* @GetMapping("/{cdate:\\d+}")
   public Pole[] getPolesByDate(@PathVariable long cdate) {
     return polesService.getPolesByDate(cdate);
-  }
+  } */
 
   @GetMapping
   @RequestMapping(value = "/capturedDates", method = RequestMethod.GET)

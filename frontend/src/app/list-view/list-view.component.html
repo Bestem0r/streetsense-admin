@@ -262,7 +262,7 @@
             "
             class="border border-border-default rounded-full px-3 py-0.5 text-[11px] cursor-pointer transition-colors font-medium hover:bg-slate-200"
           >
-            {{ date }}
+            {{ formatDateLabel(date) }}
           </button>
         }
 
@@ -284,11 +284,17 @@
           </button>
         }
       </div>
-      <div class="overflow-y-auto" style="scrollbar-gutter: stable">
+      <div
+        id="list-scroll-container"
+        class="flex-1 min-h-0 overflow-y-auto"
+        style="scrollbar-gutter: stable"
+        (scroll)="onListScroll($event)"
+      >
         <div class="flex-1 px-3 py-2 space-y-2">
           @for (date of sortedDates; track date) {
-            <div class="rounded overflow-hidden">
+            <div class="rounded overflow-hidden relative">
               <div
+                [id]="'accordion-' + date"
                 (click)="toggleAccordion(date)"
                 (keyup.enter)="toggleAccordion(date)"
                 tabindex="0"
@@ -301,13 +307,13 @@
                   }}</mat-icon>
 
                   <span class="font-bold text-sm text-white">
-                    {{ date }}
+                    {{ formatDateLabel(date) }}
                   </span>
 
                   <span
                     class="bg-blue-700 text-white rounded-full px-2 text-[11px]"
                   >
-                    {{ getPolesByDate(date).length }} poles
+                    {{ getDateCount(date) }} poles
                   </span>
                 </div>
 
@@ -317,7 +323,7 @@
               </div>
 
               @if (openDate === date) {
-                <div class="flex-1 overflow-y-auto px-3 py-2 space-y-2">
+                <div class="px-3 py-2 space-y-2">
                   @for (pole of getPolesByDate(date); track pole.id) {
                     <div
                       class="flex gap-3 p-2 border border-border-default rounded bg-slate-50 hover:border-border-hover transition-colors"
@@ -346,7 +352,7 @@
 
                         <div class="text-[10px] text-slate-400 mb-1">
                           Captured:
-                          {{ pole?.capturedDate | date: "dd MMM yyyy, HH:mm" }}
+                          {{ pole?._dateObj | date: "dd MMM yyyy, HH:mm" }}
                           <div>
                             {{ pole?.municipality }}, {{ pole?.county }}
                           </div>
@@ -411,6 +417,20 @@
                       </div>
                     </div>
                   }
+
+                  @if (isLoadingDate(date)) {
+                    <div class="flex justify-center py-3">
+                      <div class="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  }
+
+                  @if (!isLoadingDate(date) && !hasMoreForDate(date) && getPolesByDate(date).length === 0) {
+                    <p class="text-xs text-slate-400 text-center py-4">No poles match filters.</p>
+                  }
+
+                  @if (hasMoreForDate(date)) {
+                    <div [id]="'sentinel-' + date" class="h-2"></div>
+                  }
                 </div>
               }
             </div>
@@ -420,3 +440,16 @@
     </div>
   </div>
 </div>
+
+@if (showScrollTopButton && openDate) {
+  <div class="fixed bottom-6 right-6 z-50">
+    <button
+      (click)="scrollToAccordion(openDate)"
+      class="text-sm text-slate-500 hover:text-slate-700 border border-border-default rounded-full px-3 py-1 bg-white shadow-md hover:bg-slate-50 transition-colors"
+    >
+      <i class="fa-solid fa-arrow-up"></i>
+
+      Top
+    </button>
+  </div>
+}

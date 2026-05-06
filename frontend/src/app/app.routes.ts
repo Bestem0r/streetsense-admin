@@ -10,6 +10,8 @@ import { PlanCaptureRoundComponent } from './plan-capture-round/plan-capture-rou
 import { LoginComponent } from './login/login.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { AuthGuard } from './guards/auth.guard';
+import { AnalyticsDashboardComponent } from './analytics-dashboard/analytics-dashboard.component';
+import { InspectorAnalyticsComponent } from './inspector-analytics/inspector-analytics.component';
 
 export const routes: Routes = [
   { path: '', component: ListViewComponent, canActivate: [AuthGuard] },
@@ -33,6 +35,16 @@ export const routes: Routes = [
   {
     path: 'plan',
     component: PlanCaptureRoundComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'analytics',
+    component: AnalyticsDashboardComponent,
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'inspector-analytics/:id',
+    component: InspectorAnalyticsComponent,
     canActivate: [AuthGuard],
   },
   { path: 'login', component: LoginComponent },

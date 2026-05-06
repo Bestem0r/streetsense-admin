@@ -1,19 +1,12 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  HostListener,
-  inject,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { MatIcon } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
-import { Router } from '@angular/router';
 
 import { PoleInterface } from '../interfaces/pole-interface';
+import { PoleSummaryResponse } from '../interfaces/pole-summary-response';
 import { MapViewComponent } from '../map-view/map-view.component';
 import { NavComponent } from '../navbar/nav.component';
 import { PolesService } from '../service/poles.service';
@@ -30,7 +23,6 @@ interface PoleWithComputed extends PoleInterface {
   standalone: true,
   imports: [
     CommonModule,
-    MatExpansionModule,
     MatButtonModule,
     MapViewComponent,
     MatIcon,
@@ -42,18 +34,23 @@ interface PoleWithComputed extends PoleInterface {
   styleUrl: './list-view.component.scss',
 })
 export class ListViewComponent implements OnInit {
-  @ViewChild(MatAccordion) accordion!: MatAccordion;
-
+  summaryData: PoleSummaryResponse | null = null;
   polesData: PoleWithComputed[] = [];
   filteredData: PoleWithComputed[] = [];
   allDates: string[] = [];
   showAllDates = false;
-  groupedData = new Map<string, PoleWithComputed[]>();
-  cachedSortedDates: string[] = [];
-  openDate: string | null = sessionStorage.getItem('openDate');
+  loadedPolesByRequest = new Map<string, PoleWithComputed[]>();
+  dateCounts = new Map<string, number>();
+  openDate: string | null = this.normalizeStoredDate(
+    sessionStorage.getItem('openDate'),
+  );
   focusedPole: string | null = null;
-  selectedDate: string | null = sessionStorage.getItem('selectedDate');
+  selectedDate: string | null = this.normalizeStoredDate(
+    sessionStorage.getItem('selectedDate'),
+  );
   isFilterOpen = false;
+  showScrollTopButton = false;
+  pageState = new Map<string, { page: number; hasMore: boolean; loading: boolean; totalElements: number }>();
 
   // Filter state
   selectedCounties: string[] = [];
@@ -63,7 +60,6 @@ export class ListViewComponent implements OnInit {
   municipalitySearch = '';
 
   private polesService = inject(PolesService);
-  private router = inject(Router);
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -74,73 +70,69 @@ export class ListViewComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.polesService.getPoles().subscribe((data) => {
-      this.polesData = data.map((p) => ({
-        ...p,
-        _dateObj: new Date(p.capturedDate!),
-        _dateStr: new Date(p.capturedDate!).toLocaleDateString('no-NO'),
-      }));
-      this.initializeData();
+    this.polesService.getSummary().subscribe((summary) => {
+      this.summaryData = summary;
+
+      this.allDates = summary.dates
+        .map((dateCount) => this.toIsoDate(dateCount.capturedDate))
+        .sort(
+          (left, right) => this.parseIsoDate(right) - this.parseIsoDate(left),
+        );
+
+      this.dateCounts.clear();
+      summary.dates.forEach((dateCount) => {
+        this.dateCounts.set(
+          this.toIsoDate(dateCount.capturedDate),
+          dateCount.count,
+        );
+      });
+
+      if (this.openDate && !this.allDates.includes(this.openDate)) {
+        this.openDate = null;
+      }
+      if (this.selectedDate && !this.allDates.includes(this.selectedDate)) {
+        this.selectedDate = null;
+      }
+      if (!this.selectedDate && this.openDate) {
+        this.selectedDate = this.openDate;
+      }
+
+      if (this.openDate) {
+        this.loadPolesForDate(this.openDate);
+      } else {
+        this.filteredData = [];
+        this.polesData = [];
+      }
     });
   }
 
-  initializeData() {
-    this.filteredData = this.polesData;
-    this.rebuildGroupedData(this.polesData);
-  }
-
-  private rebuildGroupedData(data: PoleWithComputed[]) {
-    const dateMap = new Map<string, PoleWithComputed[]>();
-    data.forEach((pole) => {
-      if (!pole._dateStr) return;
-      if (!dateMap.has(pole._dateStr)) dateMap.set(pole._dateStr, []);
-      dateMap.get(pole._dateStr)!.push(pole);
-    });
-    this.groupedData = dateMap;
-    this.allDates = Array.from(dateMap.keys()).sort(
-      (a, b) => this.parseDate(b) - this.parseDate(a),
-    );
-    this.cachedSortedDates = this.allDates;
-    if (this.selectedDate && !this.allDates.includes(this.selectedDate)) {
-      this.selectedDate = null;
-      this.openDate = null;
-    }
-  }
-
-  /**
-   * Extracts unique counties from the pole data
-   *
-   */
   get availableCounties(): string[] {
-    const counties = new Set(
-      this.polesData.map((p) => p.county).filter(Boolean) as string[],
-    );
-    return [...counties].sort();
+    return this.summaryData?.availableCounties ?? [];
   }
 
-  /**
-   * Extracts unique municipalities from the pole data, if counties are selected, only returns municipalities within those counties.
-   *
-   */
   get availableMunicipalities(): string[] {
-    const source = this.selectedCounties.length
-      ? this.polesData.filter((p) => this.selectedCounties.includes(p.county!))
-      : this.polesData;
-    const munis = new Set(
-      source.map((p) => p.municipality).filter(Boolean) as string[],
-    );
-    return [...munis].sort();
+    if (!this.summaryData) {
+      return [];
+    }
+
+    if (!this.selectedCounties.length) {
+      return this.summaryData.availableMunicipalities;
+    }
+
+    return this.getMunicipalitiesForCounties(this.selectedCounties);
   }
 
   get filteredCountyOptions(): string[] {
     const q = this.countySearch.toLowerCase();
-    return this.availableCounties.filter((c) => c.toLowerCase().includes(q));
+    return this.availableCounties.filter((county) =>
+      county.toLowerCase().includes(q),
+    );
   }
 
   get filteredMunicipalityOptions(): string[] {
     const q = this.municipalitySearch.toLowerCase();
-    return this.availableMunicipalities.filter((m) =>
-      m.toLowerCase().includes(q),
+    return this.availableMunicipalities.filter((municipality) =>
+      municipality.toLowerCase().includes(q),
     );
   }
 
@@ -170,32 +162,63 @@ export class ListViewComponent implements OnInit {
     return chips;
   }
 
-  parseDate(date: string): number {
-    const [day, month, year] = date.split('.').map(Number);
-    return new Date(year, month - 1, day).getTime();
+  parseIsoDate(date: string): number {
+    return new Date(`${date}T00:00:00Z`).getTime();
   }
 
   toggleAccordion(date: string) {
-    this.openDate = this.openDate === date ? null : date;
-    sessionStorage.setItem('openDate', date || '');
+    if (this.openDate === date) {
+      this.openDate = null;
+      this.showScrollTopButton = false;
+      if (this.selectedDate === date) {
+        this.selectedDate = null;
+      }
+      sessionStorage.removeItem('openDate');
+      if (!this.selectedDate) {
+        sessionStorage.removeItem('selectedDate');
+      }
+      this.filteredData = [];
+      return;
+    }
+
+    this.openDate = date;
+    this.selectedDate = date;
+    sessionStorage.setItem('openDate', date);
+    sessionStorage.setItem('selectedDate', date);
+    this.loadPolesForDate(date);
   }
 
   groupByDate(date: string | null = null) {
     if (!date) {
       this.selectedDate = null;
       this.openDate = null;
+      this.filteredData = [];
+      sessionStorage.removeItem('openDate');
+      sessionStorage.removeItem('selectedDate');
       return;
     }
     this.selectedDate = date;
     this.openDate = date;
+    sessionStorage.setItem('selectedDate', date);
+    sessionStorage.setItem('openDate', date);
+    this.loadPolesForDate(date);
   }
 
   get sortedDates(): string[] {
-    return this.cachedSortedDates;
+    return this.allDates;
   }
 
   getPolesByDate(date: string): PoleWithComputed[] {
-    return this.groupedData.get(date) || [];
+    return this.loadedPolesByRequest.get(this.buildRequestKey(date)) || [];
+  }
+
+  getDateCount(date: string): number {
+    const requestKey = this.buildRequestKey(date);
+    const state = this.pageState.get(requestKey);
+    if (state && state.totalElements > 0) {
+      return state.totalElements;
+    }
+    return this.dateCounts.get(date) ?? 0;
   }
 
   get visibleDates(): string[] {
@@ -218,6 +241,14 @@ export class ListViewComponent implements OnInit {
     this.showAllDates = false;
   }
 
+  formatDateLabel(date: string): string {
+    return new Intl.DateTimeFormat('no-NO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(`${date}T00:00:00Z`));
+  }
+
   dayOfWeek(date: string): string {
     const days = [
       'Sunday',
@@ -228,13 +259,36 @@ export class ListViewComponent implements OnInit {
       'Friday',
       'Saturday',
     ];
-    const d = new Date(this.parseDate(date));
+    const d = new Date(`${date}T00:00:00Z`);
     return isNaN(d.getTime()) ? '' : days[d.getDay()];
+  }
+
+  onListScroll(event: Event) {
+    const container = event.target as HTMLElement;
+    this.showScrollTopButton = container.scrollTop > 150;
+
+    if (!this.openDate) return;
+    const requestKey = this.buildRequestKey(this.openDate);
+    const state = this.pageState.get(requestKey);
+    if (!state || state.loading || !state.hasMore) return;
+
+    const sentinel = document.getElementById(`sentinel-${this.openDate}`);
+    if (!sentinel) return;
+    const sentinelTop = sentinel.getBoundingClientRect().top;
+    const containerBottom = container.getBoundingClientRect().bottom;
+    if (sentinelTop <= containerBottom + 200) {
+      this.loadPageForDate(this.openDate, state.page + 1);
+    }
+  }
+
+  scrollToAccordion(date: string) {
+    document
+      .getElementById(`accordion-${date}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   setFocusedPole(id: string) {
     this.focusedPole = this.focusedPole === id ? null : id;
-    sessionStorage.setItem('focusedPole', this.focusedPole || '');
   }
 
   toggleFilters(event: MouseEvent) {
@@ -261,9 +315,7 @@ export class ListViewComponent implements OnInit {
       this.selectedCounties.splice(i, 1);
       if (this.selectedCounties.length) {
         const valid = new Set(
-          this.polesData
-            .filter((p) => this.selectedCounties.includes(p.county!))
-            .map((p) => p.municipality),
+          this.getMunicipalitiesForCounties(this.selectedCounties),
         );
         this.selectedMunicipalities = this.selectedMunicipalities.filter((m) =>
           valid.has(m),
@@ -293,30 +345,9 @@ export class ListViewComponent implements OnInit {
 
   applyFilters() {
     this.isFilterOpen = false;
-    let result = this.polesData;
-
-    if (this.selectedCounties.length) {
-      result = result.filter((p) => this.selectedCounties.includes(p.county!));
+    if (this.openDate) {
+      this.loadPolesForDate(this.openDate);
     }
-    if (this.selectedMunicipalities.length) {
-      result = result.filter((p) =>
-        this.selectedMunicipalities.includes(p.municipality!),
-      );
-    }
-    if (this.selectedStatuses.length) {
-      result = result.filter((p) => {
-        const status = p.images?.[0]?.inspectionStatus?.toLowerCase();
-        return this.selectedStatuses.some((s) => {
-          if (s === 'inspected') return status === 'inspected';
-          if (s === 'not_inspected')
-            return !status || status === 'not inspected';
-          return false;
-        });
-      });
-    }
-
-    this.filteredData = result;
-    this.rebuildGroupedData(result);
   }
 
   resetFilters() {
@@ -325,8 +356,11 @@ export class ListViewComponent implements OnInit {
     this.selectedStatuses = [];
     this.countySearch = '';
     this.municipalitySearch = '';
-    this.filteredData = this.polesData;
-    this.rebuildGroupedData(this.polesData);
+    if (this.openDate) {
+      this.loadPolesForDate(this.openDate);
+    } else {
+      this.filteredData = [];
+    }
   }
 
   onImageError(event: Event) {
@@ -347,5 +381,140 @@ export class ListViewComponent implements OnInit {
         { id: '', date: 0 },
       ).id || ''
     );
+  }
+
+  isLoadingDate(date: string): boolean {
+    return this.pageState.get(this.buildRequestKey(date))?.loading ?? false;
+  }
+
+  hasMoreForDate(date: string): boolean {
+    const state = this.pageState.get(this.buildRequestKey(date));
+    return state ? state.hasMore : false;
+  }
+
+  private loadPolesForDate(date: string, forceRefresh = false) {
+    const requestKey = this.buildRequestKey(date);
+    if (!forceRefresh && this.loadedPolesByRequest.has(requestKey)) {
+      const cached = this.loadedPolesByRequest.get(requestKey) || [];
+      this.polesData = cached;
+      this.filteredData = cached;
+      return;
+    }
+    if (forceRefresh) {
+      this.loadedPolesByRequest.delete(requestKey);
+      this.pageState.delete(requestKey);
+    }
+    this.loadPageForDate(date, 0);
+  }
+
+  private loadPageForDate(date: string, page: number) {
+    const requestKey = this.buildRequestKey(date);
+    const state = this.pageState.get(requestKey);
+
+    if (state?.loading) return;
+    if (page > 0 && state && !state.hasMore) return;
+
+    this.pageState.set(requestKey, { page, hasMore: true, loading: true, totalElements: state?.totalElements ?? 0 });
+
+    if (page === 0 && this.openDate === date) {
+      this.polesData = [];
+      this.filteredData = [];
+    }
+
+    this.polesService
+      .getPolesByDate(date, this.selectedCounties, this.selectedMunicipalities, page, 10)
+      .subscribe({
+        next: (data) => {
+          const computed = data.content.map((pole) => this.withComputedDate(pole));
+          const existing = page === 0 ? [] : (this.loadedPolesByRequest.get(requestKey) || []);
+          const merged = [...existing, ...computed];
+          this.loadedPolesByRequest.set(requestKey, merged);
+          this.pageState.set(requestKey, { page, hasMore: data.hasMore, loading: false, totalElements: data.totalElements });
+          if (this.openDate === date) {
+            this.polesData = merged;
+            this.filteredData = merged;
+          }
+        },
+        error: () => {
+          const prev = this.pageState.get(requestKey);
+          this.pageState.set(requestKey, { page: Math.max(0, (prev?.page ?? 1) - 1), hasMore: false, loading: false, totalElements: prev?.totalElements ?? 0 });
+        },
+      });
+  }
+
+  private buildRequestKey(date: string): string {
+    const sortedCounties = [...this.selectedCounties].sort();
+    const sortedMunicipalities = [...this.selectedMunicipalities].sort();
+    const sortedStatuses = [...this.selectedStatuses].sort();
+
+    return [
+      date,
+      sortedCounties.join(','),
+      sortedMunicipalities.join(','),
+      sortedStatuses.join(','),
+    ].join('::');
+  }
+
+  private withComputedDate(pole: PoleInterface): PoleWithComputed {
+    const millis = this.toEpochMillis(pole.capturedDate);
+    return {
+      ...pole,
+      _dateObj: new Date(millis),
+      _dateStr: new Date(millis).toISOString().slice(0, 10),
+    };
+  }
+
+  private getMunicipalitiesForCounties(counties: string[]): string[] {
+    if (!this.summaryData || !counties.length) {
+      return this.summaryData?.availableMunicipalities ?? [];
+    }
+
+    return this.summaryData.countyData
+      .filter((entry) => counties.includes(entry.county))
+      .flatMap((entry) => entry.municipalities)
+      .filter(
+        (municipality, index, all) =>
+          municipality && all.indexOf(municipality) === index,
+      )
+      .sort();
+  }
+
+  private toEpochMillis(value?: string | number): number {
+    if (value === undefined || value === null) {
+      return 0;
+    }
+
+    const numeric = typeof value === 'string' ? Number(value) : value;
+    if (!Number.isFinite(numeric)) {
+      return 0;
+    }
+
+    return numeric < 100000000000 ? numeric * 1000 : numeric;
+  }
+
+  private toIsoDate(value: number): string {
+    return new Date(this.toEpochMillis(value)).toISOString().slice(0, 10);
+  }
+
+  private normalizeStoredDate(value: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (value.includes('-')) {
+      return value;
+    }
+
+    if (value.includes('.')) {
+      const parts = value.split('.').map(Number);
+      if (parts.length === 3 && parts.every((part) => Number.isFinite(part))) {
+        const [day, month, year] = parts;
+        return new Date(Date.UTC(year, month - 1, day))
+          .toISOString()
+          .slice(0, 10);
+      }
+    }
+
+    return value;
   }
 }

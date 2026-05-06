@@ -6,6 +6,14 @@ import { environment } from '../../environments/environment';
 import { PoleInterface } from '../interfaces/pole-interface';
 import { PoleSummaryResponse } from '../interfaces/pole-summary-response';
 
+export interface PagedPolesResponse {
+  content: PoleInterface[];
+  page: number;
+  size: number;
+  totalElements: number;
+  hasMore: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -16,6 +24,30 @@ export class PolesService {
 
   getPoles() {
     return this.httpClient.get<PoleInterface[]>(this.baseUrl);
+  }
+
+  getPolesByDate(
+    date: string,
+    counties: string[] = [],
+    municipalities: string[] = [],
+    page = 0,
+    size = 10,
+  ) {
+    let params = new HttpParams()
+      .set('date', date)
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if (counties.length) {
+      params = params.set('counties', counties.join(','));
+    }
+    if (municipalities.length) {
+      params = params.set('municipalities', municipalities.join(','));
+    }
+
+    return this.httpClient.get<PagedPolesResponse>(this.baseUrl + '/date', {
+      params,
+    });
   }
 
   getSummary() {
