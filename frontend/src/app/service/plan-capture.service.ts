@@ -47,34 +47,6 @@ export class PlanCaptureService {
   }
 
   /**
-   * Get captures by groupBy field
-   *
-   * @param groupBy the groupBy field value
-   * @return Observable of captures matching the groupBy
-   */
-  getCapturesByGroupBy(groupBy: string): Observable<CaptureInterface[]> {
-    return this.httpClient.get<CaptureInterface[]>(
-      `${this.baseUrl}/groupBy/${groupBy}`,
-    );
-  }
-
-  /**
-   * Get captures by groupBy and value
-   *
-   * @param groupBy the groupBy field value
-   * @param groupByValue the groupByValue field value
-   * @return Observable of captures matching both criteria
-   */
-  getCapturesByGroupByAndValue(
-    groupBy: string,
-    groupByValue: string,
-  ): Observable<CaptureInterface[]> {
-    return this.httpClient.get<CaptureInterface[]>(
-      `${this.baseUrl}/groupBy/${groupBy}/value/${groupByValue}`,
-    );
-  }
-
-  /**
    * Get captures within a date range
    *
    * @param startDate start date in milliseconds

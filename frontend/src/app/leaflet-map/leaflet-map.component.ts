@@ -1,21 +1,27 @@
 import {
   AfterViewInit,
   Component,
+  EventEmitter,
   inject,
   Input,
   OnChanges,
   OnDestroy,
+  Output,
   SimpleChanges,
 } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import * as L from 'leaflet';
 import 'leaflet-draw';
 
 import { PoleInterface } from '../interfaces/pole-interface';
+import { CreateCaptureDialogComponent } from '../create-capture-dialog/create-capture-dialog.component';
 
 @Component({
   selector: 'app-leaflet-map',
   standalone: true,
+  imports: [NgClass],
   templateUrl: './leaflet-map.component.html',
   styleUrl: './leaflet-map.component.scss',
 })
@@ -29,11 +35,25 @@ export class LeafletMapComponent
   private markerLayer = L.layerGroup();
   private markers = new Map<string, L.Marker>();
   private activeToolbar: L.Marker | null = null;
+  private drawnItems = new L.FeatureGroup();
+  private drawHandler: any = null;
+  private tileLayers: Record<string, L.TileLayer> = {};
+
+  @Output() captureCreated = new EventEmitter<void>();
 
   selectedPoles = new Set<string>();
   markerCoordinates: number[][] = [];
+  drawingActive = false;
+  hasSelection = false;
+  showLayerMenu = false;
+  activeLayer = 'Kartverket';
+  readonly layerNames = ['Kartverket', 'OpenStreetMap', 'Satellite'];
+  selectionCount = 0;
+  toolbarPos = { x: 0, y: 0 };
+  showSelectionActions = false;
   cdate!: string;
 
+  private dialog = inject(MatDialog);
   private router = inject(Router);
   private activateRouter = inject(ActivatedRoute);
 
@@ -68,85 +88,52 @@ export class LeafletMapComponent
     this.map = L.map('mymap', {
       center: [59.9139, 10.7522],
       zoom: 12,
+      zoomControl: false,
     });
 
     this.markerLayer.addTo(this.map);
+    this.map.addLayer(this.drawnItems);
 
-    const kartverketTiles = L.tileLayer(
-      'https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png',
-      {
-        attribution:
-          '&copy; <a href="http://www.kartverket.no/">Kartverket</a>',
-      },
-    );
-
-    const osmTiles = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {
-        attribution:
-          '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      },
-    );
-
-    const satelliteTiles = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      {
-        attribution: 'Tiles © Esri',
-      },
-    );
-
-    kartverketTiles.addTo(this.map);
-
-    L.control
-      .layers({
-        Kartverket: kartverketTiles,
-        OpenStreetMap: osmTiles,
-        Satellite: satelliteTiles,
-      })
-      .setPosition('topleft')
-      .addTo(this.map);
-
-    L.control.scale().setPosition('bottomright').addTo(this.map);
-
-    const drawnItems = new L.FeatureGroup();
-    this.map.addLayer(drawnItems);
-
-    const drawControl = new L.Control.Draw({
-      draw: {
-        rectangle: {
-          showArea: false,
-          shapeOptions: {
-            color: '#ff7800',
-            weight: 1,
-          },
-          metric: false,
+    this.tileLayers = {
+      Kartverket: L.tileLayer(
+        'https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png',
+        {
+          attribution:
+            '&copy; <a href="http://www.kartverket.no/">Kartverket</a>',
         },
-        polygon: false,
-        polyline: false,
-        circle: false,
-        marker: false,
-        circlemarker: false,
-      },
-      edit: {
-        featureGroup: drawnItems,
-        edit: false,
-        remove: true,
-      },
-    });
+      ),
+      OpenStreetMap: L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+          attribution:
+            '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        },
+      ),
+      Satellite: L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        { attribution: 'Tiles © Esri' },
+      ),
+    };
 
-    this.map.addControl(drawControl);
+    this.tileLayers['Kartverket'].addTo(this.map);
+    L.control.scale().setPosition('bottomright').addTo(this.map);
 
     this.map.on(L.Draw.Event.CREATED, (event: any) => {
       const layer = event.layer;
-      drawnItems.clearLayers();
-      drawnItems.addLayer(layer);
-
-      const bounds = layer.getBounds();
-      this.handleBoxSelection(bounds);
+      this.drawnItems.clearLayers();
+      this.drawnItems.addLayer(layer);
+      this.drawingActive = false;
+      this.hasSelection = true;
+      this.handleBoxSelection(layer.getBounds());
     });
 
-    drawnItems.on('layerremove', () => {
+    this.map.on(L.Draw.Event.DRAWSTOP, () => {
+      this.drawingActive = false;
+    });
+
+    this.drawnItems.on('layerremove', () => {
       this.selectedPoles.clear();
+      this.hasSelection = false;
       this.addMarkers(this.poles);
       this.removeToolbar();
     });
@@ -160,6 +147,44 @@ export class LeafletMapComponent
     if (this.poles.length > 0) {
       this.addMarkers(this.poles);
     }
+  }
+
+  zoomIn() {
+    this.map?.zoomIn();
+  }
+  zoomOut() {
+    this.map?.zoomOut();
+  }
+
+  setLayer(name: string) {
+    if (!this.map || name === this.activeLayer) {
+      this.showLayerMenu = false;
+      return;
+    }
+    this.map.removeLayer(this.tileLayers[this.activeLayer]);
+    this.tileLayers[name].addTo(this.map);
+    this.activeLayer = name;
+    this.showLayerMenu = false;
+  }
+
+  toggleDrawMode() {
+    if (this.drawingActive) {
+      this.drawHandler?.disable();
+      this.drawHandler = null;
+      this.drawingActive = false;
+      return;
+    }
+    this.drawHandler = new (L.Draw as any).Rectangle(this.map, {
+      showArea: false,
+      shapeOptions: { color: '#ff7800', weight: 1 },
+      metric: false,
+    });
+    this.drawHandler.enable();
+    this.drawingActive = true;
+  }
+
+  clearSelection() {
+    this.drawnItems.clearLayers();
   }
 
   handleBoxSelection(bounds: L.LatLngBounds) {
@@ -178,6 +203,32 @@ export class LeafletMapComponent
 
     this.removeToolbar();
     this.addMarkers(this.poles);
+
+    if (this.selectedPoles.size > 0) {
+      this.showSelectionToolbar(bounds, this.selectedPoles.size);
+    }
+  }
+
+  private showSelectionToolbar(bounds: L.LatLngBounds, count: number) {
+    const center = bounds.getCenter();
+    const pt = this.map.latLngToContainerPoint(center);
+    this.toolbarPos = { x: pt.x, y: pt.y };
+    this.selectionCount = count;
+    this.showSelectionActions = true;
+  }
+
+  planNewCapture() {
+    const ref = this.dialog.open(CreateCaptureDialogComponent, {
+      data: { poleIds: Array.from(this.selectedPoles) },
+      disableClose: false,
+    });
+    ref.afterClosed().subscribe((created) => {
+      if (created) this.captureCreated.emit();
+    });
+  }
+
+  assignToInspector() {
+    // TODO: implement
   }
 
   private addMarkers(poles: PoleInterface[]) {
@@ -273,6 +324,7 @@ export class LeafletMapComponent
       this.map.removeLayer(this.activeToolbar);
       this.activeToolbar = null;
     }
+    this.showSelectionActions = false;
   }
 
   private toggleSelection(id: string) {
