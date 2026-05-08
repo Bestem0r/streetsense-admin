@@ -9,12 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CaptureRepository extends MongoRepository<Capture, String> {
 
-  @Query("{ 'groupBy': ?0 }")
-  List<Capture> findByGroupBy(String groupBy);
-
-  @Query("{ 'groupBy': ?0, 'GroupByValue': ?1 }")
-  List<Capture> findByGroupByAndValue(String groupBy, String groupByValue);
-
   @Query("{ 'startDate': { $gte: ?0, $lt: ?1 } }")
   List<Capture> findByDateRange(long startDate, long endDate);
 }

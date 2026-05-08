@@ -1,0 +1,50 @@
+<div class="p-5 font-sans" style="width: 380px">
+  <div class="flex items-start justify-between mb-5">
+    <div class="text-sm font-bold text-white leading-tight">
+      New Capture Round
+    </div>
+    <span
+      class="bg-blue-600 text-white rounded-full px-3 py-1 text-xs font-semibold shrink-0 ml-3"
+    >
+      {{ data.poleIds.length }} poles
+    </span>
+  </div>
+
+  <div class="mb-5">
+    <label
+      for="date-range"
+      class="text-[10px] font-semibold text-white uppercase tracking-wider block mb-2"
+    >
+      Date Range
+    </label>
+    <div id="date-range" class="flex items-center gap-2">
+      <input
+        type="date"
+        [(ngModel)]="startDate"
+        class="flex-1 border border-slate-100 rounded-lg px-2.5 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+      />
+      <span class="text-slate-100 text-xs shrink-0">→</span>
+      <input
+        type="date"
+        [(ngModel)]="endDate"
+        class="flex-1 border border-slate-100 rounded-lg px-2.5 py-1.5 text-xs text-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+      />
+    </div>
+  </div>
+
+  <div class="flex gap-2">
+    <button
+      (click)="cancel()"
+      class="flex-1 border border-slate-100 rounded-lg py-2 text-xs font-semibold text-slate-400 hover:bg-slate-50 transition-colors"
+    >
+      Cancel
+    </button>
+    <button
+      (click)="submit()"
+      [disabled]="submitting"
+      class="flex-1 bg-blue-600 text-white rounded-lg py-2 text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {{ submitting ? "Creating..." : "Create Capture" }}
+    </button>
+  </div>
+</div>

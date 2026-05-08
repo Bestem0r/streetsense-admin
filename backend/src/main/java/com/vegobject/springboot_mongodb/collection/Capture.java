@@ -17,9 +17,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 public class Capture {
   private String id;
-  private String groupBy;
-  private String GroupByValue;
-  private String subGroupValue;
   @Default
   private List<String> poles = new ArrayList<>();
   private Long startDate;
