@@ -10,6 +10,8 @@ import { PoleInterface } from '../interfaces/pole-interface';
 import { CaptureInterface } from '../interfaces/Capture-interface';
 import { PlanCaptureService } from '../service/plan-capture.service';
 import { Toast } from '../utils/toast';
+import { MatDialog } from '@angular/material/dialog';
+import { CreateCaptureDialogComponent } from '../create-capture-dialog/create-capture-dialog.component';
 
 type GroupBy =
   | 'road'
@@ -45,6 +47,7 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
   endDate: string = new Date().toISOString().split('T')[0];
 
   activeTab: 0 | 1 = 0;
+  viewingCapture: CaptureInterface | null = null;
 
   readonly groupByOptions: {
     value: GroupBy;
@@ -69,6 +72,7 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
   private polesService = inject(PolesService);
   private planCaptureService = inject(PlanCaptureService);
   private toast = inject(Toast);
+  private dialog = inject(MatDialog);
   ngOnInit(): void {
     this.loadPoles();
     this.loadCaptures();
@@ -233,7 +237,6 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
     if (this.isHierarchical() && subGroupKey) {
       selectedPoles = this.hierarchicalGroupedPoles[groupKey][subGroupKey];
     } else if (this.isHierarchical()) {
-      // If hierarchical but no sub-group selected, get all poles in parent
       Object.values(this.hierarchicalGroupedPoles[groupKey]).forEach(
         (poles) => {
           selectedPoles.push(...poles);
@@ -243,30 +246,37 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
       selectedPoles = this.groupedPoles[groupKey];
     }
 
-    const newCapture: CaptureInterface = {
-      id: crypto.randomUUID(),
-      groupBy: this.groupBy,
-      groupByValue: groupKey,
-      subGroupValue: subGroupKey,
-      poles: selectedPoles.map((p) => p.id),
-      startDate: new Date(this.startDate).getTime(),
-      endDate: new Date(this.endDate).getTime(),
-      createdDate: Date.now(),
-    };
-
-    this.planCaptureService.createCapture(newCapture).subscribe({
-      next: () => {
-        this.toast.show('Capture round created successfully!', 'Close', 3000);
-        this.loadCaptures();
-      },
-      error: () => {
-        this.toast.show(
-          'Failed to create capture round. Please try again.',
-          'Close',
-          3000,
-        );
-      },
+    const ref = this.dialog.open(CreateCaptureDialogComponent, {
+      data: { poleIds: selectedPoles.map((p) => p.id) },
+      disableClose: false,
     });
+
+    ref.afterClosed().subscribe((created: CaptureInterface | undefined) => {
+      if (created) this.loadCaptures();
+    });
+  }
+
+  getCaptureInfo(capture: CaptureInterface): {
+    counties: string[];
+    municipalities: string[];
+    roads: string[];
+  } {
+    const ids = new Set(capture.poles);
+    const capturePoles = this.poles.filter((p) => ids.has(p.id));
+    const counties = [
+      ...new Set(capturePoles.map((p) => p.county).filter(Boolean)),
+    ] as string[];
+    const municipalities = [
+      ...new Set(capturePoles.map((p) => p.municipality).filter(Boolean)),
+    ] as string[];
+    const roads = [
+      ...new Set(
+        capturePoles
+          .map((p) => this.getRoadKey(p))
+          .filter((r) => r !== 'Unknown Road'),
+      ),
+    ];
+    return { counties, municipalities, roads };
   }
 
   isHierarchical(): boolean {
@@ -287,7 +297,33 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
     return count;
   }
 
-  switchTab(tab: 0 | 1): void {
-    this.activeTab = tab;
+  switchTab(tabIndex: 0 | 1): void {
+    this.activeTab = tabIndex;
+  }
+
+  viewCapture(capture: CaptureInterface): void {
+    this.viewingCapture = capture;
+  }
+
+  stopViewing(): void {
+    this.viewingCapture = null;
+  }
+
+  get viewedPoles(): PoleInterface[] {
+    if (!this.viewingCapture) return this.poles;
+    const ids = new Set(this.viewingCapture.poles);
+    return this.poles.filter((p) => ids.has(p.id));
+  }
+
+  deleteCaptureRound(id: string): void {
+    if (!confirm('Delete this capture round?')) return;
+    this.planCaptureService.deleteCapture(id).subscribe({
+      next: () => {
+        this.plannedCaptures = this.plannedCaptures.filter((c) => c.id !== id);
+        if (this.viewingCapture?.id === id) this.viewingCapture = null;
+        this.toast.show('Capture round deleted.', 'Close', 3000);
+      },
+      error: () => this.toast.show('Failed to delete capture.', 'Close', 3000),
+    });
   }
 }

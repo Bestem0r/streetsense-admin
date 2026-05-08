@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -18,6 +18,7 @@ import { PolesService } from '../service/poles.service';
 export class MapViewComponent implements OnInit {
   @Input() poles: PoleInterface[] = [];
   @Input() focusedPole: string | null = null;
+  @Output() captureCreated = new EventEmitter<void>();
   cdate!: string;
   private activateRouter = inject(ActivatedRoute);
   private router = inject(Router);

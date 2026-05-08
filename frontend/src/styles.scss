@@ -29,6 +29,12 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+  opacity: 0.87;
+  cursor: pointer;
+}
+
 mat-expansion-panel {
   background-color: white !important;
   box-shadow: none !important;

@@ -4,20 +4,47 @@
   <div class="col-span-10 row-span-1 h-full"><app-nav></app-nav></div>
 
   <div
-    class="col-span-7 row-span-9 row-start-2 inset-0 bg-gray-200 flex flex-col items-center justify-center text-gray-400 gap-2"
+    class="col-span-7 row-span-9 row-start-2 inset-0 bg-gray-200 flex flex-col items-center justify-center text-gray-400 gap-2 relative"
   >
     <app-map-view
       class="w-full h-full"
-      [poles]="poles"
+      [poles]="viewedPoles"
       [focusedPole]="focusedPole"
+      (captureCreated)="loadCaptures()"
     ></app-map-view>
+
+    @if (viewingCapture) {
+      <div
+        class="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] bg-slate-900 text-white rounded-xl shadow-xl px-4 py-2.5 flex items-center gap-3 text-xs font-medium"
+      >
+        <mat-icon class="!text-[14px] text-blue-400">visibility</mat-icon>
+        <span class="text-slate-300">Viewing:</span>
+        <span class="font-semibold">
+          {{
+            getCaptureInfo(viewingCapture).counties.join(", ") ||
+              getCaptureInfo(viewingCapture).municipalities.join(", ") ||
+              "Map Selection"
+          }}
+        </span>
+        <span
+          class="bg-slate-700 text-slate-300 rounded-full px-2 py-0.5 text-[10px]"
+        >
+          {{ viewingCapture.poles.length }} poles
+        </span>
+        <button
+          (click)="stopViewing()"
+          class="ml-1 text-slate-400 hover:text-white transition-colors"
+          title="Clear filter"
+        >
+          <mat-icon class="!text-[14px]">close</mat-icon>
+        </button>
+      </div>
+    }
   </div>
 
-  <!-- Sidebar -->
   <div
     class="col-span-3 row-span-9 row-start-2 col-start-8 overflow-hidden w-full h-full flex flex-col bg-white border-l border-slate-200"
   >
-    <!-- Sidebar header + tabs -->
     <div class="bg-slate-900 text-white px-4 py-3 shrink-0">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
@@ -116,7 +143,6 @@
             }
           </div>
         </div>
-
       </div>
 
       <div class="flex-1 overflow-y-auto px-3 py-2 space-y-1.5">
@@ -372,53 +398,91 @@
         }
 
         @for (capture of plannedCaptures; track capture.id) {
+          @let info = getCaptureInfo(capture);
           <div
-            class="rounded-lg border border-border-default bg-slate-50 overflow-hidden hover:border-border-hover transition-colors cursor-pointer"
+            class="rounded-lg border border-border-default bg-slate-50 overflow-hidden hover:bg-slate-200 hover:border-border-hover transition-colors"
           >
-            <div class="border-blue-500 px-3 py-2.5">
+            <div class="px-3 py-2.5">
               <div class="flex items-start justify-between mb-2">
-                <div>
-                  <span
-                    class="text-[10px] font-semibold uppercase tracking-wide text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100"
-                  >
-                    {{ capture.groupBy.replace("_", " → ") }}
-                  </span>
-                  <div class="font-semibold text-slate-800 text-xs mt-1.5">
-                    {{ capture.groupByValue }}
-                    @if (capture.subGroupValue) {
-                      <span class="text-slate-400"> → </span
-                      >{{ capture.subGroupValue }}
-                    }
-                  </div>
-                </div>
                 <span
                   class="text-[10px] text-white bg-slate-700 rounded-full px-2 py-0.5 shrink-0 font-medium"
                 >
                   {{ capture.poles.length }} poles
                 </span>
+                <span class="text-[10px] text-slate-400">
+                  {{ capture.createdDate | date: "dd MMM yyyy" }}
+                </span>
               </div>
 
-              <div class="flex items-center text-[10px] text-slate-500 mb-1">
-                <mat-icon class="!text-[12px]">calendar_today</mat-icon>
-                {{ capture.startDate | date: "dd MMM yyyy" }}
-                <mat-icon class="!text-[11px] mt-3 ml-3"
-                  >arrow_forward</mat-icon
-                >
+              <div class="space-y-1 mb-2">
+                @if (info.counties.length > 0) {
+                  <div class="flex flex-wrap gap-1 items-center">
+                    <span
+                      class="text-[9px] font-semibold uppercase tracking-wide text-slate-400 w-16 shrink-0"
+                      >County</span
+                    >
+                    @for (c of info.counties; track c) {
+                      <span
+                        class="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 rounded px-1.5 py-0.5 font-medium"
+                        >{{ c }}</span
+                      >
+                    }
+                  </div>
+                }
+                @if (info.municipalities.length > 0) {
+                  <div class="flex flex-wrap gap-1 items-center">
+                    <span
+                      class="text-[9px] font-semibold uppercase tracking-wide text-slate-400 w-16 shrink-0"
+                      >Municipal</span
+                    >
+                    @for (m of info.municipalities; track m) {
+                      <span
+                        class="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 rounded px-1.5 py-0.5 font-medium"
+                        >{{ m }}</span
+                      >
+                    }
+                  </div>
+                }
+                @if (info.roads.length > 0) {
+                  <div class="flex flex-wrap gap-1 items-center">
+                    <span
+                      class="text-[9px] font-semibold uppercase tracking-wide text-slate-400 w-16 shrink-0"
+                      >Roads</span
+                    >
+                    @for (r of info.roads; track r) {
+                      <span
+                        class="text-[10px] bg-amber-50 text-amber-700 border border-amber-100 rounded px-1.5 py-0.5 font-medium"
+                        >{{ r }}</span
+                      >
+                    }
+                  </div>
+                }
+              </div>
+
+              <div
+                class="flex items-center gap-2 text-xs text-slate-500 mb-2.5"
+              >
+                <i class="fa-regular fa-calendar text-slate-500 text-lg"></i>
+                &nbsp;{{ capture.startDate | date: "dd MMM yyyy" }}
+                <i class="fa-solid fa-arrow-right"></i>
                 {{ capture.endDate | date: "dd MMM yyyy" }}
-              </div>
-
-              <div class="text-[10px] text-slate-400 mb-2.5">
-                Created {{ capture.createdDate | date: "dd MMM yyyy, HH:mm" }}
               </div>
 
               <div class="flex gap-1.5">
                 <button
-                  class="flex-1 border border-blue-200 text-blue-600 hover:bg-blue-50 py-1 rounded-md text-[10px] font-semibold transition-colors"
+                  (click)="viewCapture(capture)"
+                  class="flex-1 border py-1 rounded-md text-[10px] font-semibold transition-colors"
+                  [ngClass]="
+                    viewingCapture?.id === capture.id
+                      ? 'border-blue-500 bg-blue-600 text-white'
+                      : 'border-blue-200 text-blue-600 hover:bg-blue-100'
+                  "
                 >
-                  View
+                  {{ viewingCapture?.id === capture.id ? "Viewing" : "View" }}
                 </button>
                 <button
-                  class="flex-1 border border-red-200 text-red-500 hover:bg-red-50 py-1 rounded-md text-[10px] font-semibold transition-colors"
+                  (click)="deleteCaptureRound(capture.id)"
+                  class="flex-1 border border-red-200 text-red-500 hover:bg-red-100 py-1 rounded-md text-[10px] font-semibold transition-colors"
                 >
                   Delete
                 </button>

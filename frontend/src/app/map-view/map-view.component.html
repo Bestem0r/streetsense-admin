@@ -2,5 +2,6 @@
   <app-leaflet-map
     [poles]="poles"
     [focusedPole]="focusedPole"
+    (captureCreated)="captureCreated.emit()"
   ></app-leaflet-map>
 </div>
