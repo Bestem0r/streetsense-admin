@@ -96,8 +96,7 @@
             <button
               (click)="tab = 0"
               [ngClass]="{
-                'text-blue-400 font-semibold border-b-2 border-blue-400':
-                  tab === 0,
+                'text-white font-semibold border-b-2 border-white': tab === 0,
                 'hover:text-white': tab !== 0,
               }"
               class="p-2"
@@ -107,8 +106,7 @@
             <button
               (click)="tab = 1"
               [ngClass]="{
-                'text-blue-400 font-semibold border-b-2 border-blue-400':
-                  tab === 1,
+                ' font-semibold border-b-2 border-slate-400': tab === 1,
                 'hover:text-white': tab !== 1,
               }"
               class="p-2"
@@ -118,7 +116,7 @@
             <button
               (click)="tab = 2"
               [ngClass]="{
-                'text-blue-400 font-semibold border-b-2 border-blue-400':
+                'text-red-400 font-semibold border-b-2 border-red-400':
                   tab === 2,
                 'hover:text-white': tab !== 2,
               }"
@@ -129,7 +127,7 @@
             <button
               (click)="tab = 3"
               [ngClass]="{
-                'text-blue-400 font-semibold border-b-2 border-blue-400':
+                'text-orange-400 font-semibold border-b-2 border-orange-400':
                   tab === 3,
                 'hover:text-white': tab !== 3,
               }"
@@ -151,7 +149,7 @@
           </div>
         </div>
 
-        @if (notifications.length === 0) {
+        @if (currentTabNotifications.length === 0) {
           <div class="px-4 py-6 text-center text-slate-400 text-sm">
             No notifications
           </div>
@@ -170,27 +168,38 @@
                 <div class="font-semibold text-white text-sm">
                   {{
                     notif.type === "capture" || notif.type === "batch-capture"
-                      ? "New images captured " +
+                      ? "New field capture — " +
                         notif.polesCount +
-                        " poles affected"
-                      : notif.type === "overdue-inspection"
-                        ? "Overdue Inspection Pole " +
-                          notif.poleIds +
-                          " needs inspection"
-                        : "Action Needed"
+                        " pole(s) captured"
+                      : notif.type === "planned-capture"
+                        ? "Capture round planned — " +
+                          notif.polesCount +
+                          " poles"
+                        : notif.type === "capture-due"
+                          ? "Planned capture round due in 3 days"
+                          : notif.type === "overdue-inspection"
+                            ? notif.polesCount +
+                              " pole(s) overdue for inspection"
+                            : "Action Needed"
                   }}
                 </div>
                 <div class="text-xs text-slate-300 mt-1">
                   {{
                     notif.type === "capture" || notif.type === "batch-capture"
-                      ? "New images have been captured from the field vehicle. Please review and inspect the affected poles as soon as possible."
-                      : notif.type === "overdue-inspection"
-                        ? "One or more poles have exceeded the inspection due date. Please prioritize inspecting these poles to ensure safety and compliance."
-                        : "An issue has been detected that requires your attention. Please review the details and take necessary action."
+                      ? "New images captured from the field vehicle. Review and inspect affected poles."
+                      : notif.type === "planned-capture"
+                        ? "A new capture round has been scheduled. Review the planned poles and ensure inspectors are assigned."
+                        : notif.type === "capture-due"
+                          ? "A planned capture round is approaching its end date. Ensure the field team is on schedule."
+                          : notif.type === "overdue-inspection"
+                            ? notif.severity === "error"
+                              ? "Critical: poles exceeded 30-day inspection threshold. Inspect immediately."
+                              : "Poles have exceeded the 14-day inspection window. Please prioritize."
+                            : "An issue requires your attention. Please review and take action."
                   }}
                 </div>
-                <div class="text-xs text-slate-500 mt-2">
-                  {{ notif.createdDate | date: "yy-MM-dd HH:mm" }}
+                <div class="text-xs text-slate-200 mt-2">
+                  {{ notif.createdDate | date: "dd.MM.yy HH:mm" }}
                 </div>
               </div>
 
@@ -208,19 +217,29 @@
                 [ngClass]="{
                   'bg-blue-600 text-blue-100':
                     notif.type === 'capture' || notif.type === 'batch-capture',
-                  'bg-red-600 text-red-100':
-                    notif.type === 'overdue-inspection',
+                  'bg-teal-600 text-teal-100': notif.type === 'planned-capture',
+                  'bg-orange-600 text-orange-100': notif.type === 'capture-due',
+                  'bg-red-700 text-red-100':
+                    notif.type === 'overdue-inspection' &&
+                    notif.severity === 'error',
                   'bg-yellow-600 text-yellow-100':
-                    notif.type === 'action-needed',
+                    notif.type === 'overdue-inspection' &&
+                    notif.severity === 'warning',
                 }"
                 class="text-xs px-2 py-1 rounded"
               >
                 {{
                   notif.type === "capture" || notif.type === "batch-capture"
-                    ? "New Capture"
-                    : notif.type === "overdue-inspection"
-                      ? "Overdue"
-                      : "Action Needed"
+                    ? "Field Capture"
+                    : notif.type === "planned-capture"
+                      ? "Planned"
+                      : notif.type === "capture-due"
+                        ? "Due Soon"
+                        : notif.type === "overdue-inspection"
+                          ? notif.severity === "error"
+                            ? "Critical"
+                            : "Overdue"
+                          : "Action Needed"
                 }}
               </span>
             </div>
@@ -279,7 +298,8 @@
           </li>
           <li>
             <button
-              class="flex justify-start items-center w-full px-3 py-2 rounded-md transition-colors duration-150"
+              routerLink="/settings"
+              class="flex justify-start items-center w-full px-3 py-2 rounded-md transition-colors duration-150 hover:bg-slate-800"
             >
               Settings
             </button>

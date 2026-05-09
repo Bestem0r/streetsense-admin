@@ -4,6 +4,8 @@ import com.vegobject.springboot_mongodb.collection.Capture;
 import com.vegobject.springboot_mongodb.repository.CaptureRepository;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -11,17 +13,27 @@ import org.springframework.stereotype.Service;
 @Service
 public class PlanCaptureService {
 
-  @Autowired
-  private CaptureRepository captureRepository;
+  private static final Logger log = LoggerFactory.getLogger(PlanCaptureService.class);
 
-  /**
-   * Add a new capture to the database
-   *
-   * @param capture the capture object to save
-   * @return the saved capture with generated ID
-   */
-  public @NonNull Capture addCapture(@NonNull Capture capture) {
-    return captureRepository.save(capture);
+  @Autowired private CaptureRepository captureRepository;
+  @Autowired private NotificationService notificationService;
+
+  public @NonNull Capture addCaptureRound(@NonNull Capture capture) {
+    Capture saved = captureRepository.save(capture);
+    String savedId = saved.getId();
+    log.info("Capture saved id={}", savedId);
+    if (savedId != null) {
+      try {
+        int poleCount = saved.getPoles() != null ? saved.getPoles().size() : 0;
+        notificationService.createCaptureNotification(savedId, "planned-capture", "info", poleCount);
+        log.info("Notification created for capture id={}", savedId);
+      } catch (Exception e) {
+        log.error("Failed to create notification for capture id={}", savedId, e);
+      }
+    } else {
+      log.warn("Capture saved but getId() returned null — notification skipped");
+    }
+    return saved;
   }
 
   /**

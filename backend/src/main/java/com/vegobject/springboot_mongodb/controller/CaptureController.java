@@ -68,7 +68,7 @@ public class CaptureController {
 
   @PostMapping
   public Capture addCapture(@RequestBody @NonNull Capture capture) {
-    return planCaptureService.addCapture(capture);
+    return planCaptureService.addCaptureRound(capture);
   }
 
   @PutMapping("/{id}")

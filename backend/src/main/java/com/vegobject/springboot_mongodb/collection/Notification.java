@@ -14,11 +14,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 public class Notification {
   @Id private String id;
-  private String type; 
-  private String severity; // "info", "warning", "critical"
+  private String type;
+  private String severity; // "info", "warning", "error"
   private int polesCount;
   private Long createdDate;
   private boolean read = false;
   private String[] poleIds;
+  private String captureId;
 }
 

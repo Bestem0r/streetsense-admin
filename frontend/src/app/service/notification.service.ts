@@ -23,6 +23,12 @@ export class NotificationService {
     this.notificationsSubject.next(notifications);
   }
 
+  refresh(): void {
+    this.getNotifications().subscribe((notifications) => {
+      this.notificationsSubject.next(notifications);
+    });
+  }
+
   markAsRead(notificationId: string): void {
     this.httpClient
       .put(`${this.baseUrl}/${notificationId}/mark-as-read`, {})
