@@ -17,6 +17,7 @@ import 'leaflet-draw';
 
 import { PoleInterface } from '../interfaces/pole-interface';
 import { CreateCaptureDialogComponent } from '../create-capture-dialog/create-capture-dialog.component';
+import { NotificationService } from '../service/notification.service';
 
 @Component({
   selector: 'app-leaflet-map',
@@ -33,13 +34,14 @@ export class LeafletMapComponent
 
   private map: any;
   private markerLayer = L.layerGroup();
-  private markers = new Map<string, L.Marker>();
   private activeToolbar: L.Marker | null = null;
   private drawnItems = new L.FeatureGroup();
   private drawHandler: any = null;
   private tileLayers: Record<string, L.TileLayer> = {};
 
   @Output() captureCreated = new EventEmitter<void>();
+
+  private notificationService = inject(NotificationService);
 
   selectedPoles = new Set<string>();
   markerCoordinates: number[][] = [];
@@ -223,7 +225,10 @@ export class LeafletMapComponent
       disableClose: false,
     });
     ref.afterClosed().subscribe((created) => {
-      if (created) this.captureCreated.emit();
+      if (created) {
+        this.captureCreated.emit();
+        this.notificationService.refresh();
+      }
     });
   }
 

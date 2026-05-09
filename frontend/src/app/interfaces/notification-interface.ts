@@ -6,4 +6,5 @@ export interface Notification {
   createdDate: number;
   polesCount: number;
   read: boolean;
+  captureId?: string;
 }
