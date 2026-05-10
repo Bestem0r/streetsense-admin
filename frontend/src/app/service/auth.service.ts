@@ -43,6 +43,7 @@ export interface UserData {
   role: string;
   profileImage: string;
   createdAt: string;
+  county?: string;
 }
 
 @Injectable({
@@ -163,6 +164,18 @@ export class AuthService {
 
   updateProfile(profile: any): Observable<any> {
     return this.http.put(`${this.baseUrl}/profile`, profile);
+  }
+
+  refreshCurrentUser(): void {
+    this.getCurrentUser().subscribe({
+      next: (res: any) => {
+        const userData = res.data || res;
+        if (userData?.id) {
+          if (userData.phone && !userData.phoneNumber) userData.phoneNumber = userData.phone;
+          this.currentUserSubject.next(userData);
+        }
+      },
+    });
   }
 
   setToken(token: string): void {

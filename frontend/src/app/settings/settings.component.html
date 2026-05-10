@@ -1,0 +1,711 @@
+<div
+  class="grid grid-cols-10 grid-rows-10 bg-slate-50 w-full h-screen text-[13px] font-sans text-slate-700"
+>
+  <div class="col-span-10 row-span-1 h-full"><app-nav></app-nav></div>
+
+  <div class="col-span-10 row-span-9 row-start-2 overflow-hidden flex">
+    <aside
+      class="w-56 bg-white border-r border-slate-200 flex flex-col shrink-0 py-3 overflow-y-auto"
+    >
+      @for (tab of tabs; track tab.id) {
+        <button
+          (click)="activeTab = tab.id"
+          class="flex items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors w-full"
+          [ngClass]="
+            activeTab === tab.id
+              ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+          "
+        >
+          <mat-icon class="!text-[18px] shrink-0">{{ tab.icon }}</mat-icon>
+          {{ tab.label }}
+        </button>
+      }
+
+      <div class="mt-auto px-4 py-3 border-t border-slate-100">
+        <div
+          class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2"
+        >
+          Admin Only
+        </div>
+        <button
+          (click)="activeTab = 'system'"
+          class="flex items-center gap-3 w-full text-left text-sm font-medium transition-colors py-2"
+          [ngClass]="
+            activeTab === 'system'
+              ? 'text-blue-700'
+              : 'text-slate-400 hover:text-slate-600'
+          "
+        >
+          <mat-icon class="!text-[16px] shrink-0"
+            >admin_panel_settings</mat-icon
+          >
+          System Config
+        </button>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <main class="flex-1 overflow-y-auto p-8">
+      <!-- ── PROFILE TAB ── -->
+      @if (activeTab === "profile") {
+        <div class="max-w-2xl">
+          <div class="text-base font-bold text-slate-800 mb-1">My Profile</div>
+          <div class="text-xs text-slate-500 mb-6">
+            Update your personal details and login credentials
+          </div>
+
+          <!-- Avatar -->
+          <div
+            class="flex items-center gap-5 bg-slate-50 border border-slate-200 rounded-xl p-5 mb-6"
+          >
+            <div
+              class="w-16 h-16 rounded-full bg-slate-700 text-white flex items-center justify-center text-xl font-bold shrink-0"
+            >
+              {{ initials }}
+            </div>
+            <div class="flex-1">
+              <div class="font-semibold text-slate-800 text-sm">
+                {{ firstName }} {{ lastName }}
+              </div>
+              <div class="text-xs text-slate-500 mt-0.5">{{ email }}</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">{{ role }}</div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <button
+                class="border border-slate-300 text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              >
+                Upload Photo
+              </button>
+              <button
+                class="border border-red-200 text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+
+          <!-- Personal info -->
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="flex flex-col gap-1.5">
+              <label
+                for="firstName"
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                >First Name</label
+              >
+              <input
+                id="firstName"
+                [(ngModel)]="firstName"
+                type="text"
+                class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label
+                for="lastName"
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                >Last Name</label
+              >
+              <input
+                id="lastName"
+                [(ngModel)]="lastName"
+                type="text"
+                class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label
+                for="email"
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                >Email Address</label
+              >
+              <input
+                id="email"
+                [(ngModel)]="email"
+                type="email"
+                class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label
+                for="phone"
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                >Phone Number</label
+              >
+              <input
+                id="phone"
+                [(ngModel)]="phone"
+                type="tel"
+                class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label
+                for="role"
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                >Role</label
+              >
+              <input
+                id="role"
+                [value]="role"
+                disabled
+                type="text"
+                class="border border-slate-100 rounded-lg px-3 py-2 text-xs bg-slate-50 text-slate-400 cursor-not-allowed"
+              />
+              <span class="text-[10px] text-slate-400"
+                >Contact admin to change your role</span
+              >
+            </div>
+          </div>
+
+          <div class="border-t border-slate-100 pt-6 mt-6">
+            <div class="text-sm font-bold text-slate-800 mb-1">
+              Change Password
+            </div>
+            <div class="text-xs text-slate-500 mb-4">
+              Leave blank to keep your current password
+            </div>
+            <div
+              class="bg-slate-50 border border-slate-200 rounded-xl p-4 grid grid-cols-2 gap-4"
+            >
+              <div class="flex flex-col gap-1.5 col-span-2">
+                <label
+                  for="currentPassword"
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >Current Password</label
+                >
+                <input
+                  id="currentPassword"
+                  [(ngModel)]="currentPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors w-full max-w-xs"
+                />
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label
+                  for="newPassword"
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >New Password</label
+                >
+                <input
+                  id="newPassword"
+                  [(ngModel)]="newPassword"
+                  type="password"
+                  placeholder="Min. 8 characters"
+                  class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+                />
+                <span class="text-[10px] text-slate-400"
+                  >Uppercase, number, and symbol required</span
+                >
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label
+                  for="confirmPassword"
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >Confirm New Password</label
+                >
+                <input
+                  id="confirmPassword"
+                  [(ngModel)]="confirmPassword"
+                  type="password"
+                  placeholder="Repeat new password"
+                  class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+                />
+              </div>
+
+              @if (passwordError) {
+                <div
+                  class="col-span-2 text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
+                >
+                  {{ passwordError }}
+                </div>
+              }
+              @if (passwordSaved) {
+                <div
+                  class="col-span-2 text-xs text-green-600 bg-green-50 border border-green-200 rounded-lg px-3 py-2"
+                >
+                  Password changed successfully.
+                </div>
+              }
+
+              <div class="col-span-2 flex justify-end">
+                <button
+                  (click)="savePassword()"
+                  [disabled]="passwordSaving"
+                  class="bg-slate-700 hover:bg-slate-800 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  {{ passwordSaving ? "Saving…" : "Change Password" }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          @if (profileError) {
+            <div
+              class="mt-4 text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2"
+            >
+              {{ profileError }}
+            </div>
+          }
+          @if (profileSaved) {
+            <div
+              class="mt-4 text-xs text-green-600 bg-green-50 border border-green-200 rounded-lg px-3 py-2"
+            >
+              Profile saved successfully.
+            </div>
+          }
+          <div
+            class="flex justify-end gap-2 mt-6 pt-5 border-t border-slate-100"
+          >
+            <button
+              (click)="saveProfile()"
+              [disabled]="profileSaving"
+              class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
+            >
+              {{ profileSaving ? "Saving…" : "Save Profile" }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ── NOTIFICATIONS TAB ── -->
+      @if (activeTab === "notifications") {
+        <div class="max-w-2xl">
+          <div class="text-base font-bold text-slate-800 mb-1">
+            Notifications
+          </div>
+          <div class="text-xs text-slate-500 mb-6">
+            Control which alerts you receive and how
+          </div>
+
+          <div
+            class="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden"
+          >
+            <!-- New Capture Alerts -->
+            <div class="flex items-start justify-between px-5 py-4 gap-4">
+              <div class="flex-1">
+                <div class="text-sm font-semibold text-slate-800 mb-0.5">
+                  New Capture Alerts
+                </div>
+                <div class="text-xs text-slate-500 mb-2">
+                  Notify when a new capture round is uploaded
+                </div>
+                @if (notifNewCapture) {
+                  <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs text-slate-500"
+                      >Notify if more than</span
+                    >
+                    <input
+                      [(ngModel)]="notifNewCaptureThreshold"
+                      type="number"
+                      min="1"
+                      class="border border-slate-200 rounded-md px-2 py-1 text-xs w-16 focus:outline-none focus:border-blue-400"
+                    />
+                    <span class="text-xs text-slate-500">new poles</span>
+                  </div>
+                }
+              </div>
+              <button
+                (click)="notifNewCapture = !notifNewCapture"
+                class="w-11 h-6 rounded-full transition-colors shrink-0 mt-0.5 relative"
+                [ngClass]="notifNewCapture ? 'bg-blue-600' : 'bg-slate-200'"
+              >
+                <span
+                  class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all"
+                  [ngClass]="notifNewCapture ? 'left-5' : 'left-0.5'"
+                ></span>
+              </button>
+            </div>
+
+            <!-- Overdue Inspection -->
+            <div class="flex items-start justify-between px-5 py-4 gap-4">
+              <div class="flex-1">
+                <div class="text-sm font-semibold text-slate-800 mb-0.5">
+                  Overdue Inspection Alerts
+                </div>
+                <div class="text-xs text-slate-500 mb-2">
+                  Notify when inspections are past their due date
+                </div>
+                @if (notifOverdue) {
+                  <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs text-slate-500">Alert after</span>
+                    <input
+                      [(ngModel)]="notifOverdueDays"
+                      type="number"
+                      min="1"
+                      class="border border-slate-200 rounded-md px-2 py-1 text-xs w-16 focus:outline-none focus:border-blue-400"
+                    />
+                    <span class="text-xs text-slate-500">days overdue</span>
+                  </div>
+                }
+              </div>
+              <button
+                (click)="notifOverdue = !notifOverdue"
+                class="w-11 h-6 rounded-full transition-colors shrink-0 mt-0.5 relative"
+                [ngClass]="notifOverdue ? 'bg-blue-600' : 'bg-slate-200'"
+              >
+                <span
+                  class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all"
+                  [ngClass]="notifOverdue ? 'left-5' : 'left-0.5'"
+                ></span>
+              </button>
+            </div>
+
+            <!-- Assignment Notifications -->
+            <div class="flex items-start justify-between px-5 py-4 gap-4">
+              <div class="flex-1">
+                <div class="text-sm font-semibold text-slate-800 mb-0.5">
+                  Assignment Notifications
+                </div>
+                <div class="text-xs text-slate-500">
+                  Notify when poles are assigned to me
+                </div>
+              </div>
+              <button
+                (click)="notifAssignment = !notifAssignment"
+                class="w-11 h-6 rounded-full transition-colors shrink-0 mt-0.5 relative"
+                [ngClass]="notifAssignment ? 'bg-blue-600' : 'bg-slate-200'"
+              >
+                <span
+                  class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all"
+                  [ngClass]="notifAssignment ? 'left-5' : 'left-0.5'"
+                ></span>
+              </button>
+            </div>
+
+            <!-- Weekly Summary -->
+            <div class="flex items-start justify-between px-5 py-4 gap-4">
+              <div class="flex-1">
+                <div class="text-sm font-semibold text-slate-800 mb-0.5">
+                  Weekly Summary Email
+                </div>
+                <div class="text-xs text-slate-500">
+                  Receive weekly inspection summary to your email
+                </div>
+              </div>
+              <button
+                (click)="notifWeeklyEmail = !notifWeeklyEmail"
+                class="w-11 h-6 rounded-full transition-colors shrink-0 mt-0.5 relative"
+                [ngClass]="notifWeeklyEmail ? 'bg-blue-600' : 'bg-slate-200'"
+              >
+                <span
+                  class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all"
+                  [ngClass]="notifWeeklyEmail ? 'left-5' : 'left-0.5'"
+                ></span>
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="flex justify-end gap-2 mt-6 pt-5 border-t border-slate-100"
+          >
+            <button
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
+            >
+              Save Preferences
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ── TEAM MANAGEMENT TAB ── -->
+      @if (activeTab === "team") {
+        <div class="max-w-3xl">
+          <div class="text-base font-bold text-slate-800 mb-1">
+            Team Management
+          </div>
+          <div class="text-xs text-slate-500 mb-6">
+            Invite team members and manage their roles
+          </div>
+
+          <!-- Invite bar -->
+          <div
+            class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 flex items-end gap-3"
+          >
+            <div class="flex flex-col gap-1.5 flex-1">
+              <label
+                for="inviteEmail"
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                >Email Address</label
+              >
+              <input
+                id="inviteEmail"
+                [(ngModel)]="inviteEmail"
+                type="email"
+                placeholder="colleague@vegobject.no"
+                class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5 w-36">
+              <label
+                for="inviteRole"
+                class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                >Role</label
+              >
+              <select
+                id="inviteRole"
+                [(ngModel)]="inviteRole"
+                class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 transition-colors"
+              >
+                @for (r of roles; track r) {
+                  <option [value]="r">{{ r }}</option>
+                }
+              </select>
+            </div>
+            <button
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors shrink-0"
+            >
+              Send Invite
+            </button>
+          </div>
+
+          <!-- Team table -->
+          <div
+            class="bg-white border border-slate-200 rounded-xl overflow-hidden"
+          >
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200">
+                  <th
+                    class="text-left px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >
+                    Name
+                  </th>
+                  <th
+                    class="text-left px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >
+                    Email
+                  </th>
+                  <th
+                    class="text-left px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >
+                    Role
+                  </th>
+                  <th
+                    class="text-left px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >
+                    County
+                  </th>
+                  <th
+                    class="text-left px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >
+                    Status
+                  </th>
+                  <th
+                    class="text-left px-4 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (member of teamMembers; track member.email) {
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-4 py-3 font-medium text-slate-800">
+                      {{ member.name }}
+                    </td>
+                    <td class="px-4 py-3 text-slate-500">{{ member.email }}</td>
+                    <td class="px-4 py-3">
+                      <span
+                        class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                        [ngClass]="{
+                          'bg-blue-100 text-blue-700': member.role === 'Admin',
+                          'bg-slate-100 text-slate-600':
+                            member.role === 'Inspector',
+                          'bg-purple-100 text-purple-700':
+                            member.role === 'Viewer',
+                        }"
+                      >
+                        {{ member.role }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-500">
+                      {{ member.county }}
+                    </td>
+                    <td class="px-4 py-3">
+                      <span
+                        class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                        [ngClass]="
+                          member.active
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-slate-100 text-slate-400'
+                        "
+                      >
+                        {{ member.active ? "Active" : "Inactive" }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex gap-2">
+                        <button
+                          class="border border-slate-200 text-slate-600 hover:bg-slate-100 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors"
+                        >
+                          Edit
+                        </button>
+                        @if (member.role !== "Admin") {
+                          <button
+                            class="border border-red-200 text-red-500 hover:bg-red-50 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors"
+                          >
+                            Remove
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- ── SYSTEM CONFIG TAB ── -->
+      @if (activeTab === "system") {
+        <div class="max-w-2xl">
+          <div class="flex items-center gap-2 mb-1">
+            <div class="text-base font-bold text-slate-800">
+              System Configuration
+            </div>
+            <span
+              class="bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+              >Admin Only</span
+            >
+          </div>
+          <div class="text-xs text-slate-500 mb-6">
+            Global defaults and thresholds for all users
+          </div>
+
+          <!-- Map & Capture Defaults -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 mb-4">
+            <div
+              class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4"
+            >
+              Map &amp; Capture Defaults
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5">
+                <label
+                  for="map"
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >Default Map Layer</label
+                >
+                <select
+                  id="map"
+                  [(ngModel)]="defaultMapLayer"
+                  class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 transition-colors"
+                >
+                  @for (layer of mapLayers; track layer) {
+                    <option [value]="layer">{{ layer }}</option>
+                  }
+                </select>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label
+                  for="county"
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >Default County Filter</label
+                >
+                <select
+                  id="county"
+                  [(ngModel)]="defaultCountyFilter"
+                  class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 transition-colors"
+                >
+                  <option value="All Counties">All Counties</option>
+                  @for (c of counties; track c) {
+                    <option [value]="c">{{ c }}</option>
+                  }
+                </select>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label
+                  for="captureFrequency"
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >Capture Frequency (days)</label
+                >
+                <input
+                  id="captureFrequency"
+                  [(ngModel)]="captureFrequency"
+                  type="number"
+                  min="1"
+                  class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+                />
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label
+                  for="overdueThreshold"
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >Overdue Threshold (days)</label
+                >
+                <input
+                  id="overdueThreshold"
+                  [(ngModel)]="overdueThreshold"
+                  type="number"
+                  min="1"
+                  class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Inspection Thresholds -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 mb-4">
+            <div
+              class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4"
+            >
+              Inspection Thresholds
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1.5">
+                <label
+                  for="minPhotosPerPole"
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >Min. Photos per Pole</label
+                >
+                <input
+                  id="minPhotosPerPole"
+                  [(ngModel)]="minPhotosPerPole"
+                  type="number"
+                  min="1"
+                  class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+                />
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label
+                  for="flagEscalationDays"
+                  class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  >Flag Escalation (days)</label
+                >
+                <input
+                  id="flagEscalationDays"
+                  [(ngModel)]="flagEscalationDays"
+                  type="number"
+                  min="1"
+                  class="border border-slate-200 rounded-lg px-3 py-2 text-xs bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+                />
+                <span class="text-[10px] text-slate-400"
+                  >Auto-escalate flagged poles after this many days</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="flex justify-between gap-2 mt-6 pt-5 border-t border-slate-100"
+          >
+            <button
+              class="border border-slate-200 text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
+            >
+              Reset to Defaults
+            </button>
+            <button
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors"
+            >
+              Save System Config
+            </button>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+</div>

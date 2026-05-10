@@ -12,6 +12,7 @@ import { ResetPasswordComponent } from './reset-password/reset-password.componen
 import { AuthGuard } from './guards/auth.guard';
 import { AnalyticsDashboardComponent } from './analytics-dashboard/analytics-dashboard.component';
 import { InspectorAnalyticsComponent } from './inspector-analytics/inspector-analytics.component';
+import { SettingsComponent } from './settings/settings.component';
 
 export const routes: Routes = [
   { path: '', component: ListViewComponent, canActivate: [AuthGuard] },
@@ -47,6 +48,7 @@ export const routes: Routes = [
     component: InspectorAnalyticsComponent,
     canActivate: [AuthGuard],
   },
+  { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
 ];
