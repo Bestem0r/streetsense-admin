@@ -1,13 +1,282 @@
-<div
-  class="grid grid-cols-10 grid-rows-10 bg-slate-50 text-slate-700 text-[13px] font-sans w-full h-screen"
->
-  <div class="col-span-10 row-span-1 h-full"><app-nav></app-nav></div>
+<div class="flex flex-col h-screen bg-slate-50">
+  <div class="h-[10vh] shrink-0"><app-nav></app-nav></div>
+
   <div
-    class="col-span-10 row-span-9 row-start-2 flex flex-col gap-4 p-4 items-center justify-center"
+    class="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden"
   >
-    <full-calendar
-      class="calender w-200 h-160"
-      [options]="calendarOptions"
-    ></full-calendar>
+    <div
+      class="w-full lg:w-[55%] flex flex-col bg-white border-b lg:border-b-0 lg:border-r border-slate-200 px-4 lg:px-5 pt-4 lg:pt-5 pb-3 lg:overflow-hidden"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <button
+          class="w-8 h-8 flex items-center justify-center rounded border border-slate-200 text-slate-500 text-sm transition-colors hover:bg-blue-600 hover:text-white hover:border-blue-600"
+          (click)="prevMonth()"
+        >
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <span class="text-base font-bold tracking-[0.18em] text-slate-900">{{
+          getMonthLabel()
+        }}</span>
+        <button
+          class="w-8 h-8 flex items-center justify-center rounded border border-slate-200 text-slate-500 text-sm transition-colors hover:bg-blue-600 hover:text-white hover:border-blue-600"
+          (click)="nextMonth()"
+        >
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-7 border-b border-slate-100 mb-1">
+        @for (wd of weekdays; track wd) {
+          <div
+            class="py-2 text-center text-xs font-semibold tracking-widest text-black/80"
+          >
+            {{ wd }}
+          </div>
+        }
+      </div>
+
+      <div class="day-grid flex-1">
+        @for (day of calendarDays; track day.dateStr) {
+          <button
+            class="relative flex flex-col items-center justify-center border border-slate-200 cursor-pointer transition-colors min-h-[44px]"
+            [ngClass]="{
+              'opacity-10 pointer-events-none': !day.isCurrentMonth,
+              'ring-2 ring-amber-400 ring-inset':
+                day.isToday && !day.isSelected,
+              'bg-blue-600 hover:bg-blue-700': day.isSelected,
+              'bg-slate-50 hover:bg-slate-200 hover:border-border-hover':
+                !day.isSelected,
+            }"
+            (click)="selectDay(day)"
+          >
+            <span
+              class="text-[13px] leading-none z-10"
+              style="font-family: &quot;DM Mono&quot;, monospace"
+              [ngClass]="{
+                'text-white font-medium': day.isSelected,
+                'font-bold text-slate-900': day.isToday && !day.isSelected,
+                'text-slate-700': !day.isSelected && !day.isToday,
+              }"
+              >{{ day.date.getDate() }}</span
+            >
+
+            @if (day.hasInspection) {
+              <div
+                class="w-[7px] h-[7px] rounded-full mt-[3px] z-10"
+                [ngClass]="day.isSelected ? 'bg-white' : 'bg-green-500'"
+              ></div>
+            }
+
+            @if (day.captureMarkers.length > 0) {
+              <div
+                class="absolute bottom-[3px] flex gap-[2px] flex-wrap justify-center"
+              >
+                @for (
+                  m of day.captureMarkers.slice(0, 3);
+                  track m.num + m.type
+                ) {
+                  <span
+                    class="text-[9px] font-bold leading-tight px-[3px] py-[1px] rounded-[2px]"
+                    [ngClass]="
+                      m.type === 'start'
+                        ? day.isSelected
+                          ? 'bg-white text-blue-700'
+                          : 'bg-blue-600 text-white'
+                        : day.isSelected
+                          ? 'border border-white text-white'
+                          : 'bg-red-600 text-white'
+                    "
+                    [title]="
+                      'Capture #' +
+                      m.num +
+                      (m.type === 'start' ? ' starts' : ' ends')
+                    "
+                    >{{ m.num }}</span
+                  >
+                }
+              </div>
+            }
+          </button>
+        }
+      </div>
+      <div
+        class="flex items-center gap-4 pt-3 mt-1 border-t border-slate-100 flex-wrap"
+      >
+        <div
+          class="flex items-center gap-1.5 text-[10px] font-semibold tracking-wider text-slate-400"
+        >
+          <div class="w-2 h-2 rounded-full bg-green-500"></div>
+          <span>INSPECTION</span>
+        </div>
+        <div
+          class="flex items-center gap-1.5 text-[10px] font-semibold tracking-wider text-slate-400"
+        >
+          <span
+            class="text-[9px] font-bold px-[3px] py-[1px] rounded-[2px] bg-blue-600 text-white leading-tight"
+            >1</span
+          >
+          <span>START</span>
+        </div>
+        <div
+          class="flex items-center gap-1.5 text-[10px] font-semibold tracking-wider text-slate-400"
+        >
+          <span
+            class="text-[9px] font-bold px-[3px] py-[1px] rounded-[2px] bg-red-600 text-white leading-tight"
+            >1</span
+          >
+          <span>END</span>
+        </div>
+        <div
+          class="flex items-center gap-1.5 text-[10px] font-semibold tracking-wider text-slate-400"
+        >
+          <div class="w-3 h-[2px] rounded bg-amber-400"></div>
+          <span>TODAY</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full lg:w-[45%] flex flex-col bg-slate-50 lg:overflow-hidden">
+      <div class="px-4 lg:px-5 py-4 bg-white border-b border-slate-200">
+        <div
+          class="text-[10px] font-semibold tracking-[0.2em] text-slate-400 mb-0.5"
+        >
+          {{ selectedDate ? "SELECTED DATE" : "MONTH OVERVIEW" }}
+        </div>
+        <div class="text-[17px] font-bold tracking-wider text-slate-900">
+          {{ getSelectedLabel() }}
+        </div>
+      </div>
+
+      @if (loadError) {
+        <div
+          class="mx-4 lg:mx-5 mt-3 px-3 py-2 rounded bg-red-50 border border-red-200 text-[11px] font-semibold text-red-600 tracking-wide"
+        >
+          {{ loadError }}
+        </div>
+      }
+
+      <div class="flex-1 overflow-y-auto px-4 lg:px-5 py-4 min-h-[200px]">
+        @if (timelineItems.length === 0) {
+          <div
+            class="flex items-center justify-center h-full text-[11px] font-semibold tracking-widest text-slate-300"
+          >
+            NO EVENTS THIS {{ selectedDate ? "DAY" : "MONTH" }}
+          </div>
+        }
+
+        @if (timelineItems.length > 0) {
+          <div class="relative">
+            <div
+              class="absolute left-[7px] top-2 bottom-2 w-px bg-slate-200"
+            ></div>
+
+            @for (
+              item of timelineItems;
+              track item.timestamp + item.type + item.subtitle;
+              let i = $index
+            ) {
+              <div
+                class="relative pl-9 pb-3 timeline-item"
+                [style.animation-delay]="i * 55 + 'ms'"
+              >
+                <div
+                  class="absolute left-[2px] top-[10px] w-3 h-3 rounded-full border-2 border-slate-50"
+                  [style.background]="item.color"
+                ></div>
+
+                <button
+                  class="bg-white rounded border border-slate-200 shadow-sm overflow-hidden transition-shadow w-full text-left"
+                  [ngClass]="{
+                    'cursor-pointer hover:shadow-md':
+                      item.type === 'inspection',
+                  }"
+                  [style.border-left]="'3px solid ' + item.color"
+                >
+                  <div class="p-3">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5 mb-0.5">
+                          <span
+                            class="text-[9px] font-bold tracking-[0.15em]"
+                            [style.color]="item.color"
+                            >{{
+                              item.type === "inspection"
+                                ? "INSPECTION"
+                                : "PLANNED CAPTURE"
+                            }}</span
+                          >
+                          @if (item.captureNum) {
+                            <span
+                              class="text-[10px] font-bold px-1.5 py-[1px] rounded bg-blue-50 text-blue-600"
+                              style="
+                                font-family: &quot;DM Mono&quot;, monospace;
+                              "
+                              >#{{ item.captureNum }}</span
+                            >
+                          }
+                          @if (item.captureRelation) {
+                            <span
+                              class="text-[9px] font-bold px-1.5 py-[1px] rounded tracking-wide"
+                              [ngClass]="{
+                                'bg-green-50 text-green-700':
+                                  item.captureRelation === 'starts',
+                                'bg-orange-50 text-orange-600':
+                                  item.captureRelation === 'ends',
+                                'bg-purple-50 text-purple-600':
+                                  item.captureRelation === 'starts & ends',
+                              }"
+                              >{{ item.captureRelation | uppercase }}</span
+                            >
+                          }
+                        </div>
+                        <div
+                          class="text-[12px] font-medium text-slate-700 truncate"
+                        >
+                          {{ item.subtitle }}
+                        </div>
+                      </div>
+                      @if (item.poleCount > 0) {
+                        <div
+                          class="flex-shrink-0 text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-500"
+                          style="font-family: &quot;DM Mono&quot;, monospace"
+                        >
+                          {{ item.poleCount }} poles
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div
+        class="flex items-center gap-3 px-4 lg:px-5 py-2.5 bg-white border-t border-slate-200 shrink-0"
+      >
+        <div
+          class="flex items-center gap-1.5 text-[10px] font-semibold tracking-wider text-slate-500"
+        >
+          <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+          <span
+            >{{ countByType("inspection") }} INSPECTION{{
+              countByType("inspection") !== 1 ? "S" : ""
+            }}</span
+          >
+        </div>
+        <span class="text-slate-200">|</span>
+        <div
+          class="flex items-center gap-1.5 text-[10px] font-semibold tracking-wider text-slate-500"
+        >
+          <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+          <span
+            >{{ countByType("capture") }} CAPTURE{{
+              countByType("capture") !== 1 ? "S" : ""
+            }}</span
+          >
+        </div>
+      </div>
+    </div>
   </div>
 </div>
