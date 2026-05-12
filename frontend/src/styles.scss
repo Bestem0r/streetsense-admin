@@ -86,3 +86,8 @@ mat-expansion-panel-header:hover {
   background: oklch(0.872 0.01 258.338);
   border: 1px solid oklch(0.424 0.199 265.638);
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.4);
+  cursor: pointer;
+}

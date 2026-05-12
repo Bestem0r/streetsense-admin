@@ -17,12 +17,15 @@ import 'leaflet-draw';
 
 import { PoleInterface } from '../interfaces/pole-interface';
 import { CreateCaptureDialogComponent } from '../create-capture-dialog/create-capture-dialog.component';
+import { AssignInspectorDialogComponent } from '../assign-inspector-dialog/assign-inspector-dialog.component';
 import { NotificationService } from '../service/notification.service';
+import { PolesService } from '../service/poles.service';
+import { Inspector } from '../service/inspector.service';
 
 @Component({
   selector: 'app-leaflet-map',
   standalone: true,
-  imports: [NgClass],
+  imports: [NgClass, AssignInspectorDialogComponent],
   templateUrl: './leaflet-map.component.html',
   styleUrl: './leaflet-map.component.scss',
 })
@@ -37,11 +40,13 @@ export class LeafletMapComponent
   private activeToolbar: L.Marker | null = null;
   private drawnItems = new L.FeatureGroup();
   private drawHandler: any = null;
+  private justFinishedDraw = false;
   private tileLayers: Record<string, L.TileLayer> = {};
 
   @Output() captureCreated = new EventEmitter<void>();
 
   private notificationService = inject(NotificationService);
+  private polesService = inject(PolesService);
 
   selectedPoles = new Set<string>();
   markerCoordinates: number[][] = [];
@@ -53,6 +58,7 @@ export class LeafletMapComponent
   selectionCount = 0;
   toolbarPos = { x: 0, y: 0 };
   showSelectionActions = false;
+  showAssignDialog = false;
   cdate!: string;
 
   private dialog = inject(MatDialog);
@@ -90,6 +96,7 @@ export class LeafletMapComponent
     this.map = L.map('mymap', {
       center: [59.9139, 10.7522],
       zoom: 12,
+      maxZoom: 19,
       zoomControl: false,
     });
 
@@ -126,6 +133,8 @@ export class LeafletMapComponent
       this.drawnItems.addLayer(layer);
       this.drawingActive = false;
       this.hasSelection = true;
+      this.justFinishedDraw = true;
+      setTimeout(() => { this.justFinishedDraw = false; }, 100);
       this.handleBoxSelection(layer.getBounds());
     });
 
@@ -141,7 +150,7 @@ export class LeafletMapComponent
     });
 
     this.map.on('click', () => {
-      this.removeToolbar();
+      if (!this.justFinishedDraw) this.removeToolbar();
     });
 
     this.cdate = this.activateRouter.snapshot.paramMap.get('cdate') || '';
@@ -208,6 +217,9 @@ export class LeafletMapComponent
 
     if (this.selectedPoles.size > 0) {
       this.showSelectionToolbar(bounds, this.selectedPoles.size);
+    } else {
+      this.drawnItems.clearLayers();
+      this.hasSelection = false;
     }
   }
 
@@ -230,10 +242,32 @@ export class LeafletMapComponent
         this.notificationService.refresh();
       }
     });
+    this.showSelectionActions = false;
+  }
+
+  get assignInspectorLabel(): string {
+    const selected = this.poles.filter((p) => this.selectedPoles.has(p.id));
+    return selected.length > 0 && selected.every((p) => p.assignedInspector)
+      ? 'Change Inspector'
+      : 'Assign Inspector';
   }
 
   assignToInspector() {
-    // TODO: implement
+    this.showAssignDialog = true;
+    this.showSelectionActions = false;
+  }
+
+  onInspectorSelected(inspector: Inspector) {
+    this.showAssignDialog = false;
+    const ids = Array.from(this.selectedPoles);
+    ids.forEach((id) => {
+      const pole = this.poles.find((p) => p.id === id);
+      if (!pole) return;
+      this.polesService
+        .updatePole({ ...pole, assignedInspector: inspector.id })
+        .subscribe();
+    });
+    this.clearSelection();
   }
 
   private addMarkers(poles: PoleInterface[]) {
