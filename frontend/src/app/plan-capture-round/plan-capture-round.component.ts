@@ -1,8 +1,7 @@
-import { Component, inject, OnChanges, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
-
 import { NavComponent } from '../navbar/nav.component';
 import { MapViewComponent } from '../map-view/map-view.component';
 import { PolesService } from '../service/poles.service';
@@ -12,6 +11,7 @@ import { PlanCaptureService } from '../service/plan-capture.service';
 import { Toast } from '../utils/toast';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateCaptureDialogComponent } from '../create-capture-dialog/create-capture-dialog.component';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 type GroupBy =
   | 'road'
@@ -27,12 +27,19 @@ type HierarchicalGroupedPoles = Record<string, Record<string, PoleInterface[]>>;
 @Component({
   selector: 'app-plan-capture-round-1',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIcon, NavComponent, MapViewComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    NavComponent,
+    MapViewComponent,
+    ConfirmDialogComponent,
+    MatIcon,
+  ],
   templateUrl: './plan-capture-round.component.html',
   styleUrl: './plan-capture-round.component.scss',
   providers: [],
 })
-export class PlanCaptureRoundComponent implements OnInit, OnChanges {
+export class PlanCaptureRoundComponent implements OnInit {
   poles: PoleInterface[] = [];
   focusedPole: string | null = null;
   plannedCaptures: CaptureInterface[] = [];
@@ -43,11 +50,9 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
   expandedGroups = new Set<string>();
   expandedSubGroups = new Set<string>();
   expandedPolesList = new Set<string>();
-  startDate: string = new Date().toISOString().split('T')[0];
-  endDate: string = new Date().toISOString().split('T')[0];
-
   activeTab: 0 | 1 = 0;
   viewingCapture: CaptureInterface | null = null;
+  pendingDeleteId: string | null = null;
 
   readonly groupByOptions: {
     value: GroupBy;
@@ -75,10 +80,6 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
   private dialog = inject(MatDialog);
   ngOnInit(): void {
     this.loadPoles();
-    this.loadCaptures();
-  }
-
-  ngOnChanges(): void {
     this.loadCaptures();
   }
 
@@ -316,7 +317,13 @@ export class PlanCaptureRoundComponent implements OnInit, OnChanges {
   }
 
   deleteCaptureRound(id: string): void {
-    if (!confirm('Delete this capture round?')) return;
+    this.pendingDeleteId = id;
+  }
+
+  confirmDelete(): void {
+    const id = this.pendingDeleteId;
+    this.pendingDeleteId = null;
+    if (!id) return;
     this.planCaptureService.deleteCapture(id).subscribe({
       next: () => {
         this.plannedCaptures = this.plannedCaptures.filter((c) => c.id !== id);
