@@ -1,0 +1,68 @@
+<div
+  class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[9999]"
+>
+  <button
+    class="absolute inset-0 w-full h-full cursor-default"
+    (click)="cancelled.emit()"
+    aria-label="Close"
+  ></button>
+  <div
+    class="relative bg-white rounded-xl border border-slate-200 shadow-[0_24px_56px_rgba(15,23,42,.15)] w-[380px]"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="px-5 pt-5 pb-3 border-b border-slate-100">
+      <div class="text-base font-semibold text-slate-900 mb-3">
+        Assign Inspector
+      </div>
+      <input
+        type="text"
+        [(ngModel)]="query"
+        (ngModelChange)="filter()"
+        placeholder="Search by name or email…"
+        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition-colors"
+      />
+    </div>
+
+    <div class="overflow-y-auto max-h-[280px] px-2 py-2">
+      @if (loading) {
+        <div class="text-center text-xs text-slate-400 py-6">Loading…</div>
+      }
+      @if (!loading && filtered.length === 0) {
+        <div class="text-center text-xs text-slate-400 py-6">
+          No inspectors found
+        </div>
+      }
+      @for (inspector of filtered; track inspector.id) {
+        <button
+          (click)="selected.emit(inspector)"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-left"
+        >
+          <div
+            class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+            [class]="getAvatarColor(inspector.id)"
+          >
+            {{ getInitials(inspector) }}
+          </div>
+          <div class="min-w-0">
+            <div class="text-sm font-medium text-slate-900 truncate">
+              {{ inspector.firstName }} {{ inspector.lastName }}
+            </div>
+            <div class="text-xs text-slate-400 truncate">
+              {{ inspector.email }}
+            </div>
+          </div>
+        </button>
+      }
+    </div>
+
+    <div class="px-5 py-3 border-t border-slate-100 flex justify-end">
+      <button
+        (click)="cancelled.emit()"
+        class="border border-slate-300 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-slate-50 transition-colors"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
