@@ -14,10 +14,11 @@ import { Toast } from '../utils/toast';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
+import { forkJoin } from 'rxjs';
 import { PoleInterface } from '../interfaces/pole-interface';
-import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
 import { NavComponent } from '../navbar/nav.component';
 import { PolesService } from '../service/poles.service';
+import { InspectorService, Inspector } from '../service/inspector.service';
 
 @Component({
   selector: 'app-inspection-editor',
@@ -28,7 +29,7 @@ import { PolesService } from '../service/poles.service';
     ReactiveFormsModule,
     MatIconModule,
     MatTooltipModule,
-    LeafletMapComponent,
+
     RouterLink,
   ],
   templateUrl: './inspection-editor.component.html',
@@ -39,10 +40,10 @@ export class InspectionEditorComponent implements OnInit {
   isModified = false;
   isCancelModalOpen = false;
   showInspectorDropdown = false;
-  filteredInspectors: any[] = [];
-  selectedInspector: any = null;
+  filteredInspectors: Inspector[] = [];
+  selectedInspector: Inspector | null = null;
   private savedFormValue: Record<string, unknown> = {};
-  private savedInspector: any = null;
+  private savedInspector: Inspector | null = null;
   defaultDate = new Date().toISOString().split('T')[0];
   today: string = (() => {
     const now = new Date();
@@ -65,23 +66,40 @@ export class InspectionEditorComponent implements OnInit {
   private toast = inject(Toast);
   private route = inject(ActivatedRoute);
   private polesService = inject(PolesService);
+  private inspectorService = inject(InspectorService);
   private fb = inject(FormBuilder);
   imageId = '';
   imageNumber = 0; // this should be reconsidered.
 
-  //TODO: This is hardcoded for now, but should be fetched from the backend.
-
-  inspectors = [
-    { id: 1, name: 'John Anderson', email: 'john.anderson@example.com' },
-    { id: 2, name: 'Sarah Jensen', email: 'sarah.jensen@example.com' },
-    { id: 3, name: 'Mike Thompson', email: 'mike.thompson@example.com' },
-    { id: 4, name: 'Lisa Olsen', email: 'lisa.olsen@example.com' },
-  ];
+  inspectors: Inspector[] = [];
 
   ngOnInit() {
     this.imageId = this.route.snapshot.paramMap.get('imageId') || '';
     this.initializeForm();
-    this.loadPoleData();
+
+    const poleId = this.route.snapshot.paramMap.get('id');
+    if (!poleId) {
+      this.errorMessage = 'No pole ID provided';
+      this.isLoading = false;
+      return;
+    }
+
+    this.isLoading = true;
+    forkJoin({
+      pole: this.polesService.getPoleById(poleId),
+      inspectors: this.inspectorService.getInspectors(),
+    }).subscribe({
+      next: ({ pole, inspectors }) => {
+        this.inspectors = inspectors;
+        this.selectedPole = pole;
+        this.prepopulateForm(pole);
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Failed to load pole details';
+        this.isLoading = false;
+      },
+    });
   }
 
   initializeForm(): void {
@@ -93,29 +111,6 @@ export class InspectionEditorComponent implements OnInit {
       notes: ['', [Validators.maxLength(500)]],
     });
   }
-  loadPoleData(): void {
-    this.isLoading = true;
-    const poleId = this.route.snapshot.paramMap.get('id');
-
-    if (!poleId) {
-      this.errorMessage = 'No pole ID provided';
-      this.isLoading = false;
-      return;
-    }
-
-    this.polesService.getPoleById(poleId).subscribe({
-      next: async (pole: PoleInterface) => {
-        this.selectedPole = pole;
-        this.prepopulateForm(pole);
-        this.isLoading = false;
-      },
-      error: (_err) => {
-        this.errorMessage = 'Failed to load pole details';
-        this.isLoading = false;
-      },
-    });
-  }
-
   formatDateForInput(timestamp: number | string | undefined): string {
     if (!timestamp) return '';
     const date = new Date(
@@ -151,13 +146,13 @@ export class InspectionEditorComponent implements OnInit {
       inspectionDate: inspectionDateStr,
       status: currentImage.inspectionStatus || '',
       action: currentImage.action || '',
-      inspector: currentImage.assignedInspector || '',
+      inspector: pole.assignedInspector || '',
       notes: currentImage.notes || '',
     });
 
-    if (currentImage.assignedInspector) {
+    if (pole.assignedInspector) {
       const inspector = this.inspectors.find(
-        (i) => i.id.toString() === currentImage.assignedInspector,
+        (i) => i.id === pole.assignedInspector,
       );
       if (inspector) {
         this.selectedInspector = inspector;
@@ -182,6 +177,10 @@ export class InspectionEditorComponent implements OnInit {
     return 'Invalid input';
   }
 
+  inspectorFullName(i: Inspector): string {
+    return `${i.firstName ?? ''} ${i.lastName ?? ''}`.trim() || i.email;
+  }
+
   filterInspectors(event: Event): void {
     const input = (event.target as HTMLInputElement).value.toLowerCase();
     if (input.length === 0) {
@@ -189,13 +188,13 @@ export class InspectionEditorComponent implements OnInit {
     } else {
       this.filteredInspectors = this.inspectors.filter(
         (inspector) =>
-          inspector.name.toLowerCase().includes(input) ||
+          this.inspectorFullName(inspector).toLowerCase().includes(input) ||
           inspector.email.toLowerCase().includes(input),
       );
     }
   }
 
-  selectInspector(inspector: any): void {
+  selectInspector(inspector: Inspector): void {
     this.selectedInspector = inspector;
     this.form.get('inspector')?.setValue(inspector.id);
     this.showInspectorDropdown = false;
@@ -205,6 +204,13 @@ export class InspectionEditorComponent implements OnInit {
   showDropdown(): void {
     this.showInspectorDropdown = true;
     this.filteredInspectors = [...this.inspectors];
+  }
+
+  changeInspector(): void {
+    this.selectedInspector = null;
+    this.isModified = true;
+    this.filteredInspectors = [...this.inspectors];
+    this.showInspectorDropdown = true;
   }
 
   hideDropdown(): void {
@@ -238,13 +244,13 @@ export class InspectionEditorComponent implements OnInit {
         ),
         inspectionStatus: this.form.get('status')?.value,
         action: this.form.get('action')?.value,
-        assignedInspector: String(this.selectedInspector?.id ?? ''),
         notes: this.form.get('notes')?.value || '',
       };
 
       const updatedPole: PoleInterface = {
         ...this.selectedPole,
         images: updatedImages,
+        assignedInspector: String(this.selectedInspector?.id ?? ''),
       };
 
       this.polesService.updatePole(updatedPole).subscribe({
