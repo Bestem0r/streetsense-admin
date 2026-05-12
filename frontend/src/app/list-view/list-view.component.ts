@@ -10,6 +10,7 @@ import { PoleSummaryResponse } from '../interfaces/pole-summary-response';
 import { MapViewComponent } from '../map-view/map-view.component';
 import { NavComponent } from '../navbar/nav.component';
 import { PolesService } from '../service/poles.service';
+import { InspectorService, Inspector } from '../service/inspector.service';
 
 interface PoleWithComputed extends PoleInterface {
   _dateObj: Date;
@@ -60,6 +61,8 @@ export class ListViewComponent implements OnInit {
   municipalitySearch = '';
 
   private polesService = inject(PolesService);
+  private inspectorService = inject(InspectorService);
+  private inspectorMap = new Map<string, Inspector>();
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -70,6 +73,9 @@ export class ListViewComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.inspectorService.getInspectors().subscribe((list) => {
+      list.forEach((i) => this.inspectorMap.set(i.id, i));
+    });
     this.fetchSummary(() => {
       if (this.openDate) {
         this.loadPolesForDate(this.openDate);
@@ -370,6 +376,13 @@ export class ListViewComponent implements OnInit {
       if (this.openDate) this.loadPolesForDate(this.openDate);
       else this.filteredData = [];
     });
+  }
+
+  getInspectorName(id?: string): string {
+    if (!id) return '';
+    const i = this.inspectorMap.get(id);
+    if (!i) return '';
+    return `${i.firstName ?? ''} ${i.lastName ?? ''}`.trim() || i.email;
   }
 
   onImageError(event: Event) {

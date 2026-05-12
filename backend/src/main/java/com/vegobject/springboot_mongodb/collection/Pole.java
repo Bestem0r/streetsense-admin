@@ -37,5 +37,6 @@ public class Pole {
   private GeoJsonPoint location;
   private List<ImageInfo> images = new ArrayList<>();
   
+  private String assignedInspector;
   private Long lastModified;
 }

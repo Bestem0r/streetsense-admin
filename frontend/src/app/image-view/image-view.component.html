@@ -7,31 +7,33 @@
       class="flex flex-col border-r-2 border-gray-300 bg-white overflow-hidden h-full"
     >
       <div
-        class="px-4 pt-3 pb-2 border-b border-gray-300 bg-white flex-shrink-0"
+        class="px-4 pt-3 pb-3 border-b border-gray-200 bg-white flex-shrink-0"
       >
-        <div class="flex justify-between items-center mb-1">
-          <div class="text-[17px] font-bold">Inspection History</div>
-        </div>
-
-        <div
-          class="flex flex-wrap gap-3 text-[11px] text-gray-600 items-center justify-between"
-        >
-          <div class="flex items-center gap-1">
-            <strong class="text-gray-800">
-              Latest Inspection:
-              {{ Images[0]?.capturedDate | date: "dd MMM yyyy" }}
-            </strong>
-            <strong class="text-gray-800">
-              Kommune: {{ poleData?.municipality }}, Fylke:
-              {{ poleData?.county }}
-            </strong>
+        <div class="flex items-center justify-between mb-2.5">
+          <div class="text-[15px] font-bold text-slate-800">
+            Inspection History
           </div>
-
-          <div
-            class="border border-gray-400 rounded-full px-2 py-1 text-xs bg-blue-600 text-white"
+          <span
+            class="bg-blue-600 text-white text-[11px] font-semibold rounded-xl px-4 py-0.5"
           >
-            {{ Images.length }} Inspections
-          </div>
+            {{ Images.length }}
+          </span>
+        </div>
+        <div class="grid grid-cols-[72px_1fr] gap-x-2 gap-y-1.5 text-[11px]">
+          <span class="text-slate-400 self-center">Location</span>
+          <span class="font-medium text-slate-700"
+            >{{ poleData?.municipality }}, {{ poleData?.county }}</span
+          >
+
+          @if (assignedInspector) {
+            <span class="text-slate-400 self-center">Inspector</span>
+            <span
+              class="font-medium text-slate-700 hover:underline cursor-pointer"
+              routerLink="/inspector-analytics/{{ assignedInspector.id }}"
+              >{{ assignedInspector.firstName }}
+              {{ assignedInspector.lastName }}</span
+            >
+          }
         </div>
       </div>
 

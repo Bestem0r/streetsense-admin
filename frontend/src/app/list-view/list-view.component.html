@@ -339,23 +339,26 @@
                         class="w-18 h-20 object-cover border border-border-default rounded shrink-0"
                       />
 
-                      <div class="flex flex-col gap-1">
-                        <div class="text-xs text-slate-600 mb-1">
-                          📍<span>{{
-                            pole?.location?.coordinates?.[1]?.toFixed(5)
-                          }}</span
-                          >,
-                          <span>{{
-                            pole?.location?.coordinates?.[0]?.toFixed(5)
-                          }}</span>
-                        </div>
-
-                        <div class="text-[10px] text-slate-400 mb-1">
-                          Captured:
-                          {{ pole?._dateObj | date: "dd MMM yyyy, HH:mm" }}
+                      <div class="flex flex-col gap-1 w-full">
+                        <div class="flex items-center justify-between">
                           <div>
                             {{ pole?.municipality }}, {{ pole?.county }}
                           </div>
+                          @if (pole.assignedInspector) {
+                            <div
+                              class="text-[10px] text-slate-500 flex items-center gap-1 mb-1 hover:underline cursor-pointer"
+                              routerLink="/inspector-analytics/{{
+                                pole.assignedInspector
+                              }}"
+                            >
+                              <i class="fa-solid fa-user"></i>
+                              {{ getInspectorName(pole.assignedInspector) }}
+                            </div>
+                          }
+                        </div>
+                        <div class="text-[10px] text-slate-400 mb-1">
+                          Captured:
+                          {{ pole?._dateObj | date: "dd MMM yyyy, HH:mm" }}
                         </div>
 
                         <div class="mb-1">
@@ -384,6 +387,7 @@
                             }}
                           </span>
                         </div>
+
                         <div class="flex gap-1">
                           <button
                             (click)="setFocusedPole(pole.id!)"

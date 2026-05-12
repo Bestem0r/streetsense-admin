@@ -9,6 +9,7 @@ import { veiSystem } from '../interfaces/vei-system';
 import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
 import { NavComponent } from '../navbar/nav.component';
 import { PolesService } from '../service/poles.service';
+import { InspectorService, Inspector } from '../service/inspector.service';
 
 @Component({
   selector: 'app-image-view',
@@ -32,7 +33,9 @@ export class ImageViewComponent implements OnInit {
   imgUrl!: string;
   selectedIndex: number | null = null;
   veiInfo: veiSystem | null = null;
+  assignedInspector: Inspector | null = null;
   private polesService = inject(PolesService);
+  private inspectorService = inject(InspectorService);
 
   private activateRouter = inject(ActivatedRoute);
 
@@ -45,6 +48,14 @@ export class ImageViewComponent implements OnInit {
       this.poleData = pole;
       this.poles = [pole];
       this.sortImagesByDate();
+
+      if (pole.assignedInspector) {
+        this.inspectorService
+          .getInspectorById(pole.assignedInspector)
+          .subscribe((inspector) => {
+            this.assignedInspector = inspector ?? null;
+          });
+      }
 
       const imageId = this.Images?.[0]?.imageId;
       if (imageId) {
