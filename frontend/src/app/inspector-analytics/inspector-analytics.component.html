@@ -1,0 +1,228 @@
+<div
+  class="grid grid-cols-10 grid-rows-10 bg-slate-50 w-full h-screen text-[13px] font-sans"
+>
+  <div class="col-span-10 row-span-1 h-full"><app-nav></app-nav></div>
+
+  <div class="col-span-10 row-span-9 row-start-2 overflow-y-auto px-6 py-5">
+    @if (isLoading) {
+      <div class="flex items-center justify-center h-full text-slate-400">
+        Loading…
+      </div>
+    } @else if (inspector) {
+      <div class="flex items-center gap-4 mb-6">
+        <button
+          (click)="goBack()"
+          class="flex items-center gap-1 text-slate-500 hover:text-slate-800 transition-colors"
+        >
+          <mat-icon class="!text-[18px]">arrow_back</mat-icon>
+          <span class="text-xs">Inspectors</span>
+        </button>
+        <div class="w-px h-6 bg-slate-200"></div>
+        <div class="flex items-center gap-3">
+          <div
+            [ngClass]="getAvatarColor(inspector.id)"
+            class="w-11 h-11 rounded-full text-white flex items-center justify-center font-bold text-sm"
+          >
+            {{ getInitials(inspector.firstName, inspector.lastName) }}
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-slate-800 leading-tight">
+              {{ inspector.firstName }} {{ inspector.lastName }}
+            </h1>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-xs text-slate-400">{{ inspector.role }}</span>
+              @if (inspector.county) {
+                <span class="text-slate-300">·</span>
+                <span class="text-xs text-slate-400">{{
+                  inspector.county
+                }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-4 mb-5">
+        <div
+          class="bg-white rounded-xl border border-border-default p-4 shadow-sm"
+        >
+          <div
+            class="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-2"
+          >
+            Assigned Poles
+          </div>
+          <div class="text-2xl font-bold text-slate-800">
+            {{ totalAssigned }}
+          </div>
+          <div class="text-[11px] text-slate-600 mt-1">Total assigned</div>
+        </div>
+        <div
+          class="bg-white rounded-xl border border-border-default p-4 shadow-sm"
+        >
+          <div
+            class="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-2"
+          >
+            Inspected
+          </div>
+          <div class="text-2xl font-bold text-green-600">
+            {{ inspectedCount }}
+          </div>
+          <div class="text-[11px] text-slate-600 mt-1">
+            {{
+              totalAssigned > 0
+                ? ((inspectedCount / totalAssigned) * 100 | number: "1.0-0")
+                : 0
+            }}% of assigned
+          </div>
+        </div>
+        <div
+          class="bg-white rounded-xl border border-border-default p-4 shadow-sm"
+        >
+          <div
+            class="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-2"
+          >
+            Not Inspected
+          </div>
+          <div class="text-2xl font-bold text-amber-500">
+            {{ pendingCount }}
+          </div>
+          <div class="text-[11px] text-slate-600 mt-1">Not yet inspected</div>
+        </div>
+        <div
+          class="bg-white rounded-xl border border-border-default p-4 shadow-sm"
+        >
+          <div
+            class="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-2"
+          >
+            Actions Needed
+          </div>
+          <div class="text-2xl font-bold text-red-500">{{ actionsNeeded }}</div>
+          @if (actionBreakdown.length > 0) {
+            <div class="mt-2 flex flex-col gap-1">
+              @for (item of actionBreakdown; track item.action) {
+                <div class="flex items-center justify-between">
+                  <span
+                    [ngClass]="getActionClass(item.action)"
+                    class="px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                    >{{ item.action }}</span
+                  >
+                  <span class="text-[11px] font-bold text-slate-600">{{
+                    item.count
+                  }}</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-[11px] text-slate-600 mt-1">Require follow-up</div>
+          }
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-4 mb-5">
+        <div
+          class="bg-white rounded-xl border border-border-default p-4 shadow-sm"
+        >
+          <h3 class="text-sm font-semibold text-slate-700 mb-1">
+            Action Distribution
+          </h3>
+          <p class="text-[11px] text-slate-600 mb-3">
+            Breakdown of required actions across assigned poles
+          </p>
+          <div class="h-52">
+            <canvas #actionChart></canvas>
+          </div>
+        </div>
+        <div
+          class="bg-white rounded-xl border border-border-default p-4 shadow-sm"
+        >
+          <h3 class="text-sm font-semibold text-slate-700 mb-1">
+            Poles by County
+          </h3>
+          <p class="text-[11px] text-slate-600 mb-3">
+            Geographic distribution of assigned poles
+          </p>
+          <div class="h-52">
+            <canvas #countyChart></canvas>
+          </div>
+        </div>
+        <div
+          class="bg-white rounded-xl border border-border-default p-4 shadow-sm"
+        >
+          <h3 class="text-sm font-semibold text-slate-700 mb-1">
+            Poles by Municipality
+          </h3>
+          <p class="text-[11px] text-slate-600 mb-3">
+            Municipal distribution of assigned poles
+          </p>
+          <div class="h-52">
+            <canvas #municipalityChart></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white rounded-xl border border-border-default shadow-sm mb-6"
+      >
+        <div
+          class="flex items-center justify-between px-4 py-3 border-b border-slate-100"
+        >
+          <h3 class="text-sm font-semibold text-slate-700">
+            Recent Inspections
+          </h3>
+          <span class="text-[11px] text-slate-600"
+            >Last {{ recentActivity.length }} inspected poles</span
+          >
+        </div>
+        @if (recentActivity.length === 0) {
+          <div class="px-4 py-8 text-center text-[12px] text-slate-600">
+            No inspections recorded yet
+          </div>
+        } @else {
+          <table class="w-full">
+            <thead>
+              <tr
+                class="text-[11px] text-slate-600 uppercase tracking-wider border-b border-slate-100"
+              >
+                <th class="text-left px-4 py-2 font-semibold">Pole ID</th>
+                <th class="text-left px-4 py-2 font-semibold">County</th>
+                <th class="text-left px-4 py-2 font-semibold">Action</th>
+                <th class="text-left px-4 py-2 font-semibold">Inspected</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of recentActivity; track row.poleId) {
+                <tr
+                  class="border-b border-slate-50 hover:bg-slate-50 transition-colors"
+                >
+                  <td class="px-4 py-2.5 text-slate-400 font-mono text-xs">
+                    {{ row.poleId }}
+                  </td>
+                  <td class="px-4 py-2.5 text-slate-400">{{ row.county }}</td>
+                  <td class="px-4 py-2.5">
+                    <span
+                      [ngClass]="getActionClass(row.action)"
+                      class="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                    >
+                      {{ row.action }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-2.5 text-slate-400">
+                    {{
+                      row.inspectionDate
+                        ? (row.inspectionDate | date: "dd MMM yyyy")
+                        : "—"
+                    }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    } @else {
+      <div class="flex items-center justify-center h-full text-slate-400">
+        Inspector not found
+      </div>
+    }
+  </div>
+</div>

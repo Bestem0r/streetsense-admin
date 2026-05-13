@@ -44,5 +44,6 @@ List<Pole> findAllByCapturedDateBetween(long start, long end);
       })
   Pole findPoleById(String id);
 
+  List<Pole> findByAssignedInspector(String assignedInspector);
 
 }

@@ -20,6 +20,10 @@ public interface PolesService {
   Pole[] getPolesNear(String capturedData, double longitude, double latitude);
   void deletePoleById(String id);
   Pole updatePole(String id, Pole updatedPole);
+
+  List<Pole> getPolesByInspector(String inspectorId);
+
+  InspectorStatsResponse getInspectorStats(String inspectorId);
   
   // change all capturedDate values to unix timestamps
   /* void updateCapturedDatesToUnixTimestamps(); */

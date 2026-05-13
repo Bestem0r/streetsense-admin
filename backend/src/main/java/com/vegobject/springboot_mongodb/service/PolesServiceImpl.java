@@ -7,6 +7,9 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.vegobject.springboot_mongodb.collection.CapturedDates;
 import com.vegobject.springboot_mongodb.collection.Pole;
+
+import com.vegobject.springboot_mongodb.dto.InspectorStatsResponse;
+
 import com.vegobject.springboot_mongodb.dto.PagedPolesResponse;
 import com.vegobject.springboot_mongodb.dto.PoleSummaryResponse;
 import com.vegobject.springboot_mongodb.dto.PoleSummaryResponse.CountyData;
@@ -45,6 +48,11 @@ public class PolesServiceImpl implements PolesService {
   @Override
   public Pole[] getPoles() {
     return polesRepository.findAll().toArray(Pole[]::new);
+  }
+
+  @Override
+  public java.util.List<Pole> getPolesByInspector(String inspectorId) {
+    return polesRepository.findByAssignedInspector(inspectorId);
   }
 @Override
   public PagedPolesResponse getPolesByDate(String date, int page, int size, String counties, String municipalities) {
@@ -337,6 +345,114 @@ public class PolesServiceImpl implements PolesService {
     }
 
     return new Criteria().orOperator(criteria.toArray(new Criteria[0]));
+  }
+
+  
+
+  @Override
+  public InspectorStatsResponse getInspectorStats(String inspectorId) {
+    MongoClient mongoClient = MongoClients.create(mongoUri);
+    MongoDatabase database = mongoClient.getDatabase("vegobject");
+    MongoCollection<Document> collection = database.getCollection("kafkaMsg");
+    try {
+      Document matchStage = new Document("$match", new Document("assignedInspector", inspectorId));
+
+      Document latestImageExpr = new Document("$reduce", new Document()
+          .append("input", new Document("$ifNull", Arrays.asList("$images", new ArrayList<>())))
+          .append("initialValue", null)
+          .append("in", new Document("$cond", Arrays.asList(
+              new Document("$or", Arrays.asList(
+                  new Document("$eq", Arrays.asList("$$value", null)),
+                  new Document("$gt", Arrays.asList("$$this.capturedDate", "$$value.capturedDate"))
+              )),
+              "$$this",
+              "$$value"
+          )))
+      );
+      Document addFieldsStage = new Document("$addFields", new Document("latestImage", latestImageExpr));
+
+      Document facetStage = new Document("$facet", new Document()
+          .append("totalCount", Arrays.asList(
+              new Document("$count", "count")
+          ))
+          .append("inspectedCount", Arrays.asList(
+              new Document("$match", new Document("latestImage.inspectionStatus", "Inspected")),
+              new Document("$count", "count")
+          ))
+          .append("byAction", Arrays.asList(
+              new Document("$group", new Document("_id", "$latestImage.action").append("count", new Document("$sum", 1))),
+              new Document("$project", new Document("action", new Document("$ifNull", Arrays.asList("$_id", "Not Inspected"))).append("count", 1).append("_id", 0)),
+              new Document("$sort", new Document("count", -1))
+          ))
+          .append("byCounty", Arrays.asList(
+              new Document("$group", new Document("_id", "$county").append("count", new Document("$sum", 1))),
+              new Document("$match", new Document("_id", new Document("$nin", Arrays.asList(null, "")))),
+              new Document("$project", new Document("county", "$_id").append("count", 1).append("_id", 0)),
+              new Document("$sort", new Document("count", -1))
+          ))
+          .append("byMunicipality", Arrays.asList(
+              new Document("$group", new Document("_id", "$municipality").append("count", new Document("$sum", 1))),
+              new Document("$match", new Document("_id", new Document("$nin", Arrays.asList(null, "")))),
+              new Document("$project", new Document("municipality", "$_id").append("count", 1).append("_id", 0)),
+              new Document("$sort", new Document("count", -1))
+          ))
+          .append("recentActivity", Arrays.asList(
+              new Document("$match", new Document("latestImage.inspectionStatus", "Inspected")),
+              new Document("$sort", new Document("lastModified", -1)),
+              new Document("$limit", 8),
+              new Document("$project", new Document()
+                  .append("poleId", new Document("$toString", "$_id"))
+                  .append("county", 1)
+                  .append("action", "$latestImage.action")
+                  .append("inspectionDate", "$latestImage.inspectionDate")
+                  .append("_id", 0)
+              )
+          ))
+      );
+
+      Document facetResult = collection.aggregate(Arrays.asList(matchStage, addFieldsStage, facetStage)).first();
+      if (facetResult == null) {
+        return new com.vegobject.springboot_mongodb.dto.InspectorStatsResponse(0, 0, List.of(), List.of(), List.of(), List.of());
+      }
+
+      List<Document> totalDocs = facetResult.getList("totalCount", Document.class);
+      long total = totalDocs.isEmpty() ? 0 : totalDocs.get(0).getInteger("count", 0);
+
+      List<Document> inspectedDocs = facetResult.getList("inspectedCount", Document.class);
+      long inspected = inspectedDocs.isEmpty() ? 0 : inspectedDocs.get(0).getInteger("count", 0);
+
+      List<InspectorStatsResponse.ActionStat> byAction =
+          facetResult.getList("byAction", Document.class).stream()
+              .map(d -> new InspectorStatsResponse.ActionStat(
+                  d.getString("action"), d.getInteger("count", 0)))
+              .toList();
+
+      List<InspectorStatsResponse.CountyStat> byCounty =
+          facetResult.getList("byCounty", Document.class).stream()
+              .map(d -> new InspectorStatsResponse.CountyStat(
+                  d.getString("county"), d.getInteger("count", 0)))
+              .toList();
+
+      List<InspectorStatsResponse.MunicipalityStat> byMunicipality =
+          facetResult.getList("byMunicipality", Document.class).stream()
+              .map(d -> new InspectorStatsResponse.MunicipalityStat(
+                  d.getString("municipality"), d.getInteger("count", 0)))
+              .toList();
+
+      List<InspectorStatsResponse.RecentActivity> recentActivity =
+          facetResult.getList("recentActivity", Document.class).stream()
+              .map(d -> new InspectorStatsResponse.RecentActivity(
+                  d.getString("poleId"),
+                  d.getString("county"),
+                  d.getString("action"),
+                  d.getLong("inspectionDate")))
+              .toList();
+
+      return new InspectorStatsResponse(
+          total, inspected, byAction, byCounty, byMunicipality, recentActivity);
+    } finally {
+      mongoClient.close();
+    }
   }
 
   private List<String> sanitizeStringList(List<String> values) {

@@ -3,6 +3,8 @@ package com.vegobject.springboot_mongodb.controller;
 import com.vegobject.springboot_mongodb.collection.CapturedDates;
 import com.vegobject.springboot_mongodb.collection.LocationRequest;
 import com.vegobject.springboot_mongodb.collection.Pole;
+
+import com.vegobject.springboot_mongodb.dto.InspectorStatsResponse;
 import com.vegobject.springboot_mongodb.dto.PagedPolesResponse;
 import com.vegobject.springboot_mongodb.dto.PoleSummaryResponse;
 import com.vegobject.springboot_mongodb.service.PolesService;
@@ -107,6 +109,17 @@ public class PolesController {
   public Pole getPoleById(@PathVariable String id) {
     return polesService.getPoleById(id);
   }
+
+  @GetMapping("/inspector/{inspectorId}")
+  public java.util.List<Pole> getPolesByInspector(@PathVariable String inspectorId) {
+    return polesService.getPolesByInspector(inspectorId);
+  }
+
+  @GetMapping("/inspector/{inspectorId}/stats")
+  public InspectorStatsResponse getInspectorStats(@PathVariable String inspectorId) {
+    return polesService.getInspectorStats(inspectorId);
+  }
+
 
   @PutMapping("/{id}")
   public Pole updatePole(@PathVariable String id, @RequestBody Pole updatedPole) {

@@ -14,6 +14,17 @@ export interface PagedPolesResponse {
   hasMore: boolean;
 }
 
+export interface InspectorStats {
+  totalAssigned: number;
+  inspectedCount: number;
+  byAction: { action: string; count: number }[];
+  byCounty: { county: string; count: number }[];
+  byMunicipality: { municipality: string; count: number }[];
+  recentActivity: { poleId: string; county: string; action: string; inspectionDate: number | null }[];
+}
+
+
+
 @Injectable({
   providedIn: 'root',
 })
@@ -65,6 +76,19 @@ export class PolesService {
     const url = this.baseUrl + '/id/' + id;
     return this.httpClient.get<PoleInterface>(url);
   }
+
+  getPolesByInspector(inspectorId: string): Observable<PoleInterface[]> {
+    return this.httpClient.get<PoleInterface[]>(
+      `${this.baseUrl}/inspector/${inspectorId}`,
+    );
+  }
+
+  getInspectorStats(inspectorId: string): Observable<InspectorStats> {
+    return this.httpClient.get<InspectorStats>(
+      `${this.baseUrl}/inspector/${inspectorId}/stats`,
+    );
+  }
+  
 
   updatePole(pole: PoleInterface): Observable<HttpResponse<PoleInterface>> {
     const url = this.baseUrl + '/' + pole.id;
