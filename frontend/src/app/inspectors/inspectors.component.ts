@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { InspectorService, Inspector } from '../service/inspector.service';
 import { NavComponent } from '../navbar/nav.component';
 import { AddInspectorComponent } from '../add-inspector/add-inspector.component';
+import { getAvatarColor } from '../utils/avatar.utils';
 
 @Component({
   selector: 'app-inspectors',
@@ -55,18 +56,7 @@ export class InspectorsComponent implements OnInit {
     return ((firstName?.[0] ?? '') + (lastName?.[0] ?? '')).toUpperCase();
   }
 
-  getAvatarColor(id: string): string {
-    const colors = [
-      'bg-sky-700',
-      'bg-indigo-700',
-      'bg-emerald-700',
-      'bg-violet-700',
-      'bg-rose-700',
-      'bg-amber-700',
-    ];
-    const seed = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    return colors[seed % colors.length];
-  }
+  getAvatarColor(id: string): string { return getAvatarColor(id); }
 
   viewAnalytics(id: string): void {
     this.router.navigate(['/inspector-analytics', id]);

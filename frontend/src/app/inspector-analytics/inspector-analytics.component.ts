@@ -14,6 +14,7 @@ import { forkJoin } from 'rxjs';
 import { NavComponent } from '../navbar/nav.component';
 import { InspectorService, Inspector } from '../service/inspector.service';
 import { PolesService, InspectorStats } from '../service/poles.service';
+import { getAvatarColor } from '../utils/avatar.utils';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -84,11 +85,7 @@ export class InspectorAnalyticsComponent
     return ((f?.[0] ?? '') + (l?.[0] ?? '')).toUpperCase();
   }
 
-  getAvatarColor(id: string): string {
-    const colors = ['bg-sky-700', 'bg-indigo-700', 'bg-emerald-700', 'bg-violet-700', 'bg-rose-700', 'bg-amber-700'];
-    const seed = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    return colors[seed % colors.length];
-  }
+  getAvatarColor(id: string): string { return getAvatarColor(id); }
 
   private computeStats(stats: InspectorStats): void {
     this.totalAssigned = stats.totalAssigned;

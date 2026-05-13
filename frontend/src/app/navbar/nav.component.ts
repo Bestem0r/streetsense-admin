@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { Notification } from '../interfaces/notification-interface';
 import { NotificationService } from '../service/notification.service';
 import { AuthService, UserData } from '../service/auth.service';
+import { getAvatarColor } from '../utils/avatar.utils';
 
 @Component({
   selector: 'app-nav',
@@ -167,6 +168,8 @@ export class NavComponent implements OnInit {
         return 'ring-blue-500';
     }
   }
+
+  getAvatarColor(id: string): string { return getAvatarColor(id); }
 
   signOut(): void {
     this.authService.logout();

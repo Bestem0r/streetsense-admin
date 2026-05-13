@@ -15,6 +15,7 @@ import { Chart, registerables } from 'chart.js';
 import { forkJoin } from 'rxjs';
 import { PolesService, DashboardStats } from '../service/poles.service';
 import { InspectorService, Inspector } from '../service/inspector.service';
+import { getAvatarColor } from '../utils/avatar.utils';
 
 Chart.register(...registerables);
 
@@ -305,16 +306,5 @@ export class AnalyticsDashboardComponent
       .toUpperCase();
   }
 
-  getAvatarColor(id: string): string {
-    const colors = [
-      'bg-sky-700',
-      'bg-indigo-700',
-      'bg-emerald-700',
-      'bg-violet-700',
-      'bg-rose-700',
-      'bg-amber-700',
-    ];
-    const seed = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    return colors[seed % colors.length];
-  }
+  getAvatarColor(id: string): string { return getAvatarColor(id); }
 }
