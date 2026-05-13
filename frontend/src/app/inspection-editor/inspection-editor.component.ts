@@ -92,6 +92,8 @@ export class InspectionEditorComponent implements OnInit {
       next: ({ pole, inspectors }) => {
         this.inspectors = inspectors;
         this.selectedPole = pole;
+        const idx = pole.images?.findIndex((img) => img.imageId === this.imageId) ?? -1;
+        this.imageNumber = idx >= 0 ? idx : 0;
         this.prepopulateForm(pole);
         this.isLoading = false;
       },
@@ -105,7 +107,6 @@ export class InspectionEditorComponent implements OnInit {
   initializeForm(): void {
     this.form = this.fb.group({
       inspectionDate: [this.defaultDate, [Validators.required]],
-      status: ['', [Validators.required]],
       action: ['', [Validators.required]],
       inspector: ['', [Validators.required]],
       notes: ['', [Validators.maxLength(500)]],
@@ -144,7 +145,6 @@ export class InspectionEditorComponent implements OnInit {
 
     this.form.patchValue({
       inspectionDate: inspectionDateStr,
-      status: currentImage.inspectionStatus || '',
       action: currentImage.action || '',
       inspector: pole.assignedInspector || '',
       notes: currentImage.notes || '',
@@ -227,6 +227,26 @@ export class InspectionEditorComponent implements OnInit {
       .toUpperCase();
   }
 
+  selectAction(value: string): void {
+    if (this.form.get('action')?.value !== value) {
+      this.form.get('action')?.setValue(value);
+      this.isModified = true;
+    }
+  }
+
+  private readonly ACTION_DAYS: Record<string, number> = {
+    'Replace': 28,
+    'Reposition/Realign': 7,
+  };
+
+  private computeDueDate(action: string, inspectionDateMs: number): number | null {
+    const days = this.ACTION_DAYS[action];
+    if (!days || !inspectionDateMs) return null;
+    const d = new Date(inspectionDateMs);
+    d.setDate(d.getDate() + days);
+    return d.getTime();
+  }
+
   onSubmit() {
     if (this.form.valid) {
       if (!this.selectedPole?.images?.[this.imageNumber]) {
@@ -236,14 +256,21 @@ export class InspectionEditorComponent implements OnInit {
       this.isSubmitting = true;
       this.errorMessage = '';
 
+      const action: string = this.form.get('action')?.value;
+      const inspectionDateMs = this.formatDateForSubmit(this.form.get('inspectionDate')?.value);
+      const originalImage = this.selectedPole.images[this.imageNumber];
+      const capturedDateMs = Number(originalImage.capturedDate ?? 0);
+      const dueDate = action !== originalImage.action
+        ? (this.computeDueDate(action, capturedDateMs) ?? undefined)
+        : originalImage.dueDate;
+
       const updatedImages = [...this.selectedPole.images];
       updatedImages[this.imageNumber] = {
-        ...updatedImages[this.imageNumber],
-        inspectionDate: this.formatDateForSubmit(
-          this.form.get('inspectionDate')?.value,
-        ),
-        inspectionStatus: this.form.get('status')?.value,
-        action: this.form.get('action')?.value,
+        ...originalImage,
+        inspectionDate: inspectionDateMs,
+        inspectionStatus: 'Inspected',
+        action,
+        dueDate,
         notes: this.form.get('notes')?.value || '',
       };
 

@@ -34,6 +34,7 @@ export class ImageViewComponent implements OnInit {
   selectedIndex: number | null = null;
   veiInfo: veiSystem | null = null;
   assignedInspector: Inspector | null = null;
+  readonly today = Date.now();
   private polesService = inject(PolesService);
   private inspectorService = inject(InspectorService);
 

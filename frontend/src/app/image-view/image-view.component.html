@@ -69,29 +69,61 @@
               <div class="text-[11px] text-gray-500">
                 {{ image.capturedDate | date: "HH:mm" }}
               </div>
-              <div
-                class="flex justify-center w-22 border border-gray-400 rounded px-2 py-1 text-[10px] bg-gray-100 cursor-default items-center"
-                [ngClass]="{
-                  'bg-green-50 text-green-700 border-green-300':
-                    image.inspectionStatus === 'Inspected',
-                  'bg-red-50 text-red-700 border-red-300':
-                    image.inspectionStatus === 'Not inspected' ||
-                    image.inspectionStatus === null,
-                }"
-              >
-                {{
-                  image.inspectionStatus
-                    ? image.inspectionStatus
-                    : "Not Inspected"
-                }}
-              </div>
+              <div class="flex gap-2">
+                <div
+                  class="flex justify-center border border-gray-400 rounded-xl px-2 py-1 text-[10px] bg-gray-100 cursor-default items-center"
+                  [ngClass]="{
+                    'bg-green-50 text-green-700 border-green-300':
+                      image.inspectionStatus === 'Inspected',
+                    'bg-red-50 text-red-700 border-red-300':
+                      image.inspectionStatus === 'not inspected' ||
+                      image.inspectionStatus === null,
+                  }"
+                >
+                  {{
+                    image.inspectionStatus
+                      ? image.inspectionStatus
+                      : "Status Unknown"
+                  }}
+                </div>
 
-              <div class="flex gap-3 mt-1">
+                @if (image.inspectionStatus === "Inspected" && image.action) {
+                  <div
+                    class="flex justify-center border rounded-xl px-2 py-1 text-[10px] cursor-default items-center"
+                    [ngClass]="{
+                      'bg-slate-50 text-slate-600 border-slate-300':
+                        image.action === 'No Action needed',
+                      'bg-red-50 text-red-700 border-red-300':
+                        image.action === 'Replace',
+                      'bg-blue-50 text-blue-700 border-blue-300':
+                        image.action === 'Reposition/Realign',
+                    }"
+                  >
+                    {{ image.action }}
+                  </div>
+                }
+              </div>
+              @if (image.dueDate) {
+                <div
+                  class="text-[10px] mt-1"
+                  [ngClass]="
+                    image.dueDate < today
+                      ? 'text-red-600 font-semibold'
+                      : 'text-slate-400'
+                  "
+                >
+                  Due: {{ image.dueDate | date: "dd MMM yyyy" }}
+                  @if (image.dueDate < today) {
+                    <span>(overdue)</span>
+                  }
+                </div>
+              }
+              <div class="flex gap-1 mt-1">
                 <button
                   (click)="openImage(i)"
-                  class="border border-border-default rounded px-2 py-1 text-xs bg-blue-100 text-slate-600 hover:bg-slate-200 hover:border-border-hover cursor-pointer"
+                  class="rounded-md px-2.5 py-1 text-[11px] font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 cursor-pointer transition-colors"
                 >
-                  🔍 Fullscreen
+                  Fullscreen
                 </button>
                 <button
                   [routerLink]="[
@@ -99,9 +131,9 @@
                     poleData?.id,
                     image.imageId,
                   ]"
-                  class="border border-border-default rounded px-3 py-1 text-xs bg-blue-100 text-slate-600 hover:bg-slate-200 hover:border-border-hover cursor-pointer"
+                  class="rounded-md px-2.5 py-1 text-[11px] font-semibold bg-blue-600 text-white border border-blue-600 hover:bg-blue-700 cursor-pointer transition-colors"
                 >
-                  Edit Inspection
+                  Edit
                 </button>
               </div>
             </div>
@@ -192,22 +224,33 @@
         <div class="flex justify-between items-center">
           <button
             (click)="prevImage()"
-            class="flex items-center gap-1 border-[1.5px] border-[#888] rounded px-[14px] py-[5px] text-[12px] bg-[#f5f5f5] cursor-pointer hover:bg-[#e0e0e0]"
+            [disabled]="selectedIndex === 0"
+            class="flex items-center gap-1 border-[1.5px] rounded px-[14px] py-[5px] text-[12px] transition-colors"
+            [ngClass]="
+              selectedIndex === 0
+                ? 'border-[#ddd] bg-[#f5f5f5] text-[#bbb] cursor-not-allowed'
+                : 'border-[#888] bg-[#f5f5f5] cursor-pointer hover:bg-[#e0e0e0]'
+            "
           >
-            <span>← </span>
-            <span>Prev</span>
+            <span>←</span><span>Prev</span>
           </button>
 
           <div class="text-xs font-sans">
-            Image {{ selectedIndex! + 1 }} of {{ Images.length }} .
+            Image {{ selectedIndex! + 1 }} of {{ Images.length }} ·
             {{ selectedImage.capturedDate | date: "dd MMM yyyy, HH:mm" }}
           </div>
 
           <button
             (click)="nextImage()"
-            class="flex items-center gap-1 border-[1.5px] border-[#888] rounded px-[14px] py-[5px] text-[12px] bg-[#f5f5f5] cursor-pointer hover:bg-[#e0e0e0]"
+            [disabled]="selectedIndex === Images.length - 1"
+            class="flex items-center gap-1 border-[1.5px] rounded px-[14px] py-[5px] text-[12px] transition-colors"
+            [ngClass]="
+              selectedIndex === Images.length - 1
+                ? 'border-[#ddd] bg-[#f5f5f5] text-[#bbb] cursor-not-allowed'
+                : 'border-[#888] bg-[#f5f5f5] cursor-pointer hover:bg-[#e0e0e0]'
+            "
           >
-            <span>Next </span> <span>→</span>
+            <span>Next</span><span>→</span>
           </button>
         </div>
       </div>

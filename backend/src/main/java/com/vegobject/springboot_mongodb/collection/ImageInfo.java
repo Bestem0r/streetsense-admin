@@ -10,8 +10,9 @@ import lombok.NoArgsConstructor;
 public class ImageInfo {
   private String imageId;
   private Long capturedDate;
-  private String inspectionStatus; 
+  private String inspectionStatus;
   private String action;
   private Long inspectionDate;
+  private Long dueDate;
   private String notes;
 }

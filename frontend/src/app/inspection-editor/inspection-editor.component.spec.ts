@@ -68,6 +68,7 @@ const IMAGE_ID = 'image-456';
 
 const mockPole: PoleInterface = {
   id: POLE_ID,
+  assignedInspector: '1',
   images: [
     {
       imageId: IMAGE_ID,
@@ -75,7 +76,6 @@ const mockPole: PoleInterface = {
       inspectionDate: 1715100000000,
       inspectionStatus: 'inspected',
       action: 'No action needed',
-      assignedInspector: '1',
       notes: 'Test notes',
     },
   ],

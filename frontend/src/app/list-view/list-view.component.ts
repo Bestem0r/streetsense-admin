@@ -60,6 +60,7 @@ export class ListViewComponent implements OnInit {
   countySearch = '';
   municipalitySearch = '';
 
+  readonly todayMs = Date.now();
   private polesService = inject(PolesService);
   private inspectorService = inject(InspectorService);
   private inspectorMap = new Map<string, Inspector>();
@@ -376,6 +377,13 @@ export class ListViewComponent implements OnInit {
       if (this.openDate) this.loadPolesForDate(this.openDate);
       else this.filteredData = [];
     });
+  }
+
+  getLatestImg(pole: PoleInterface) {
+    if (!pole.images?.length) return null;
+    return pole.images.reduce((a, b) =>
+      +(b.capturedDate ?? 0) > +(a.capturedDate ?? 0) ? b : a
+    );
   }
 
   getInspectorName(id?: string): string {

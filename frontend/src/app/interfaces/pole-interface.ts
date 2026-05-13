@@ -23,6 +23,7 @@ export interface PoleInterface {
     inspectionDate?: number;
     inspectionStatus?: string;
     action?: string;
+    dueDate?: number;
     notes?: string;
   }[];
   assignedInspector?: string;
