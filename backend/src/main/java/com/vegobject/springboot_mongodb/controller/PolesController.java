@@ -3,7 +3,7 @@ package com.vegobject.springboot_mongodb.controller;
 import com.vegobject.springboot_mongodb.collection.CapturedDates;
 import com.vegobject.springboot_mongodb.collection.LocationRequest;
 import com.vegobject.springboot_mongodb.collection.Pole;
-
+import com.vegobject.springboot_mongodb.dto.DashboardStatsResponse;
 import com.vegobject.springboot_mongodb.dto.InspectorStatsResponse;
 import com.vegobject.springboot_mongodb.dto.PagedPolesResponse;
 import com.vegobject.springboot_mongodb.dto.PoleSummaryResponse;
@@ -120,6 +120,10 @@ public class PolesController {
     return polesService.getInspectorStats(inspectorId);
   }
 
+  @GetMapping("/dashboard-stats")
+  public DashboardStatsResponse getDashboardStats() {
+    return polesService.getDashboardStats();
+  }
 
   @PutMapping("/{id}")
   public Pole updatePole(@PathVariable String id, @RequestBody Pole updatedPole) {

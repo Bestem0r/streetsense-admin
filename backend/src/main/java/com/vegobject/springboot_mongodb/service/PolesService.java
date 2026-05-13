@@ -1,7 +1,9 @@
 package com.vegobject.springboot_mongodb.service;
-
+import java.util.List; 
 import com.vegobject.springboot_mongodb.collection.CapturedDates;
 import com.vegobject.springboot_mongodb.collection.Pole;
+import com.vegobject.springboot_mongodb.dto.DashboardStatsResponse;
+import com.vegobject.springboot_mongodb.dto.InspectorStatsResponse;
 import com.vegobject.springboot_mongodb.dto.PagedPolesResponse;
 import com.vegobject.springboot_mongodb.dto.PoleSummaryResponse;
 
@@ -24,7 +26,9 @@ public interface PolesService {
   List<Pole> getPolesByInspector(String inspectorId);
 
   InspectorStatsResponse getInspectorStats(String inspectorId);
-  
+
+  DashboardStatsResponse getDashboardStats();
+
   // change all capturedDate values to unix timestamps
   /* void updateCapturedDatesToUnixTimestamps(); */
 }

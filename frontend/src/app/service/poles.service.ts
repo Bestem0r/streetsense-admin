@@ -20,10 +20,28 @@ export interface InspectorStats {
   byAction: { action: string; count: number }[];
   byCounty: { county: string; count: number }[];
   byMunicipality: { municipality: string; count: number }[];
-  recentActivity: { poleId: string; county: string; action: string; inspectionDate: number | null }[];
+  recentActivity: {
+    poleId: string;
+    county: string;
+    action: string;
+    inspectionDate: number | null;
+  }[];
 }
 
-
+export interface DashboardStats {
+  totalPoles: number;
+  inspectedCount: number;
+  captureDates: { capturedDate: number; count: number }[];
+  byCounty: { county: string; count: number }[];
+  byInspector: { inspectorId: string; inspected: number; pending: number }[];
+  recentInspections: {
+    poleId: string;
+    county: string;
+    action: string;
+    assignedInspector: string;
+    inspectionDate: number;
+  }[];
+}
 
 @Injectable({
   providedIn: 'root',
@@ -64,8 +82,11 @@ export class PolesService {
   getSummary(counties: string[] = [], municipalities: string[] = []) {
     let params = new HttpParams();
     if (counties.length) params = params.set('counties', counties.join(','));
-    if (municipalities.length) params = params.set('municipalities', municipalities.join(','));
-    return this.httpClient.get<PoleSummaryResponse>(this.baseUrl + '/summary', { params });
+    if (municipalities.length)
+      params = params.set('municipalities', municipalities.join(','));
+    return this.httpClient.get<PoleSummaryResponse>(this.baseUrl + '/summary', {
+      params,
+    });
   }
 
   getCapturedDates() {
@@ -88,7 +109,12 @@ export class PolesService {
       `${this.baseUrl}/inspector/${inspectorId}/stats`,
     );
   }
-  
+
+  getDashboardStats(): Observable<DashboardStats> {
+    return this.httpClient.get<DashboardStats>(
+      `${this.baseUrl}/dashboard-stats`,
+    );
+  }
 
   updatePole(pole: PoleInterface): Observable<HttpResponse<PoleInterface>> {
     const url = this.baseUrl + '/' + pole.id;

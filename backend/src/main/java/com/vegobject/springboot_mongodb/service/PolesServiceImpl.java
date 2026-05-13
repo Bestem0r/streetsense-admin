@@ -7,7 +7,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.vegobject.springboot_mongodb.collection.CapturedDates;
 import com.vegobject.springboot_mongodb.collection.Pole;
-
+import com.vegobject.springboot_mongodb.dto.DashboardStatsResponse;
 import com.vegobject.springboot_mongodb.dto.InspectorStatsResponse;
 
 import com.vegobject.springboot_mongodb.dto.PagedPolesResponse;
@@ -347,7 +347,120 @@ public class PolesServiceImpl implements PolesService {
     return new Criteria().orOperator(criteria.toArray(new Criteria[0]));
   }
 
-  
+  @Override
+  public DashboardStatsResponse getDashboardStats() {
+    MongoClient mongoClient = MongoClients.create(mongoUri);
+    MongoDatabase database = mongoClient.getDatabase("vegobject");
+    MongoCollection<Document> collection = database.getCollection("kafkaMsg");
+    try {
+      // $addFields: compute latestImage per pole using $reduce over images array
+      Document latestImageExpr = new Document("$reduce", new Document()
+          .append("input", new Document("$ifNull", Arrays.asList("$images", new ArrayList<>())))
+          .append("initialValue", null)
+          .append("in", new Document("$cond", Arrays.asList(
+              new Document("$or", Arrays.asList(
+                  new Document("$eq", Arrays.asList("$$value", null)),
+                  new Document("$gt", Arrays.asList("$$this.capturedDate", "$$value.capturedDate"))
+              )),
+              "$$this",
+              "$$value"
+          )))
+      );
+      Document addFieldsStage = new Document("$addFields", new Document("latestImage", latestImageExpr));
+
+      // $facet: run all sub-aggregations in one pass
+      Document facetStage = new Document("$facet", new Document()
+          .append("totalCount", Arrays.asList(
+              new Document("$count", "count")
+          ))
+          .append("inspectedCount", Arrays.asList(
+              new Document("$match", new Document("latestImage.inspectionStatus", "Inspected")),
+              new Document("$count", "count")
+          ))
+          .append("captureDates", Arrays.asList(
+              new Document("$group", new Document("_id", "$capturedDate").append("count", new Document("$sum", 1))),
+              new Document("$project", new Document("capturedDate", "$_id").append("count", 1).append("_id", 0)),
+              new Document("$sort", new Document("capturedDate", -1))
+          ))
+          .append("byCounty", Arrays.asList(
+              new Document("$group", new Document("_id", "$county").append("count", new Document("$sum", 1))),
+              new Document("$match", new Document("_id", new Document("$nin", Arrays.asList(null, "")))),
+              new Document("$project", new Document("county", "$_id").append("count", 1).append("_id", 0)),
+              new Document("$sort", new Document("count", -1)),
+              new Document("$limit", 10)
+          ))
+          .append("byInspector", Arrays.asList(
+              new Document("$group", new Document("_id", "$assignedInspector")
+                  .append("inspected", new Document("$sum", new Document("$cond", Arrays.asList(
+                      new Document("$eq", Arrays.asList("$latestImage.inspectionStatus", "Inspected")), 1, 0
+                  ))))
+                  .append("pending", new Document("$sum", new Document("$cond", Arrays.asList(
+                      new Document("$ne", Arrays.asList("$latestImage.inspectionStatus", "Inspected")), 1, 0
+                  ))))
+              ),
+              new Document("$match", new Document("_id", new Document("$ne", null)))
+          ))
+          .append("recentInspections", Arrays.asList(
+              new Document("$match", new Document("latestImage.inspectionStatus", "Inspected")),
+              new Document("$sort", new Document("lastModified", -1)),
+              new Document("$limit", 8),
+              new Document("$project", new Document()
+                  .append("poleId", new Document("$toString", "$_id"))
+                  .append("county", 1)
+                  .append("assignedInspector", 1)
+                  .append("action", "$latestImage.action")
+                  .append("inspectionDate", "$latestImage.inspectionDate")
+                  .append("_id", 0)
+              )
+          ))
+      );
+
+      Document facetResult = collection.aggregate(Arrays.asList(addFieldsStage, facetStage)).first();
+      if (facetResult == null) {
+        return new DashboardStatsResponse(0, 0, List.of(), List.of(), List.of(), List.of());
+      }
+
+      List<Document> totalDocs = facetResult.getList("totalCount", Document.class);
+      long total = totalDocs.isEmpty() ? 0 : totalDocs.get(0).getInteger("count", 0);
+
+      List<Document> inspectedDocs = facetResult.getList("inspectedCount", Document.class);
+      long inspected = inspectedDocs.isEmpty() ? 0 : inspectedDocs.get(0).getInteger("count", 0);
+
+      List<DashboardStatsResponse.DateCount> captureDates = facetResult
+          .getList("captureDates", Document.class).stream()
+          .map(d -> new DashboardStatsResponse.DateCount(
+              d.getLong("capturedDate") != null ? d.getLong("capturedDate") : 0L,
+              d.getInteger("count", 0)))
+          .toList();
+
+      List<DashboardStatsResponse.CountyStat> byCounty = facetResult
+          .getList("byCounty", Document.class).stream()
+          .map(d -> new DashboardStatsResponse.CountyStat(d.getString("county"), d.getInteger("count", 0)))
+          .toList();
+
+      List<DashboardStatsResponse.InspectorStat> byInspector = facetResult
+          .getList("byInspector", Document.class).stream()
+          .map(d -> new DashboardStatsResponse.InspectorStat(
+              d.getString("_id"),
+              d.getInteger("inspected", 0),
+              d.getInteger("pending", 0)))
+          .toList();
+
+      List<DashboardStatsResponse.RecentInspection> recentInspections = facetResult
+          .getList("recentInspections", Document.class).stream()
+          .map(d -> new DashboardStatsResponse.RecentInspection(
+              d.getString("poleId"),
+              d.getString("county"),
+              d.getString("action"),
+              d.getString("assignedInspector"),
+              d.getLong("inspectionDate")))
+          .toList();
+
+      return new DashboardStatsResponse(total, inspected, captureDates, byCounty, byInspector, recentInspections);
+    } finally {
+      mongoClient.close();
+    }
+  }
 
   @Override
   public InspectorStatsResponse getInspectorStats(String inspectorId) {
