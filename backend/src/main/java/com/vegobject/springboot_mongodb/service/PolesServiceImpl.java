@@ -13,11 +13,13 @@ import com.vegobject.springboot_mongodb.dto.PoleSummaryResponse.CountyData;
 import com.vegobject.springboot_mongodb.dto.PoleSummaryResponse.DateCount;
 import com.vegobject.springboot_mongodb.repository.PolesRepository;
 
+import com.vegobject.springboot_mongodb.collection.ImageInfo;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -173,7 +175,7 @@ public class PolesServiceImpl implements PolesService {
                           .append("spherical", true)),
                   new Document("$match", new Document("capturedDate", capturedData))));
 
-      result.forEach(doc -> System.out.println("nearby pole: " + doc.toJson()));
+      
 
       List<Pole> nearbyPoles = new ArrayList<>();
       result.forEach(
@@ -223,11 +225,77 @@ public class PolesServiceImpl implements PolesService {
     try {
       updatedPole.setId(id);
       updatedPole.setLastModified(System.currentTimeMillis());
-      System.out.println(updatedPole.toString());
-      return polesRepository.save(updatedPole);
+      Pole saved = polesRepository.save(updatedPole);
+      checkConsecutivePoles(saved);
+      return saved;
     } catch (Exception e) {
       throw new RuntimeException("Error updating pole with id: " + id, e);
     }
+  }
+
+  private static final double CONSECUTIVE_RADIUS_METERS = 50.0;
+
+  private void checkConsecutivePoles(Pole pole) {
+    if (pole.getLocation() == null || pole.getImages() == null) return;
+
+    List<ImageInfo> replaceImages = pole.getImages().stream()
+        .filter(img -> "Replace".equals(img.getAction()) && img.getCapturedDate() != null)
+        .toList();
+
+    if (replaceImages.isEmpty()) return;
+
+    Query query = new Query(
+        Criteria.where("location").nearSphere(pole.getLocation())
+            .maxDistance(CONSECUTIVE_RADIUS_METERS)
+            .and("_id").ne(pole.getId())
+    );
+
+    List<Pole> neighbors = mongoTemplate.find(query, Pole.class);
+
+    for (Pole neighbor : neighbors) {
+      boolean sameRoad = java.util.Objects.equals(pole.getRoadNumber(), neighbor.getRoadNumber())
+          && java.util.Objects.equals(pole.getRoadCategory(), neighbor.getRoadCategory());
+      if (!sameRoad || neighbor.getImages() == null) continue;
+
+      boolean neighborModified = false;
+      boolean poleModified = false;
+
+      for (ImageInfo replaceImage : replaceImages) {
+        Long capturedDate = replaceImage.getCapturedDate();
+        ImageInfo neighborMatch = neighbor.getImages().stream()
+            .filter(img -> img.getCapturedDate() != null
+                && sameDay(capturedDate, img.getCapturedDate())
+                && "Replace".equals(img.getAction()))
+            .findFirst().orElse(null);
+
+        if (neighborMatch != null) {
+          applyConsecutiveDueDate(replaceImage);
+          applyConsecutiveDueDate(neighborMatch);
+          poleModified = true;
+          neighborModified = true;
+        }
+      }
+
+      if (poleModified) polesRepository.save(pole);
+      if (neighborModified) polesRepository.save(neighbor);
+    }
+  }
+
+  private ImageInfo getLatestImage(Pole pole) {
+    if (pole.getImages() == null || pole.getImages().isEmpty()) return null;
+    return pole.getImages().stream()
+        .max(Comparator.comparingLong(img -> img.getCapturedDate() != null ? img.getCapturedDate() : 0L))
+        .orElse(null);
+  }
+
+  private boolean sameDay(long a, long b) {
+    return java.time.Instant.ofEpochMilli(a).atZone(java.time.ZoneOffset.UTC).toLocalDate()
+        .equals(java.time.Instant.ofEpochMilli(b).atZone(java.time.ZoneOffset.UTC).toLocalDate());
+  }
+
+  private void applyConsecutiveDueDate(ImageInfo image) {
+    long capturedDate = image.getCapturedDate() != null ? image.getCapturedDate() : 0L;
+    image.setDueDate(capturedDate + 14L * 24 * 60 * 60 * 1000);
   }
 
   private List<String> parseCsv(String input) {
