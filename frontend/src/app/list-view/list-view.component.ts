@@ -51,7 +51,10 @@ export class ListViewComponent implements OnInit {
   );
   isFilterOpen = false;
   showScrollTopButton = false;
-  pageState = new Map<string, { page: number; hasMore: boolean; loading: boolean; totalElements: number }>();
+  pageState = new Map<
+    string,
+    { page: number; hasMore: boolean; loading: boolean; totalElements: number }
+  >();
 
   // Filter state
   selectedCounties: string[] = [];
@@ -382,7 +385,7 @@ export class ListViewComponent implements OnInit {
   getLatestImg(pole: PoleInterface) {
     if (!pole.images?.length) return null;
     return pole.images.reduce((a, b) =>
-      +(b.capturedDate ?? 0) > +(a.capturedDate ?? 0) ? b : a
+      +(b.capturedDate ?? 0) > +(a.capturedDate ?? 0) ? b : a,
     );
   }
 
@@ -444,7 +447,12 @@ export class ListViewComponent implements OnInit {
     if (state?.loading) return;
     if (page > 0 && state && !state.hasMore) return;
 
-    this.pageState.set(requestKey, { page, hasMore: true, loading: true, totalElements: state?.totalElements ?? 0 });
+    this.pageState.set(requestKey, {
+      page,
+      hasMore: true,
+      loading: true,
+      totalElements: state?.totalElements ?? 0,
+    });
 
     if (page === 0 && this.openDate === date) {
       this.polesData = [];
@@ -452,14 +460,28 @@ export class ListViewComponent implements OnInit {
     }
 
     this.polesService
-      .getPolesByDate(date, this.selectedCounties, this.selectedMunicipalities, page, 10)
+      .getPolesByDate(
+        date,
+        this.selectedCounties,
+        this.selectedMunicipalities,
+        page,
+        10,
+      )
       .subscribe({
         next: (data) => {
-          const computed = data.content.map((pole) => this.withComputedDate(pole));
-          const existing = page === 0 ? [] : (this.loadedPolesByRequest.get(requestKey) || []);
+          const computed = data.content.map((pole) =>
+            this.withComputedDate(pole),
+          );
+          const existing =
+            page === 0 ? [] : this.loadedPolesByRequest.get(requestKey) || [];
           const merged = [...existing, ...computed];
           this.loadedPolesByRequest.set(requestKey, merged);
-          this.pageState.set(requestKey, { page, hasMore: data.hasMore, loading: false, totalElements: data.totalElements });
+          this.pageState.set(requestKey, {
+            page,
+            hasMore: data.hasMore,
+            loading: false,
+            totalElements: data.totalElements,
+          });
           if (this.openDate === date) {
             this.polesData = merged;
             this.filteredData = merged;
@@ -467,7 +489,12 @@ export class ListViewComponent implements OnInit {
         },
         error: () => {
           const prev = this.pageState.get(requestKey);
-          this.pageState.set(requestKey, { page: Math.max(0, (prev?.page ?? 1) - 1), hasMore: false, loading: false, totalElements: prev?.totalElements ?? 0 });
+          this.pageState.set(requestKey, {
+            page: Math.max(0, (prev?.page ?? 1) - 1),
+            hasMore: false,
+            loading: false,
+            totalElements: prev?.totalElements ?? 0,
+          });
         },
       });
   }

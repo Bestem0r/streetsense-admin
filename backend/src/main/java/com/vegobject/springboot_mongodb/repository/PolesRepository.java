@@ -13,7 +13,7 @@ public interface PolesRepository extends MongoRepository<Pole, String> {
 
   @Aggregation(
       pipeline = {
-        "{'$group':{ '_id': null, 'capturedDates': {'$addToSet': '$capturedDate'}}}",
+        "{'$group':{ '_id': null, 'capturedDates': {'$addToSet': {'$subtract': ['$capturedDate', {'$mod': ['$capturedDate', 86400000]}]}}}}",
         "{'$project': {'_id': 0}}"
       })
   CapturedDates findAllCapturedDate();

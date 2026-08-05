@@ -107,7 +107,11 @@ public class PolesServiceImpl implements PolesService {
       }
       dateOps.add(Aggregation.match(filter));
     }
-    dateOps.add(Aggregation.group("capturedDate").count().as("count"));
+    dateOps.add(ctx -> new Document("$addFields", new Document("dayStart",
+        new Document("$subtract", Arrays.asList(
+            "$capturedDate",
+            new Document("$mod", Arrays.asList("$capturedDate", 86400000L)))))));
+    dateOps.add(Aggregation.group("dayStart").count().as("count"));
     dateOps.add(Aggregation.project("count").and("_id").as("capturedDate"));
     dateOps.add(Aggregation.sort(Sort.Direction.DESC, "capturedDate"));
 

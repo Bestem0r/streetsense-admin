@@ -14,7 +14,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import * as L from 'leaflet';
 import 'leaflet-draw';
-
 import { PoleInterface } from '../interfaces/pole-interface';
 import { CreateCaptureDialogComponent } from '../create-capture-dialog/create-capture-dialog.component';
 import { AssignInspectorDialogComponent } from '../assign-inspector-dialog/assign-inspector-dialog.component';

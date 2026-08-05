@@ -1,24 +1,23 @@
 package com.vegData.kafka_mongodb.collection;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@NoArgsConstructor
+@Document(collection = "kafkaMsg")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
-public class ImageInfo {
-  private String imageId;
-  private Long capturedDate;
-  private String label;
+@NoArgsConstructor
+public class PoleInfoDTO {
+  private double latitude;
+  private double longitude;
   private double confidence;
+  private String label;
   private double boundingBoxX;
   private double boundingBoxY;
   private double boundingBoxWidth;
   private double boundingBoxHeight;
-  private String inspectionStatus;
-  private String action;
-  private Long inspectionDate;
-  private Long dueDate;
-  private String notes;
+  
 }

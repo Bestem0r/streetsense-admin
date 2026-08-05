@@ -95,25 +95,37 @@ private String collectionName;
   public void consume(RawDataPole data) {
 
     try {
-      LOGGER.info(">>> CONSUMED DATA FROM KAFKA: {}", data);
+
+      LOGGER.info("Received message from Kafka: poleId={}, capturedDate={}, lat={}, lon={}, label={}, confidence={}, imageBytes={}",
+          data.getPoleId(),
+          data.getCapturedDate(),
+          data.getPoleInfo().getLatitude(),
+          data.getPoleInfo().getLongitude(),
+          data.getPoleInfo() != null ? data.getPoleInfo().getLabel() : "null",
+          data.getPoleInfo() != null ? data.getPoleInfo().getConfidence() : "null",
+          data.getImageBytes() != null ? data.getImageBytes().length + " bytes" : "null");
       MongoCollection<Pole> collection = database.getCollection(collectionName, Pole.class);
       GeoJsonPoint location =
-          new GeoJsonPoint(data.getNmeaInfo().getLongitude(), data.getNmeaInfo().getLatitude());
+          new GeoJsonPoint(data.getPoleInfo().getLongitude(), data.getPoleInfo().getLatitude());
       Pole nearestPole = polesRepository.findNearestPole(location.getX(), location.getY());
-      double lat = data.getNmeaInfo().getLatitude();
-      double lng = data.getNmeaInfo().getLongitude();
+      double lat = data.getPoleInfo().getLatitude();
+      double lng = data.getPoleInfo().getLongitude();
 
       String county = geoService.findCounty(lat, lng);
       String municipality = geoService.findMunicipality(lat, lng);
       NvdbService.VeiSystem veiInfo = nvdbService.getVeiInfo(lat, lng);
-      if (nearestPole != null && data.getImageBytes() != null && !data.getImageBytes().isEmpty()) {
+      if (nearestPole != null && data.getImageBytes() != null && data.getImageBytes().length > 0) {
         String imageId = UUID.randomUUID().toString();
-        Long capturedDate = data.getCapturedDate();
-        nearestPole.getImages().add(new ImageInfo(imageId, capturedDate, null, "not inspected", " ", " ", " "));
+        long capturedDate = parseToMillis(data.getCapturedDate());
+        nearestPole.getImages().add(new ImageInfo(imageId, capturedDate,
+            data.getPoleInfo().getLabel(), data.getPoleInfo().getConfidence(),
+            data.getPoleInfo().getBoundingBoxX(), data.getPoleInfo().getBoundingBoxY(),
+            data.getPoleInfo().getBoundingBoxWidth(), data.getPoleInfo().getBoundingBoxHeight(),
+            "not inspected", null, null, null, null));
         Pole savedPole = polesRepository.save(nearestPole);
         Path filePath = Paths.get(imgDir + imageId + ".jpg");
         Files.createDirectories(filePath.getParent());
-        Files.write(filePath, data.getImageBytes().get(0));
+        Files.write(filePath, data.getImageBytes());
         batchCollector.addPole(savedPole);
 
       } else {
@@ -123,23 +135,27 @@ private String collectionName;
         pole.setFixType(data.getNmeaInfo().getFixType());
         pole.setCourseOverGround(data.getNmeaInfo().getCourseOverGround());
         pole.setHdop(data.getNmeaInfo().getHdop());
-        pole.setCapturedDate(data.getCapturedDate());
+        pole.setCapturedDate(parseToMillis(data.getCapturedDate()));
         pole.setLocation(location);
         pole.setCounty(county);
         pole.setMunicipality(municipality);
         applyVeiInfo(pole, veiInfo);
         pole.setFieldOfView(data.getCameraInfo().getFieldOfView());
         pole.setSatellitesUsed(data.getNmeaInfo().getSatellitesUsed());
-        if (data.getImageBytes() != null && !data.getImageBytes().isEmpty()) {
+
+        if (data.getImageBytes() != null && data.getImageBytes().length > 0) {
           String imageId = UUID.randomUUID().toString();
-          pole.getImages().add(new ImageInfo(imageId, data.getCapturedDate(), null, "not inspected", " ", " ", " "));
+          pole.getImages().add(new ImageInfo(imageId, parseToMillis(data.getCapturedDate()),
+              data.getPoleInfo().getLabel(), data.getPoleInfo().getConfidence(),
+              data.getPoleInfo().getBoundingBoxX(), data.getPoleInfo().getBoundingBoxY(),
+              data.getPoleInfo().getBoundingBoxWidth(), data.getPoleInfo().getBoundingBoxHeight(),
+              "not inspected", null, null, null, null));
           Path filePath = Paths.get(imgDir + imageId + ".jpg");
           Files.createDirectories(filePath.getParent());
-          Files.write(filePath, data.getImageBytes().get(0));
+          Files.write(filePath, data.getImageBytes());
         }
-       InsertOneResult result = collection.insertOne(pole);
+        InsertOneResult result = collection.insertOne(pole);
         batchCollector.addPole(pole);
-        
         if (result.wasAcknowledged()) {
           LOGGER.info("*** kafka Message saved **** ");
         } else {
@@ -150,6 +166,11 @@ private String collectionName;
     } catch (Exception e) {
       LOGGER.error("Error while consuming message", e);
     }
+  }
+
+  private long parseToMillis(String capturedDate) {
+    double ts = Double.parseDouble(capturedDate);
+    return ts < 1_000_000_000_000.0 ? (long)(ts * 1000) : (long) ts;
   }
 
   private void applyVeiInfo(Pole pole, NvdbService.VeiSystem veiInfo) {

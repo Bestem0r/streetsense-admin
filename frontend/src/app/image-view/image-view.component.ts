@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,6 +10,7 @@ import { LeafletMapComponent } from '../leaflet-map/leaflet-map.component';
 import { NavComponent } from '../navbar/nav.component';
 import { PolesService } from '../service/poles.service';
 import { InspectorService, Inspector } from '../service/inspector.service';
+import { NvdbService, AadtResult } from '../service/nvdb.service';
 
 @Component({
   selector: 'app-image-view',
@@ -19,6 +20,7 @@ import { InspectorService, Inspector } from '../service/inspector.service';
     MatIconModule,
     MatTooltipModule,
     CommonModule,
+    DecimalPipe,
     NavComponent,
     RouterLink,
   ],
@@ -34,9 +36,12 @@ export class ImageViewComponent implements OnInit {
   selectedIndex: number | null = null;
   veiInfo: veiSystem | null = null;
   assignedInspector: Inspector | null = null;
+  aadt: AadtResult | null = null;
+  aadtLoading = false;
   readonly today = Date.now();
   private polesService = inject(PolesService);
   private inspectorService = inject(InspectorService);
+  private nvdbService = inject(NvdbService);
 
   private activateRouter = inject(ActivatedRoute);
 
@@ -62,6 +67,15 @@ export class ImageViewComponent implements OnInit {
       if (imageId) {
         this.imgUrl =
           'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' + imageId + '.jpg';
+      }
+
+      const coords = pole.location?.coordinates;
+      if (coords) {
+        this.aadtLoading = true;
+        this.nvdbService.getAadt(coords[1], coords[0]).subscribe((result) => {
+          this.aadt = result;
+          this.aadtLoading = false;
+        });
       }
     });
     const poleDataString = localStorage.getItem('poleData');

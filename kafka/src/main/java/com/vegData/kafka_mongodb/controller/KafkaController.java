@@ -22,20 +22,18 @@ public class KafkaController {
 
   @PostMapping(value = "/send", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<String> sendSnowPoleData(
-      @RequestPart("payload") String payloadJson, @RequestPart("images") MultipartFile[] images)
+      @RequestPart("payload") String payloadJson,
+      @RequestPart(value = "images", required = false) MultipartFile image)
       throws Exception {
 
     ObjectMapper mapper = new ObjectMapper();
     RawDataPole payload = mapper.readValue(payloadJson, RawDataPole.class);
-    if (images != null) {
-      for (MultipartFile image : images) {
-        payload.getImageBytes().add(image.getBytes());
-      }
+
+    if (image != null && !image.isEmpty()) {
+      payload.setImageBytes(image.getBytes());
     }
 
     kafkaProducerService.sendData(payload);
-    System.out.println(">>> DATA RECEIVED FOR KAFKA: " + payload.toString());
-    System.out.println(">>> NUMBER OF IMAGES: " + (images != null ? images.length : 0));
     return ResponseEntity.ok("Data and images sent to Kafka topic");
   }
 

@@ -150,43 +150,67 @@
   <div class="col-span-6 row-span-9 col-start-5 row-start-2">
     <div class="flex flex-col h-full w-full">
       <div
-        class="flex items-center justify-between px-3 py-2 bg-white border-b border-gray-300"
+        class="border-b border-gray-300 bg-white px-4 py-3 font-sans flex-shrink-0"
       >
-        <div class="text-[13px] font-bold">Pole Location</div>
+        <div class="text-[15px] font-bold text-slate-800">Pole Details</div>
+        <div
+          class="grid grid-cols-[140px_1fr_140px_1fr] gap-x-3 gap-y-1.5 text-[12px]"
+        >
+          <span class="text-slate-500 whitespace-nowrap">Latitude</span>
+          <span class="font-medium truncate">{{
+            poleData?.location?.coordinates?.[1]?.toFixed(6) ?? "—"
+          }}</span>
+
+          <span class="text-slate-500 whitespace-nowrap">Longitude</span>
+          <span class="font-medium truncate">{{
+            poleData?.location?.coordinates?.[0]?.toFixed(6) ?? "—"
+          }}</span>
+
+          <span class="text-slate-500 whitespace-nowrap">Road Category</span>
+          <span class="font-medium truncate">{{
+            poleData?.roadCategory ?? "—"
+          }}</span>
+
+          <span class="text-slate-500 whitespace-nowrap">Road Number</span>
+          <span class="font-medium truncate">{{
+            poleData?.roadNumber ?? "—"
+          }}</span>
+
+          <span class="text-slate-500 whitespace-nowrap"
+            >Distance from Road</span
+          >
+          <span class="font-medium truncate">{{
+            poleData?.distanceFromRoad !== null &&
+            poleData?.distanceFromRoad !== undefined
+              ? poleData!.distanceFromRoad + " m"
+              : "—"
+          }}</span>
+
+          <span class="text-slate-500 whitespace-nowrap"
+            >Daily Traffic (ÅDT)</span
+          >
+          <span class="font-medium truncate">
+            @if (aadtLoading) {
+              <span class="text-slate-400">Loading...</span>
+            } @else if (aadt) {
+              {{ aadt.total | number }} vehicles/day
+              <span class="text-slate-400 font-normal"
+                >({{ aadt.year
+                }}{{ aadt.roadName ? " · " + aadt.roadName : "" }})</span
+              >
+            } @else {
+              <span class="text-slate-400 font-normal">N/A</span>
+            }
+          </span>
+        </div>
       </div>
 
-      <div class="flex-1">
+      <!-- Map fills remaining space -->
+      <div class="flex-1 min-h-0">
         <app-leaflet-map
           class="h-full w-full"
           [poles]="poles"
         ></app-leaflet-map>
-      </div>
-
-      <div class="border-t border-gray-300 bg-white px-4 py-2 font-sans">
-        <div class="text-[11px] text-gray-500 uppercase mb-1">
-          Pole Metadata
-        </div>
-
-        <div class="flex gap-4 text-[12px]">
-          <div class="flex gap-2">
-            <strong class="text-gray-800">Latitude:</strong>
-            {{ poleData?.location?.coordinates?.[1]?.toFixed(6) }}
-          </div>
-          <div class="flex gap-2">
-            <strong class="text-gray-800">Longitude:</strong>
-            {{ poleData?.location?.coordinates?.[0]?.toFixed(6) }}
-          </div>
-
-          <div>
-            <strong>Road Category:</strong> {{ poleData?.roadCategory }}
-            <strong class="ml-4">Road Number:</strong>
-            {{ poleData?.roadNumber }}
-          </div>
-          <div>
-            <strong>Distance from Road:</strong>
-            {{ poleData?.distanceFromRoad }} m
-          </div>
-        </div>
       </div>
     </div>
   </div>

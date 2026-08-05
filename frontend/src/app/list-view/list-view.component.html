@@ -61,7 +61,7 @@
                 tabindex="0"
                 role="group"
               >
-                <div>
+                <!-- <div>
                   <div
                     class="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5"
                   >
@@ -91,7 +91,7 @@
                       Not Inspected
                     </button>
                   </div>
-                </div>
+                </div> -->
 
                 <div>
                   <div
@@ -329,11 +329,7 @@
                       class="flex gap-3 p-2 border border-border-default rounded bg-slate-50 hover:border-border-hover transition-colors hover:bg-slate-200"
                     >
                       <img
-                        [src]="
-                          'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
-                          getLatestImg(pole)?.imageId +
-                          '.jpg'
-                        "
+                        [src]="'assets/a.avif'"
                         (error)="onImageError($event)"
                         alt=""
                         class="w-18 h-20 object-cover border border-border-default rounded shrink-0"
@@ -362,34 +358,81 @@
                         </div>
                         <div class="flex gap-2">
                           <div class="mb-1">
-                            <span class="rounded-full px-2 py-1 text-[10px] border"
+                            <span
+                              class="rounded-full px-2 py-1 text-[10px] border"
                               [ngClass]="{
-                                'bg-success text-green-700 border-green-400': getLatestImg(pole)?.inspectionStatus?.toLowerCase() === 'inspected',
-                                'bg-red-100 text-red-800 border-red-400': getLatestImg(pole)?.inspectionStatus?.toLowerCase() === 'not inspected',
-                                'bg-yellow-100 text-yellow-700 border-yellow-400': getLatestImg(pole)?.inspectionStatus && getLatestImg(pole)?.inspectionStatus?.toLowerCase() !== 'inspected' && getLatestImg(pole)?.inspectionStatus?.toLowerCase() !== 'not inspected',
-                                'bg-slate-100 text-slate-700 border-slate-400': !getLatestImg(pole)?.inspectionStatus,
-                              }">
-                              {{ getLatestImg(pole)?.inspectionStatus ?? "Not Inspected" }}
+                                'bg-success text-green-700 border-green-400':
+                                  getLatestImg(
+                                    pole
+                                  )?.inspectionStatus?.toLowerCase() ===
+                                  'inspected',
+                                'bg-red-100 text-red-800 border-red-400':
+                                  getLatestImg(
+                                    pole
+                                  )?.inspectionStatus?.toLowerCase() ===
+                                  'not inspected',
+                                'bg-yellow-100 text-yellow-700 border-yellow-400':
+                                  getLatestImg(pole)?.inspectionStatus &&
+                                  getLatestImg(
+                                    pole
+                                  )?.inspectionStatus?.toLowerCase() !==
+                                    'inspected' &&
+                                  getLatestImg(
+                                    pole
+                                  )?.inspectionStatus?.toLowerCase() !==
+                                    'not inspected',
+                                'bg-slate-100 text-slate-700 border-slate-400':
+                                  !getLatestImg(pole)?.inspectionStatus,
+                              }"
+                            >
+                              {{
+                                getLatestImg(pole)?.inspectionStatus ??
+                                  "Not Inspected"
+                              }}
                             </span>
                           </div>
 
-                          @if (getLatestImg(pole)?.inspectionStatus?.toLowerCase() === 'inspected' && getLatestImg(pole)?.action) {
+                          @if (
+                            getLatestImg(
+                              pole
+                            )?.inspectionStatus?.toLowerCase() ===
+                              "inspected" && getLatestImg(pole)?.action
+                          ) {
                             <div class="mb-1">
-                              <span class="rounded-full px-2 py-1 text-[10px] border"
+                              <span
+                                class="rounded-full px-2 py-1 text-[10px] border"
                                 [ngClass]="{
-                                  'bg-slate-100 text-slate-600 border-slate-300': getLatestImg(pole)?.action === 'No Action needed',
-                                  'bg-red-100 text-red-700 border-red-300': getLatestImg(pole)?.action === 'Replace',
-                                  'bg-blue-100 text-blue-700 border-blue-300': getLatestImg(pole)?.action === 'Reposition/Realign',
-                                }">
+                                  'bg-slate-100 text-slate-600 border-slate-300':
+                                    getLatestImg(pole)?.action ===
+                                    'No action needed',
+                                  'bg-red-100 text-red-700 border-red-300':
+                                    getLatestImg(pole)?.action === 'Replace',
+                                  'bg-blue-100 text-blue-700 border-blue-300':
+                                    getLatestImg(pole)?.action ===
+                                    'Reposition/Realign',
+                                }"
+                              >
                                 {{ getLatestImg(pole)?.action }}
                               </span>
                             </div>
                           }
                           @if (getLatestImg(pole)?.dueDate) {
-                            <div class="text-[10px] mb-1"
-                              [ngClass]="getLatestImg(pole)!.dueDate! < todayMs ? 'text-red-600 font-semibold' : 'text-slate-400'">
-                              Due: {{ getLatestImg(pole)?.dueDate | date:'dd MMM yyyy' }}
-                              @if (getLatestImg(pole)!.dueDate! < todayMs) { <span>(overdue)</span> }
+                            <div
+                              class="text-[10px] mb-1"
+                              [ngClass]="
+                                getLatestImg(pole)!.dueDate! < todayMs
+                                  ? 'text-red-600 font-semibold'
+                                  : 'text-slate-400'
+                              "
+                            >
+                              Due:
+                              {{
+                                getLatestImg(pole)?.dueDate
+                                  | date: "dd MMM yyyy"
+                              }}
+                              @if (getLatestImg(pole)!.dueDate! < todayMs) {
+                                <span>(overdue)</span>
+                              }
                             </div>
                           }
                         </div>
@@ -408,13 +451,19 @@
                           </button>
                           @if (getLatestImageId(pole)) {
                             <button
-                              [routerLink]="['/inspection/edit', pole.id, getLatestImageId(pole)]"
+                              [routerLink]="[
+                                '/inspection/edit',
+                                pole.id,
+                                getLatestImageId(pole),
+                              ]"
                               class="rounded-md px-2.5 py-1 text-[11px] font-semibold bg-blue-600 text-white hover:bg-blue-700 cursor-pointer transition-colors border border-blue-600"
                             >
                               Edit
                             </button>
                           } @else {
-                            <span class="rounded-md px-2.5 py-1 text-[11px] font-semibold bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed">
+                            <span
+                              class="rounded-md px-2.5 py-1 text-[11px] font-semibold bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+                            >
                               No image
                             </span>
                           }

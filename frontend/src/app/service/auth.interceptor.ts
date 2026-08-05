@@ -19,10 +19,18 @@ export class AuthInterceptor implements HttpInterceptor {
     null,
   );
 
+  private isExternalRequest(url: string): boolean {
+    return url.includes('nvdbapiles.atlas.vegvesen.no');
+  }
+
   intercept(
     request: HttpRequest<any>,
     next: HttpHandler,
   ): Observable<HttpEvent<any>> {
+    if (this.isExternalRequest(request.url)) {
+      return next.handle(request);
+    }
+
     const token = this.authService.getToken();
 
     if (token) {

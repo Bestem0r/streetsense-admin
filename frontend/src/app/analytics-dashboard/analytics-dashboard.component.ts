@@ -115,6 +115,7 @@ export class AnalyticsDashboardComponent
   }
 
   private buildIngestionChart(): void {
+    if (!this.ingestionRef?.nativeElement) return;
     const sorted = [...this.stats.captureDates].sort(
       (a, b) => a.capturedDate - b.capturedDate,
     );
@@ -164,6 +165,7 @@ export class AnalyticsDashboardComponent
   }
 
   private buildStatusChart(): void {
+    if (!this.statusRef?.nativeElement) return;
     const notInspected = this.stats.totalPoles - this.stats.inspectedCount;
     const chart = new Chart(this.statusRef.nativeElement, {
       type: 'doughnut',
@@ -195,6 +197,7 @@ export class AnalyticsDashboardComponent
   }
 
   private buildCountyChart(): void {
+    if (!this.countyRef?.nativeElement) return;
     const chart = new Chart(this.countyRef.nativeElement, {
       type: 'bar',
       data: {
@@ -228,6 +231,7 @@ export class AnalyticsDashboardComponent
   }
 
   private buildInspectorChart(): void {
+    if (!this.inspectorRef?.nativeElement) return;
     const withNames = this.stats.byInspector
       .map((s) => {
         const insp = this.inspectorMap.get(s.inspectorId);

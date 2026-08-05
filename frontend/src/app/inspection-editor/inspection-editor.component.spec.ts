@@ -1,82 +1,38 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
+import { HttpResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { InspectionEditorComponent } from './inspection-editor.component';
 import { PolesService } from '../service/poles.service';
+import { InspectorService, Inspector } from '../service/inspector.service';
 import { Toast } from '../utils/toast';
 import { PoleInterface } from '../interfaces/pole-interface';
 
-vi.mock('leaflet', () => {
-  const stub = () => {
-    const self: any = {
-      addTo: vi.fn(() => self),
-      setPosition: vi.fn(() => self),
-      addLayer: vi.fn(() => self),
-      removeLayer: vi.fn(() => self),
-      clearLayers: vi.fn(() => self),
-      on: vi.fn(() => self),
-      off: vi.fn(() => self),
-      remove: vi.fn(() => self),
-      fitBounds: vi.fn(() => self),
-      flyTo: vi.fn(() => self),
-      setView: vi.fn(() => self),
-      zoomIn: vi.fn(() => self),
-      zoomOut: vi.fn(() => self),
-      latLng: vi.fn(() => self),
-      getLatLng: vi.fn(() => ({ lat: 0, lng: 0 })),
-      bindPopup: vi.fn(() => self),
-      openPopup: vi.fn(() => self),
-      setIcon: vi.fn(() => self),
-      getBounds: vi.fn(() => ({
-        toBBoxString: () => '',
-        contains: vi.fn(() => false),
-        getCenter: vi.fn(() => ({ lat: 0, lng: 0 })),
-      })),
-      latLngToContainerPoint: vi.fn(() => ({ x: 0, y: 0 })),
-    };
-    return self;
-  };
-  const L = {
-    map: vi.fn(stub),
-    layerGroup: vi.fn(stub),
-    featureGroup: vi.fn(stub),
-    FeatureGroup: function () {
-      return stub();
-    },
-    icon: vi.fn(() => ({})),
-    divIcon: vi.fn(() => ({})),
-    tileLayer: vi.fn(stub),
-    marker: vi.fn(stub),
-    latLng: vi.fn(stub),
-    control: { layers: vi.fn(stub), scale: vi.fn(stub) },
-    Control: {
-      extend: vi.fn(),
-      Draw: function () {
-        return stub();
-      },
-    },
-    Draw: { Event: { CREATED: 'draw:created', DRAWSTOP: 'draw:drawstop' } },
-    DomEvent: { stopPropagation: vi.fn() },
-  };
-  return { ...L, default: L };
-});
-vi.mock('leaflet-draw', () => ({ default: {} }));
 const POLE_ID = 'pole-123';
 const IMAGE_ID = 'image-456';
 
+const INSPECTOR: Inspector = {
+  id: 'insp-1',
+  firstName: 'Lars',
+  lastName: 'Hansen',
+  email: 'lars@example.com',
+  role: 'Inspector',
+};
+
 const mockPole: PoleInterface = {
   id: POLE_ID,
-  assignedInspector: '1',
+  county: 'Troms',
+  assignedInspector: INSPECTOR.id,
   images: [
     {
       imageId: IMAGE_ID,
-      capturedDate: 1715000000000,
-      inspectionDate: 1715100000000,
-      inspectionStatus: 'inspected',
-      action: 'No action needed',
-      notes: 'Test notes',
+      capturedDate: 1710460800000, // 2024-03-15
+      inspectionDate: 1710547200000,
+      inspectionStatus: 'Inspected',
+      action: 'No Action needed',
+      notes: 'Looks fine',
     },
   ],
 };
@@ -84,6 +40,10 @@ const mockPole: PoleInterface = {
 const mockPolesService = {
   getPoleById: vi.fn(),
   updatePole: vi.fn(),
+};
+
+const mockInspectorService = {
+  getInspectors: vi.fn(),
 };
 
 const mockToast = { show: vi.fn() };
@@ -97,23 +57,24 @@ const mockActivatedRoute = {
     },
   },
 };
+
 describe('InspectionEditorComponent', () => {
   let component: InspectionEditorComponent;
   let fixture: ComponentFixture<InspectionEditorComponent>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    mockActivatedRoute.snapshot.paramMap.get.mockImplementation(
-      (key: string) =>
-        key === 'id' ? POLE_ID : key === 'imageId' ? IMAGE_ID : null,
-    );
     mockPolesService.getPoleById.mockReturnValue(of(mockPole));
-    mockPolesService.updatePole.mockReturnValue(of({ status: 200 }));
+    mockPolesService.updatePole.mockReturnValue(
+      of(new HttpResponse({ status: 200 })),
+    );
+    mockInspectorService.getInspectors.mockReturnValue(of([INSPECTOR]));
 
     await TestBed.configureTestingModule({
       imports: [InspectionEditorComponent],
       providers: [
         { provide: PolesService, useValue: mockPolesService },
+        { provide: InspectorService, useValue: mockInspectorService },
         { provide: Toast, useValue: mockToast },
         { provide: ActivatedRoute, useValue: mockActivatedRoute },
       ],
@@ -127,7 +88,7 @@ describe('InspectionEditorComponent', () => {
   it('should create', () => expect(component).toBeTruthy());
 
   describe('ngOnInit()', () => {
-    it('reads imageId from route and calls getPoleById', () => {
+    it('reads imageId and poleId from route', () => {
       expect(component.imageId).toBe(IMAGE_ID);
       expect(mockPolesService.getPoleById).toHaveBeenCalledWith(POLE_ID);
     });
@@ -135,11 +96,14 @@ describe('InspectionEditorComponent', () => {
     it('sets selectedPole on success', () => {
       expect(component.selectedPole?.id).toBe(POLE_ID);
     });
-  });
-  describe('loadPoleData()', () => {
+
+    it('sets imageNumber by matching imageId in images array', () => {
+      expect(component.imageNumber).toBe(0);
+    });
+
     it('sets errorMessage when no poleId in route', () => {
       mockActivatedRoute.snapshot.paramMap.get.mockReturnValue(null);
-      component.loadPoleData();
+      component.ngOnInit();
       expect(component.errorMessage).toBe('No pole ID provided');
       expect(component.isLoading).toBe(false);
     });
@@ -149,18 +113,24 @@ describe('InspectionEditorComponent', () => {
         (key: string) => (key === 'id' ? POLE_ID : null),
       );
       mockPolesService.getPoleById.mockReturnValue(
-        throwError(() => new Error('Network error')),
+        throwError(() => new Error('fail')),
       );
-      component.loadPoleData();
+      component.ngOnInit();
       expect(component.errorMessage).toBe('Failed to load pole details');
       expect(component.isLoading).toBe(false);
     });
   });
+
   describe('initializeForm()', () => {
-    it('status and action are required', () => {
-      component.form.get('status')?.setValue('');
+    it('creates form with inspectionDate, action, inspector, notes fields', () => {
+      expect(component.form.contains('inspectionDate')).toBe(true);
+      expect(component.form.contains('action')).toBe(true);
+      expect(component.form.contains('inspector')).toBe(true);
+      expect(component.form.contains('notes')).toBe(true);
+    });
+
+    it('action field is required', () => {
       component.form.get('action')?.setValue('');
-      expect(component.form.get('status')?.hasError('required')).toBe(true);
       expect(component.form.get('action')?.hasError('required')).toBe(true);
     });
 
@@ -168,50 +138,82 @@ describe('InspectionEditorComponent', () => {
       component.form.get('notes')?.setValue('a'.repeat(501));
       expect(component.form.get('notes')?.hasError('maxlength')).toBe(true);
     });
+
+    it('does NOT have a status field', () => {
+      expect(component.form.contains('status')).toBe(false);
+    });
   });
+
   describe('prepopulateForm()', () => {
-    it('patches form values from pole image', () => {
-      expect(component.form.get('status')?.value).toBe('inspected');
-      expect(component.form.get('action')?.value).toBe('No action needed');
-      expect(component.form.get('notes')?.value).toBe('Test notes');
+    it('patches form from current image', () => {
+      expect(component.form.get('action')?.value).toBe('No Action needed');
+      expect(component.form.get('notes')?.value).toBe('Looks fine');
     });
 
-    it('sets selectedInspector by matching inspector id', () => {
-      expect(component.selectedInspector?.id).toBe(1);
-      expect(component.selectedInspector?.name).toBe('John Anderson');
+    it('sets selectedInspector by matching assignedInspector id', () => {
+      expect(component.selectedInspector?.id).toBe(INSPECTOR.id);
     });
 
     it('does nothing when pole has no images', () => {
-      const poleNoImages: PoleInterface = { id: 'x' };
-      component.prepopulateForm(poleNoImages);
-      expect(component.selectedInspector?.id).toBe(1); // unchanged
+      component.selectedInspector = null;
+      component.prepopulateForm({ id: 'x' });
+      expect(component.selectedInspector).toBeNull();
     });
   });
-
   describe('formatDateForInput()', () => {
     it('returns empty string for falsy input', () => {
       expect(component.formatDateForInput(undefined)).toBe('');
       expect(component.formatDateForInput(0)).toBe('');
     });
 
-    it('formats a numeric timestamp to YYYY-MM-DD', () => {
-      const ts = new Date(2025, 4, 10).getTime();
-      const result = component.formatDateForInput(ts);
-      expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(result).toContain('2025');
+    it('formats epoch ms to YYYY-MM-DD', () => {
+      expect(component.formatDateForInput(1710460800000)).toMatch(
+        /^2024-03-1\d$/,
+      );
     });
 
+    it('accepts string timestamps', () => {
+      expect(component.formatDateForInput('1710460800000')).toMatch(
+        /^\d{4}-\d{2}-\d{2}$/,
+      );
+    });
   });
-
   describe('formatDateForSubmit()', () => {
     it('returns 0 for empty string', () => {
       expect(component.formatDateForSubmit('')).toBe(0);
     });
 
-    it('converts date string to unix ms timestamp', () => {
-      const result = component.formatDateForSubmit('2025-05-10');
+    it('converts YYYY-MM-DD to epoch ms', () => {
+      const result = component.formatDateForSubmit('2024-03-15');
       expect(result).toBeGreaterThan(0);
       expect(typeof result).toBe('number');
+    });
+  });
+  describe('selectAction()', () => {
+    it('sets action and marks modified when value differs', () => {
+      component.form.get('action')?.setValue('No Action needed');
+      component.isModified = false;
+      component.selectAction('Replace');
+      expect(component.form.get('action')?.value).toBe('Replace');
+      expect(component.isModified).toBe(true);
+    });
+
+    it('does NOT set isModified when same value selected', () => {
+      component.form.get('action')?.setValue('Replace');
+      component.isModified = false;
+      component.selectAction('Replace');
+      expect(component.isModified).toBe(false);
+    });
+  });
+
+  describe('inspectorFullName()', () => {
+    it('returns firstName + lastName', () => {
+      expect(component.inspectorFullName(INSPECTOR)).toBe('Lars Hansen');
+    });
+
+    it('falls back to email when name is empty', () => {
+      const i: Inspector = { id: 'x', email: 'x@example.com' };
+      expect(component.inspectorFullName(i)).toBe('x@example.com');
     });
   });
 
@@ -219,44 +221,62 @@ describe('InspectionEditorComponent', () => {
     const makeEvent = (value: string) =>
       ({ target: { value } }) as unknown as Event;
 
-    it('returns all inspectors on empty input', () => {
-      component.filterInspectors(makeEvent(''));
-      expect(component.filteredInspectors).toHaveLength(4);
+    beforeEach(() => {
+      component.inspectors = [INSPECTOR];
     });
 
-    it('filters by name (case-insensitive)', () => {
-      component.filterInspectors(makeEvent('john'));
+    it('returns all inspectors on empty input', () => {
+      component.filterInspectors(makeEvent(''));
       expect(component.filteredInspectors).toHaveLength(1);
-      expect(component.filteredInspectors[0].name).toBe('John Anderson');
+    });
+
+    it('filters by first name (case-insensitive)', () => {
+      component.filterInspectors(makeEvent('lars'));
+      expect(component.filteredInspectors[0].id).toBe(INSPECTOR.id);
     });
 
     it('filters by email', () => {
-      component.filterInspectors(makeEvent('sarah.jensen'));
+      component.filterInspectors(makeEvent('lars@example'));
       expect(component.filteredInspectors).toHaveLength(1);
-      expect(component.filteredInspectors[0].name).toBe('Sarah Jensen');
     });
 
+    it('returns empty array when no match', () => {
+      component.filterInspectors(makeEvent('zzz'));
+      expect(component.filteredInspectors).toHaveLength(0);
+    });
   });
+
   describe('selectInspector()', () => {
-    it('sets selectedInspector, updates form, hides dropdown, marks modified', () => {
-      const inspector = { id: 2, name: 'Sarah Jensen', email: 'sarah@example.com' };
-      component.selectInspector(inspector);
-      expect(component.selectedInspector).toBe(inspector);
-      expect(component.form.get('inspector')?.value).toBe(2);
+    it('sets selectedInspector, updates form field, hides dropdown, marks modified', () => {
+      component.selectInspector(INSPECTOR);
+      expect(component.selectedInspector).toBe(INSPECTOR);
+      expect(component.form.get('inspector')?.value).toBe(INSPECTOR.id);
       expect(component.showInspectorDropdown).toBe(false);
       expect(component.isModified).toBe(true);
     });
   });
-  describe('showDropdown()', () => {
-    it('shows dropdown and loads all inspectors', () => {
-      component.showDropdown();
+
+  describe('changeInspector()', () => {
+    it('clears selectedInspector, shows dropdown, marks modified', () => {
+      component.selectedInspector = INSPECTOR;
+      component.changeInspector();
+      expect(component.selectedInspector).toBeNull();
       expect(component.showInspectorDropdown).toBe(true);
-      expect(component.filteredInspectors).toHaveLength(4);
+      expect(component.isModified).toBe(true);
     });
   });
 
+  describe('showDropdown()', () => {
+    it('opens dropdown and loads all inspectors', () => {
+      component.inspectors = [INSPECTOR];
+      component.showInspectorDropdown = false;
+      component.showDropdown();
+      expect(component.showInspectorDropdown).toBe(true);
+      expect(component.filteredInspectors).toEqual([INSPECTOR]);
+    });
+  });
   describe('hideDropdown()', () => {
-    it('hides dropdown after 200ms', () => {
+    it('hides dropdown after 200ms delay', () => {
       vi.useFakeTimers();
       component.showInspectorDropdown = true;
       component.hideDropdown();
@@ -265,29 +285,32 @@ describe('InspectionEditorComponent', () => {
       expect(component.showInspectorDropdown).toBe(false);
       vi.useRealTimers();
     });
+
+    it('does not hide before 200ms', () => {
+      vi.useFakeTimers();
+      component.showInspectorDropdown = true;
+      component.hideDropdown();
+      vi.advanceTimersByTime(199);
+      expect(component.showInspectorDropdown).toBe(true);
+      vi.useRealTimers();
+    });
   });
+
   describe('getInitials()', () => {
-    it('returns uppercase initials from name', () => {
-      expect(component.getInitials('John Anderson')).toBe('JA');
-      expect(component.getInitials('Sarah Jensen')).toBe('SJ');
-      expect(component.getInitials('Mike')).toBe('M');
+    it('returns uppercase initials', () => {
+      expect(component.getInitials('Lars Hansen')).toBe('LH');
+      expect(component.getInitials('Erik')).toBe('E');
     });
   });
   describe('onSubmit()', () => {
     beforeEach(() => {
       component.form.setValue({
-        inspectionDate: '2025-05-10',
-        status: 'inspected',
-        action: 'No action needed',
-        inspector: '1',
-        notes: 'Notes',
+        inspectionDate: '2024-03-15',
+        action: 'No Action needed',
+        inspector: INSPECTOR.id,
+        notes: 'Updated notes',
       });
-    });
-
-    it('marks all controls touched when form is invalid', () => {
-      component.form.get('status')?.setValue('');
-      component.onSubmit();
-      expect(component.form.get('status')?.touched).toBe(true);
+      component.selectedInspector = INSPECTOR;
     });
 
     it('returns early when selectedPole has no images', () => {
@@ -296,17 +319,55 @@ describe('InspectionEditorComponent', () => {
       expect(mockPolesService.updatePole).not.toHaveBeenCalled();
     });
 
-    it('calls updatePole with updated image data on valid submit', () => {
+    it('marks all controls touched when form invalid', () => {
+      component.form.get('action')?.setValue('');
       component.onSubmit();
-      expect(mockPolesService.updatePole).toHaveBeenCalledOnce();
-      const updatedPole: PoleInterface =
-        mockPolesService.updatePole.mock.calls[0][0];
-      expect(updatedPole.images?.[0].inspectionStatus).toBe('inspected');
-      expect(updatedPole.images?.[0].action).toBe('No action needed');
-      expect(updatedPole.images?.[0].notes).toBe('Notes');
+      expect(component.form.get('action')?.touched).toBe(true);
+      expect(mockPolesService.updatePole).not.toHaveBeenCalled();
     });
 
-    it('shows toast and resets flags on success', () => {
+    it('always sets inspectionStatus to Inspected', () => {
+      component.onSubmit();
+      const saved: PoleInterface = mockPolesService.updatePole.mock.calls[0][0];
+      expect(saved.images?.[0].inspectionStatus).toBe('Inspected');
+    });
+
+    it('preserves existing dueDate when action unchanged', () => {
+      component.selectedPole!.images![0].dueDate = 9999999;
+      component.selectedPole!.images![0].action = 'No Action needed';
+      component.form.get('action')?.setValue('No Action needed');
+      component.onSubmit();
+      const saved: PoleInterface = mockPolesService.updatePole.mock.calls[0][0];
+      expect(saved.images?.[0].dueDate).toBe(9999999);
+    });
+
+    it('computes dueDate = capturedDate + 28 days when action changes to Replace', () => {
+      component.form.get('action')?.setValue('Replace');
+      component.onSubmit();
+      const saved: PoleInterface = mockPolesService.updatePole.mock.calls[0][0];
+      const capturedDate = mockPole.images![0].capturedDate!;
+      const expectedDue = (() => {
+        const d = new Date(capturedDate);
+        d.setDate(d.getDate() + 28);
+        return d.getTime();
+      })();
+      expect(saved.images?.[0].dueDate).toBe(expectedDue);
+    });
+
+    it('computes dueDate = capturedDate + 7 days when action changes to Reposition/Realign', () => {
+      component.form.get('action')?.setValue('Reposition/Realign');
+      component.onSubmit();
+      const saved: PoleInterface = mockPolesService.updatePole.mock.calls[0][0];
+      const capturedDate = mockPole.images![0].capturedDate!;
+      const expectedDue = (() => {
+        const d = new Date(capturedDate);
+        d.setDate(d.getDate() + 7);
+        return d.getTime();
+      })();
+      expect(saved.images?.[0].dueDate).toBe(expectedDue);
+    });
+
+    it('shows success toast and resets flags on 200', () => {
       component.onSubmit();
       expect(mockToast.show).toHaveBeenCalledWith(
         'Inspection saved successfully!',
@@ -329,23 +390,8 @@ describe('InspectionEditorComponent', () => {
       expect(component.isSubmitting).toBe(false);
     });
   });
-
-  describe('hasError()', () => {
-    it('returns true when field has error and is touched', () => {
-      component.form.get('status')?.setErrors({ required: true });
-      component.form.get('status')?.markAsTouched();
-      expect(component.hasError('status', 'required')).toBe(true);
-    });
-
-    it('returns false when field has error but is not touched or dirty', () => {
-      component.form.get('status')?.setErrors({ required: true });
-      expect(component.hasError('status', 'required')).toBe(false);
-    });
-
-  });
-
   describe('cancelChanges()', () => {
-    it('opens modal only when isModified is true', () => {
+    it('opens modal only when isModified', () => {
       component.isModified = false;
       component.cancelChanges();
       expect(component.isCancelModalOpen).toBe(false);
@@ -357,28 +403,33 @@ describe('InspectionEditorComponent', () => {
   });
 
   describe('discardChanges()', () => {
-    it('restores saved form values and clears flags', () => {
-      component.form.patchValue({ notes: 'edited' });
+    it('restores saved form + inspector and clears flags', () => {
+      component.form.get('notes')?.setValue('dirty');
       component.isModified = true;
       component.isCancelModalOpen = true;
       component.discardChanges();
+      expect(component.form.get('notes')?.value).toBe('Looks fine');
       expect(component.isModified).toBe(false);
       expect(component.isCancelModalOpen).toBe(false);
     });
   });
 
   describe('notesLength', () => {
-    it('returns character count of notes field', () => {
+    it('returns character count', () => {
       component.form.get('notes')?.setValue('hello');
       expect(component.notesLength).toBe(5);
     });
 
+    it('returns 0 for empty notes', () => {
+      component.form.get('notes')?.setValue('');
+      expect(component.notesLength).toBe(0);
+    });
   });
 
   describe('getCurrentImage()', () => {
     it('returns image matching imageId', () => {
-      const img = component.getCurrentImage();
-      expect(img?.imageId).toBe(IMAGE_ID);
+      component.imageId = IMAGE_ID;
+      expect(component.getCurrentImage()?.imageId).toBe(IMAGE_ID);
     });
 
     it('returns null when selectedPole has no images', () => {
@@ -386,33 +437,49 @@ describe('InspectionEditorComponent', () => {
       expect(component.getCurrentImage()).toBeNull();
     });
 
-    it('returns undefined when no image matches imageId', () => {
+    it('returns undefined when imageId does not match', () => {
       component.imageId = 'no-match';
       expect(component.getCurrentImage()).toBeUndefined();
     });
   });
 
   describe('isFieldInvalid()', () => {
-    it('returns true when inspectionDate field and pickedDate is empty', () => {
+    it('returns true for inspectionDate when pickedDate is empty', () => {
       component.pickedDate = '';
       expect(component.isFieldInvalid('inspectionDate')).toBe(true);
     });
 
-    it('returns false for other fields regardless', () => {
-      expect(component.isFieldInvalid('status')).toBe(false);
+    it('returns false for other fields', () => {
+      expect(component.isFieldInvalid('action')).toBe(false);
     });
   });
 
-  describe('getErrorMessage()', () => {
-    it('returns date required message when pickedDate is empty', () => {
-      component.pickedDate = '';
-      expect(component.getErrorMessage('inspectionDate')).toBe(
-        'Inspection Date is required',
-      );
+  describe('isFieldTouched()', () => {
+    it('returns true when field is touched', () => {
+      component.form.get('action')?.markAsTouched();
+      expect(component.isFieldTouched('action')).toBe(true);
     });
 
-    it('returns generic message for other fields', () => {
-      expect(component.getErrorMessage('status')).toBe('Invalid input');
+    it('returns false when field is not touched', () => {
+      component.form.get('action')?.markAsUntouched();
+      expect(component.isFieldTouched('action')).toBe(false);
+    });
+
+    it('returns false for non-existent field', () => {
+      expect(component.isFieldTouched('nonexistent')).toBe(false);
+    });
+  });
+
+  describe('hasError()', () => {
+    it('returns true when field has error and is touched', () => {
+      component.form.get('action')?.setErrors({ required: true });
+      component.form.get('action')?.markAsTouched();
+      expect(component.hasError('action', 'required')).toBe(true);
+    });
+
+    it('returns false when field has error but not touched', () => {
+      component.form.get('action')?.setErrors({ required: true });
+      expect(component.hasError('action', 'required')).toBe(false);
     });
   });
 });

@@ -31,7 +31,8 @@ export class InspectorAnalyticsComponent
 {
   @ViewChild('actionChart') actionRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('countyChart') countyRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('municipalityChart') municipalityRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('municipalityChart')
+  municipalityRef!: ElementRef<HTMLCanvasElement>;
 
   private charts: Chart[] = [];
   private route = inject(ActivatedRoute);
@@ -48,7 +49,12 @@ export class InspectorAnalyticsComponent
   pendingCount = 0;
   actionsNeeded = 0;
   actionBreakdown: { action: string; count: number }[] = [];
-  recentActivity: { poleId: string; county: string; action: string; inspectionDate: number | null }[] = [];
+  recentActivity: {
+    poleId: string;
+    county: string;
+    action: string;
+    inspectionDate: number | null;
+  }[] = [];
 
   private chartsReady = false;
 
@@ -59,14 +65,19 @@ export class InspectorAnalyticsComponent
       stats: this.polesService.getInspectorStats(id),
     }).subscribe({
       next: ({ inspector, stats }) => {
-        if (!inspector) { this.router.navigate(['/inspectors']); return; }
+        if (!inspector) {
+          this.router.navigate(['/inspectors']);
+          return;
+        }
         this.inspector = inspector;
         this.stats = stats;
         this.computeStats(stats);
         this.isLoading = false;
         if (this.chartsReady) this.buildCharts();
       },
-      error: () => { this.isLoading = false; },
+      error: () => {
+        this.isLoading = false;
+      },
     });
   }
 
@@ -79,13 +90,17 @@ export class InspectorAnalyticsComponent
     this.charts.forEach((c) => c.destroy());
   }
 
-  goBack(): void { this.router.navigate(['/inspectors']); }
+  goBack(): void {
+    this.router.navigate(['/inspectors']);
+  }
 
   getInitials(f?: string, l?: string): string {
     return ((f?.[0] ?? '') + (l?.[0] ?? '')).toUpperCase();
   }
 
-  getAvatarColor(id: string): string { return getAvatarColor(id); }
+  getAvatarColor(id: string): string {
+    return getAvatarColor(id);
+  }
 
   private computeStats(stats: InspectorStats): void {
     this.totalAssigned = stats.totalAssigned;
@@ -93,7 +108,10 @@ export class InspectorAnalyticsComponent
     this.pendingCount = stats.totalAssigned - stats.inspectedCount;
 
     const actionable = stats.byAction.filter(
-      (a) => a.action && a.action !== 'No Action needed' && a.action !== 'Not Inspected'
+      (a) =>
+        a.action &&
+        a.action !== 'No action needed' &&
+        a.action !== 'Not Inspected',
     );
     this.actionsNeeded = actionable.reduce((sum, a) => sum + a.count, 0);
     this.actionBreakdown = actionable.sort((a, b) => b.count - a.count);
@@ -112,7 +130,7 @@ export class InspectorAnalyticsComponent
   private readonly ACTION_COLORS: Record<string, string> = {
     'Not Inspected': '#e2e8f0',
     'No Action needed': '#22c55e',
-    'Replace': '#ef4444',
+    Replace: '#ef4444',
     'Reposition/Realign': '#3b82f6',
   };
 
@@ -125,14 +143,25 @@ export class InspectorAnalyticsComponent
       type: 'doughnut',
       data: {
         labels,
-        datasets: [{ data, backgroundColor: colors, borderWidth: 3, borderColor: '#fff', hoverOffset: 6 }],
+        datasets: [
+          {
+            data,
+            backgroundColor: colors,
+            borderWidth: 3,
+            borderColor: '#fff',
+            hoverOffset: 6,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         cutout: '68%',
         plugins: {
-          legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 }, usePointStyle: true } },
+          legend: {
+            position: 'bottom',
+            labels: { padding: 14, font: { size: 11 }, usePointStyle: true },
+          },
         },
       },
     });
@@ -144,13 +173,15 @@ export class InspectorAnalyticsComponent
       type: 'bar',
       data: {
         labels: this.stats!.byCounty.map((e) => e.county),
-        datasets: [{
-          label: 'Poles',
-          data: this.stats!.byCounty.map((e) => e.count),
-          backgroundColor: 'rgba(23,57,182,0.75)',
-          borderRadius: 4,
-          borderSkipped: false,
-        }],
+        datasets: [
+          {
+            label: 'Poles',
+            data: this.stats!.byCounty.map((e) => e.count),
+            backgroundColor: 'rgba(23,57,182,0.75)',
+            borderRadius: 4,
+            borderSkipped: false,
+          },
+        ],
       },
       options: {
         indexAxis: 'y',
@@ -158,7 +189,11 @@ export class InspectorAnalyticsComponent
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { color: '#e2e8f0' }, beginAtZero: true, ticks: { precision: 0 } },
+          x: {
+            grid: { color: '#e2e8f0' },
+            beginAtZero: true,
+            ticks: { precision: 0 },
+          },
           y: { grid: { display: false } },
         },
       },
@@ -171,13 +206,15 @@ export class InspectorAnalyticsComponent
       type: 'bar',
       data: {
         labels: this.stats!.byMunicipality.map((e) => e.municipality),
-        datasets: [{
-          label: 'Poles',
-          data: this.stats!.byMunicipality.map((e) => e.count),
-          backgroundColor: 'rgba(14,116,144,0.75)',
-          borderRadius: 4,
-          borderSkipped: false,
-        }],
+        datasets: [
+          {
+            label: 'Poles',
+            data: this.stats!.byMunicipality.map((e) => e.count),
+            backgroundColor: 'rgba(14,116,144,0.75)',
+            borderRadius: 4,
+            borderSkipped: false,
+          },
+        ],
       },
       options: {
         indexAxis: 'y',
@@ -185,7 +222,11 @@ export class InspectorAnalyticsComponent
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { color: '#e2e8f0' }, beginAtZero: true, ticks: { precision: 0 } },
+          x: {
+            grid: { color: '#e2e8f0' },
+            beginAtZero: true,
+            ticks: { precision: 0 },
+          },
           y: { grid: { display: false } },
         },
       },
@@ -194,11 +235,18 @@ export class InspectorAnalyticsComponent
   }
 
   getActionClass(action: string): string {
-    if (action === 'Not assessed') return 'bg-slate-50 text-slate-400 border border-slate-200';
+    if (action === 'Not assessed')
+      return 'bg-slate-50 text-slate-400 border border-slate-200';
     if (action === 'No Action needed') return 'bg-slate-100 text-slate-600';
     if (action.includes('Missing')) return 'bg-amber-100 text-amber-700';
-    if (action.includes('Realign') || action.includes('Reposition')) return 'bg-blue-100 text-blue-700';
-    if (action === 'Replace' || action.includes('Damaged') || action.includes('Replacement')) return 'bg-red-100 text-red-700';
+    if (action.includes('Realign') || action.includes('Reposition'))
+      return 'bg-blue-100 text-blue-700';
+    if (
+      action === 'Replace' ||
+      action.includes('Damaged') ||
+      action.includes('Replacement')
+    )
+      return 'bg-red-100 text-red-700';
     return 'bg-slate-100 text-slate-600';
   }
 }
