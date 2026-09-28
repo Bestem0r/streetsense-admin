@@ -1,0 +1,58 @@
+# Rendered by the nginx entrypoint: only ${BACKEND_*} placeholders are
+# substituted (see NGINX_ENVSUBST_FILTER), nginx's own $variables are left alone.
+
+# Only forward "Connection: upgrade" when the client actually asked for it.
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Captured images are large; leave room for uploads.
+    client_max_body_size 25m;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/javascript application/json
+               image/svg+xml application/wasm;
+
+    # Docker's embedded DNS. Resolving per request (via the variable in
+    # proxy_pass below) means nginx starts even when the backend is still
+    # booting, and picks up its new address after a restart.
+    resolver 127.0.0.11 valid=10s ipv6=off;
+
+    # Same-origin API, so the browser never deals with CORS.
+    location /api/ {
+        set $backend "${BACKEND_ORIGIN}";
+        proxy_pass $backend$request_uri;
+
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        $connection_upgrade;
+        proxy_read_timeout 300s;
+    }
+
+    # Hashed build output never changes under the same name.
+    location ~* \.(?:js|css|woff2?|ttf|eot|png|jpe?g|gif|svg|webp|avif|ico)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Angular client-side routing.
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache";
+    }
+}
