@@ -25,8 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
     origins = {
       "http://localhost:4200",
       "http://localhost:8080",
-      "http://dt10.idi.ntnu.no",
-      "http://dt14.idi.ntnu.no:8080"
+      "http://vc07.idi.ntnu.no",
+      "http://vc07.idi.ntnu.no:8080"
     })
 public class PolesController {
 

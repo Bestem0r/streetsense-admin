@@ -43,11 +43,7 @@
             class="relative flex gap-3 p-3 bg-slate-50 border border-border-default rounded hover:border-border-hover cursor-pointer"
           >
             <img
-              [src]="
-                'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
-                image.imageId +
-                '.jpg'
-              "
+              [src]="poleImageUrl(image.imageId)"
               (error)="onImageError($event)"
               alt="Inspection Image"
               (click)="openImage(i)"
@@ -234,11 +230,7 @@
 
         <img
           class="w-full h-[320px] object-contain border mb-2"
-          [src]="
-            'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
-            selectedImage.imageId +
-            '.jpg'
-          "
+          [src]="poleImageUrl(selectedImage.imageId)"
           (error)="onImageError($event)"
           alt="Fullscreen Image"
           role="button"

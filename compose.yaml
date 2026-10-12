@@ -5,7 +5,7 @@
 #   docker compose logs -f backend   # follow one service
 #   docker compose down              # stop (add -v to drop the data volumes)
 #
-# The app is served on http://localhost:${FRONTEND_PORT:-8080}
+# The app is served on http://localhost:${FRONTEND_PORT:-80}
 
 name: master-project
 
@@ -77,7 +77,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       MONGODB_URI: mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-secret}@mongo:27017/${MONGO_DATABASE:-vegobject}?authSource=admin
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      APP_FRONTEND_URL: http://localhost:${FRONTEND_PORT:-8080}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://vc07.idi.ntnu.no}
       JWT_SECRET: ${JWT_SECRET:-mySecretKeyForJWTTokenGenerationAndValidationPurpose123456789WithMoreCharacters}
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       MAIL_PORT: ${MAIL_PORT:-587}
@@ -107,6 +107,8 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "${KAFKA_SERVICE_PORT:-9095}:9095"
+    volumes:
+      - pole-images:/var/www/RoadPolesImages
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9095'"]
       interval: 10s
@@ -124,7 +126,9 @@ services:
       # nginx proxies /api here, so the browser only ever talks to this origin.
       BACKEND_ORIGIN: http://backend:9091
     ports:
-      - "${FRONTEND_PORT:-8080}:80"
+      - "${FRONTEND_PORT:-80}:80"
+    volumes:
+      - pole-images:/srv/pole-images:ro
     healthcheck:
       # 127.0.0.1, not localhost: nginx listens on IPv4 only.
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
@@ -136,3 +140,4 @@ services:
 volumes:
   mongo-data:
   kafka-data:
+  pole-images:

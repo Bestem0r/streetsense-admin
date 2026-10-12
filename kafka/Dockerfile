@@ -16,6 +16,9 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 RUN useradd --system --create-home --uid 10001 spring
+
+RUN mkdir -p /var/www/RoadPolesImages/2026 && chown -R spring:spring /var/www
+
 USER spring
 
 COPY --from=build /build/target/*.jar app.jar

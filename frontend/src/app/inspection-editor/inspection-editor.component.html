@@ -130,11 +130,7 @@
               >
                 @if ((selectedPole.images?.length ?? 0) > 0) {
                   <img
-                    [src]="
-                      'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' +
-                      getCurrentImage()?.imageId +
-                      '.jpg'
-                    "
+                    [src]="poleImageUrl(getCurrentImage()?.imageId)"
                     (error)="onImageError($event)"
                     alt="Pole Image"
                     class="w-full h-full object-cover"

@@ -19,6 +19,7 @@ import { PoleInterface } from '../interfaces/pole-interface';
 import { NavComponent } from '../navbar/nav.component';
 import { PolesService } from '../service/poles.service';
 import { InspectorService, Inspector } from '../service/inspector.service';
+import { poleImageUrl } from '../utils/image.utils';
 
 @Component({
   selector: 'app-inspection-editor',
@@ -335,6 +336,8 @@ export class InspectionEditorComponent implements OnInit {
     const img = event.target as HTMLImageElement;
     img.src = 'assets/placeholder.svg';
   }
+
+  poleImageUrl(imageId: string | null | undefined): string { return poleImageUrl(imageId); }
 
   get notesLength(): number {
     return this.form.get('notes')?.value?.length || 0;

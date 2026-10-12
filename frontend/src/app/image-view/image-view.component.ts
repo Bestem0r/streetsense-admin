@@ -11,6 +11,7 @@ import { NavComponent } from '../navbar/nav.component';
 import { PolesService } from '../service/poles.service';
 import { InspectorService, Inspector } from '../service/inspector.service';
 import { NvdbService, AadtResult } from '../service/nvdb.service';
+import { poleImageUrl } from '../utils/image.utils';
 
 @Component({
   selector: 'app-image-view',
@@ -65,8 +66,7 @@ export class ImageViewComponent implements OnInit {
 
       const imageId = this.Images?.[0]?.imageId;
       if (imageId) {
-        this.imgUrl =
-          'http://dt14.idi.ntnu.no/RoadPolesImages/2026/' + imageId + '.jpg';
+        this.imgUrl = poleImageUrl(imageId);
       }
 
       const coords = pole.location?.coordinates;
@@ -122,4 +122,6 @@ export class ImageViewComponent implements OnInit {
     const img = event.target as HTMLImageElement;
     img.src = 'assets/placeholder.svg';
   }
+
+  poleImageUrl(imageId: string | null | undefined): string { return poleImageUrl(imageId); }
 }

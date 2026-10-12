@@ -11,7 +11,7 @@ RUN npm ci
 COPY . .
 # The arcgis/leaflet bundle is heavy; give the compiler headroom.
 ENV NODE_OPTIONS=--max-old-space-size=4096
-RUN npm run build -- --configuration docker
+RUN npm run build -- --configuration production
 
 # ---------- runtime ----------
 FROM nginx:1.27-alpine

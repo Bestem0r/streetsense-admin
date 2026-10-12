@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
-@CrossOrigin(origins = "http://dt10.idi.ntnu.no")
+@CrossOrigin(origins = "http://vc07.idi.ntnu.no")
 @SpringBootApplication
 @EnableScheduling
 // @RestController
