@@ -125,6 +125,8 @@ services:
     environment:
       # nginx proxies /api here, so the browser only ever talks to this origin.
       BACKEND_ORIGIN: http://backend:9091
+      # ...except /api/kafka/, the capture app's upload endpoint.
+      KAFKA_SERVICE_ORIGIN: http://kafka-service:9095
     ports:
       - "${FRONTEND_PORT:-80}:80"
     volumes:

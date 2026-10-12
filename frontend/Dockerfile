@@ -19,7 +19,8 @@ FROM nginx:1.27-alpine
 # The entrypoint renders templates/*.template into conf.d/ at startup; the
 # filter keeps it from touching nginx's own $variables.
 ENV BACKEND_ORIGIN=http://backend:9091
-ENV NGINX_ENVSUBST_FILTER=^BACKEND_
+ENV KAFKA_SERVICE_ORIGIN=http://kafka-service:9095
+ENV NGINX_ENVSUBST_FILTER=^(BACKEND|KAFKA)_
 
 COPY docker/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/mp-frontend/browser /usr/share/nginx/html
