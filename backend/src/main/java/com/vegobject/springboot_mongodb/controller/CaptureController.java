@@ -23,8 +23,7 @@ import org.springframework.lang.NonNull;
     origins = {
       "http://localhost:4200",
       "http://localhost:8080",
-      "http://vc07.idi.ntnu.no",
-      "http://vc07.idi.ntnu.no:8080"
+      "https://conmon.idi.ntnu.no"
     })
 public class CaptureController {
 
