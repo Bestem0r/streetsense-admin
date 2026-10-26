@@ -22,7 +22,7 @@ import org.springframework.lang.NonNull;
 @CrossOrigin(
     origins = {
       "http://localhost:4200",
-      "http://localhost:8080",
+      "http://localhost:8081",
       "https://conmon.idi.ntnu.no"
     })
 public class CaptureController {

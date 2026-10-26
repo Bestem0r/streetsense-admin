@@ -17,7 +17,7 @@ public class CorsConfig {
             .addMapping("/**")
             .allowedOrigins(
                 "http://localhost:4200",
-                "http://localhost:8080",
+                "http://localhost:8081",
                 "https://conmon.idi.ntnu.no")
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
