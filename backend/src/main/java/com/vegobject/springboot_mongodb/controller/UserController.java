@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/users")
 @CrossOrigin(origins = {
     "http://localhost:4200",
-    "http://localhost:8081",
+    "http://localhost:8082",
     "https://conmon.idi.ntnu.no"
 })
 public class UserController {
